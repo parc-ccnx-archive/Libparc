@@ -1,0 +1,382 @@
+/*
+ * Copyright (c) 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Patent rights are not granted under this agreement. Patent rights are
+ *       available under FRAND terms.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/**
+ * @author <#gscott#>, Palo Alto Research Center (Xerox PARC)
+ * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ */
+#include "../parc_SortedList.c"
+
+#include <LongBow/testing.h>
+#include <LongBow/debugging.h>
+#include <parc/algol/parc_Memory.h>
+#include <parc/algol/parc_SafeMemory.h>
+#include <parc/algol/parc_DisplayIndented.h>
+
+#include <parc/testing/parc_MemoryTesting.h>
+#include <parc/testing/parc_ObjectTesting.h>
+
+LONGBOW_TEST_RUNNER(parc_SortedList)
+{
+    // The following Test Fixtures will run their corresponding Test Cases.
+    // Test Fixtures are run in the order specified, but all tests should be idempotent.
+    // Never rely on the execution order of tests or share state between them.
+    LONGBOW_RUN_TEST_FIXTURE(CreateAcquireRelease);
+    LONGBOW_RUN_TEST_FIXTURE(Global);
+    LONGBOW_RUN_TEST_FIXTURE(Specialization);
+}
+
+// The Test Runner calls this function once before any Test Fixtures are run.
+LONGBOW_TEST_RUNNER_SETUP(parc_SortedList)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+// The Test Runner calls this function once after all the Test Fixtures are run.
+LONGBOW_TEST_RUNNER_TEARDOWN(parc_SortedList)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE(CreateAcquireRelease)
+{
+    LONGBOW_RUN_TEST_CASE(CreateAcquireRelease, CreateRelease);
+    LONGBOW_RUN_TEST_CASE(CreateAcquireRelease, CreateCompare);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(CreateAcquireRelease)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
+{
+    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
+        return LONGBOW_STATUS_MEMORYLEAK;
+    }
+
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    assertNotNull(instance, "Expected non-null result from parcSortedList_Create();");
+
+    parcObjectTesting_AssertAcquire(instance);
+
+    parcSortedList_Release(&instance);
+    assertNull(instance, "Expected null result from parcSortedList_Release();");
+}
+
+// A signum function to compare two PARCBuffers by length of buffer.
+static int
+_compareTwoBuffersByLength(const PARCObject *buf1, const PARCObject *buf2)
+{
+    size_t size1 = parcBuffer_Limit((PARCBuffer *) buf1);
+    size_t size2 = parcBuffer_Limit((PARCBuffer *) buf2);
+
+    if (size1 > size2) {
+        return 1;
+    } else if (size2 > size1) {
+        return -1;
+    }
+    return 0;
+}
+
+LONGBOW_TEST_CASE(CreateAcquireRelease, CreateCompare)
+{
+    PARCSortedList *instance = parcSortedList_CreateCompare(_compareTwoBuffersByLength);
+
+    PARCBuffer *buf1 = parcBuffer_WrapCString("medium long");
+    PARCBuffer *buf2 = parcBuffer_WrapCString("somewhat longer");
+    PARCBuffer *buf3 = parcBuffer_WrapCString("short");
+
+    parcSortedList_Add(instance, buf1);
+    parcSortedList_Add(instance, buf2);
+    parcSortedList_Add(instance, buf3);
+
+    PARCBuffer *test = parcSortedList_GetAtIndex(instance, 0);
+    assertTrue(test == buf3, "Expected the shortes buffer first");
+
+    test = parcSortedList_GetAtIndex(instance, 1);
+    assertTrue(test == buf1, "Expected the medium length buffer second");
+
+    test = parcSortedList_GetAtIndex(instance, 2);
+    assertTrue(test == buf2, "Expected the longest buffer last");
+
+    parcBuffer_Release(&buf1);
+    parcBuffer_Release(&buf2);
+    parcBuffer_Release(&buf3);
+
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_FIXTURE(Global)
+{
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_Copy);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_Display);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_Equals);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_HashCode);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_IsValid);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_ToJSON);
+    LONGBOW_RUN_TEST_CASE(Global, parcSortedList_ToString);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(Global)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
+{
+    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+        return LONGBOW_STATUS_MEMORYLEAK;
+    }
+
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_Copy)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCSortedList *copy = parcSortedList_Copy(instance);
+    assertTrue(parcSortedList_Equals(instance, copy), "Expected the copy to be equal to the original");
+
+    parcSortedList_Release(&instance);
+    parcSortedList_Release(&copy);
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_Display)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_Equals)
+{
+    PARCSortedList *x = parcSortedList_Create();
+    PARCSortedList *y = parcSortedList_Create();
+    PARCSortedList *z = parcSortedList_Create();
+
+    parcObjectTesting_AssertEquals(x, y, z, NULL);
+
+    parcSortedList_Release(&x);
+    parcSortedList_Release(&y);
+    parcSortedList_Release(&z);
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_HashCode)
+{
+    PARCSortedList *x = parcSortedList_Create();
+    PARCSortedList *y = parcSortedList_Create();
+
+    parcObjectTesting_AssertHashCode(x, y);
+
+    parcSortedList_Release(&x);
+    parcSortedList_Release(&y);
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_IsValid)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    assertTrue(parcSortedList_IsValid(instance), "Expected parcSortedList_Create to result in a valid instance.");
+
+    parcSortedList_Release(&instance);
+    assertFalse(parcSortedList_IsValid(instance), "Expected parcSortedList_Release to result in an invalid instance.");
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_ToJSON)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+
+    PARCJSON *json = parcSortedList_ToJSON(instance);
+
+    parcJSON_Release(&json);
+
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Global, parcSortedList_ToString)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+
+    char *string = parcSortedList_ToString(instance);
+
+    assertNotNull(string, "Expected non-NULL result from parcSortedList_ToString");
+
+    parcMemory_Deallocate((void **) &string);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_FIXTURE(Specialization)
+{
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Add);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Remove);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetAtIndex);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(Specialization)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
+{
+    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+        return LONGBOW_STATUS_MEMORYLEAK;
+    }
+
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+static void
+dump(PARCSortedList *i)
+{
+    PARCIterator *iterator = parcSortedList_CreateIterator(i);
+    while (parcIterator_HasNext(iterator)) {
+        PARCBuffer *buffer = parcIterator_Next(iterator);
+        parcBuffer_Display(buffer, 0);
+    }
+
+    parcIterator_Release(&iterator);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_Add)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCBuffer *element1 = parcBuffer_WrapCString("1");
+    PARCBuffer *element2 = parcBuffer_WrapCString("2");
+    PARCBuffer *element3 = parcBuffer_WrapCString("3");
+    PARCBuffer *element4 = parcBuffer_WrapCString("4");
+    PARCBuffer *element7 = parcBuffer_WrapCString("7");
+    PARCBuffer *element6 = parcBuffer_WrapCString("6");
+    PARCBuffer *element5 = parcBuffer_WrapCString("5");
+    PARCBuffer *element8 = parcBuffer_WrapCString("8");
+
+    parcSortedList_Add(instance, element2);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element8);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element3);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element4);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element7);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element6);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element5);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element1);
+    parcSortedList_Display(instance, 0);
+    parcSortedList_Add(instance, element6);
+    parcSortedList_Display(instance, 0);
+
+    dump(instance);
+
+    parcBuffer_Release(&element1);
+    parcBuffer_Release(&element2);
+    parcBuffer_Release(&element3);
+    parcBuffer_Release(&element4);
+    parcBuffer_Release(&element5);
+    parcBuffer_Release(&element6);
+    parcBuffer_Release(&element7);
+    parcBuffer_Release(&element8);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_Remove)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCBuffer *element1 = parcBuffer_WrapCString("1");
+    PARCBuffer *element2 = parcBuffer_WrapCString("2");
+    PARCBuffer *element3 = parcBuffer_WrapCString("3");
+    PARCBuffer *element4 = parcBuffer_WrapCString("4");
+    PARCBuffer *element7 = parcBuffer_WrapCString("7");
+    PARCBuffer *element6 = parcBuffer_WrapCString("6");
+    PARCBuffer *element5 = parcBuffer_WrapCString("5");
+    PARCBuffer *element8 = parcBuffer_WrapCString("8");
+
+    parcSortedList_Add(instance, element1);
+    parcSortedList_Add(instance, element2);
+    parcSortedList_Add(instance, element3);
+    parcSortedList_Display(instance, 0);
+
+    parcSortedList_Remove(instance, element2);
+
+    assertTrue(parcSortedList_Size(instance) == 2, "Expected list to be 2 in size");
+
+    parcBuffer_Release(&element1);
+    parcBuffer_Release(&element2);
+    parcBuffer_Release(&element3);
+    parcBuffer_Release(&element4);
+    parcBuffer_Release(&element5);
+    parcBuffer_Release(&element6);
+    parcBuffer_Release(&element7);
+    parcBuffer_Release(&element8);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_GetAtIndex)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCBuffer *element1 = parcBuffer_WrapCString("1");
+    PARCBuffer *element2 = parcBuffer_WrapCString("2");
+    PARCBuffer *element3 = parcBuffer_WrapCString("3");
+    PARCBuffer *element4 = parcBuffer_WrapCString("4");
+    PARCBuffer *element7 = parcBuffer_WrapCString("7");
+    PARCBuffer *element6 = parcBuffer_WrapCString("6");
+    PARCBuffer *element5 = parcBuffer_WrapCString("5");
+    PARCBuffer *element8 = parcBuffer_WrapCString("8");
+
+    parcSortedList_Add(instance, element1);
+    parcSortedList_Add(instance, element2);
+    parcSortedList_Add(instance, element3);
+
+    PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetAtIndex(instance, 1);
+    assertTrue(parcBuffer_Equals(element2, actual), "Got the wrong value at index 1");
+
+    parcBuffer_Release(&element1);
+    parcBuffer_Release(&element2);
+    parcBuffer_Release(&element3);
+    parcBuffer_Release(&element4);
+    parcBuffer_Release(&element5);
+    parcBuffer_Release(&element6);
+    parcBuffer_Release(&element7);
+    parcBuffer_Release(&element8);
+    parcSortedList_Release(&instance);
+}
+
+int
+main(int argc, char *argv[argc])
+{
+    LongBowRunner *testRunner = LONGBOW_TEST_RUNNER_CREATE(parc_SortedList);
+    int exitStatus = longBowMain(argc, argv, testRunner, NULL);
+    longBowTestRunner_Destroy(&testRunner);
+    exit(exitStatus);
+}

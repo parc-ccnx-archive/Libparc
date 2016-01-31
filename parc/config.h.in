@@ -1,0 +1,2 @@
+/* CPU Cache line size */
+#define LEVEL1_DCACHE_LINESIZE @LEVEL1_DCACHE_LINESIZE@

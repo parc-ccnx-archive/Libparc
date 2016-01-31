@@ -1,0 +1,73 @@
+/* responsivegridsystem/screen.css */
+body {
+    border-top: 7px solid {{ site.theme.highlight_color }};
+	height: 100%;
+	margin: 0 11% 0 11%;
+	font-family: {{ site.theme.bodyfont }};
+	line-height: 1.5em;
+}
+
+h1, h2, h3, h4 {
+	font-weight: bold;
+	padding-bottom: .2em;
+	border-bottom: 1px solid #f0f0f0;
+	line-height: 1.75em;
+}
+
+h1 {
+	font-size: 200%;
+}
+
+h2 {
+	font-size: 175%;
+}
+
+h3 {
+	font-size: 150%;
+}
+
+h4 {
+	font-size: 125%;
+}
+
+p {
+	padding-bottom: 1em;
+}
+
+ul {
+	padding-left: 2ex;
+}
+
+li {
+}
+
+blockquote {
+	font-style: italic;
+	margin: 0 0 0 10ex;
+	padding: 1em 1ex 1em 1ex;
+	background-color: #f0f0f0;
+    border-radius: 7px;
+}
+
+.header {
+	margin: 1em 0 1em 0;
+	line-height: 1.5em;
+}
+
+.header h1 {
+	font-size: xx-large;
+	font-style: italic;
+}
+
+.header h2 {
+	font-size: x-large;
+}
+
+.content {
+	border-left: 2px solid gray;
+	padding: 0 1ex 0 1ex;
+}
+
+.footer {
+	font-size: xx-small;
+}
