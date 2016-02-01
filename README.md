@@ -7,7 +7,7 @@ The PARC C Library
 $ git clone git@github.com:PARC/Libparc.git Libparc
 $ mkdir Libparc.build
 $ cd Libparc.build
-$ cmake -DCMAKE_INSTALL_PREFIX=${INSTALATION_DIRECTORY} ../Libparc
+$ cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ../Libparc
 $ make
 $ make test
 $ make install
