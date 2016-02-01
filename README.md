@@ -1,7 +1,19 @@
 Libparc
 =======
-PARC Library
-==========
+The PARC C Library
+
+## Quick Start ##
+```
+$ git clone git@github.com:PARC/Libparc.git Libparc
+$ mkdir Libparc.build
+$ cd Libparc.build
+$ cmake -DCMAKE_INSTALL_PREFIX=${INSTALATION_DIRECTORY} ../Libparc
+$ make
+$ make test
+$ make install
+```
+
+## Introduction ##
 
 The PARC Library is a C runtime providing an array of features and capabilities for C programs and programmers.
 
@@ -15,35 +27,86 @@ Functionality is grouped into:
 * Developer Aids
 * Networking and Communication
 
+## Using Libparc ##
 
-## Dependencies ##
+### Distillery ###
 
-This library depends on LongBow. - https://github.com/PARC/LongBow
+Libparc is part of [CCNx Distillery](https://github.com/PARC/CCNx_Distillery). You may want to get the software via that distribution if you want to work on CCNx.
 
-## Getting Started ##
+### Platforms ###
 
-Build and install LongBow by executing
+Libparc has been tested in:
+
+- Ubuntu 14.04 (x86_64)
+- MacOSX 10.10
+- MacOSX 10.11
+
+Other platforms and architectures may work.
+
+### Dependencies ###
+
+Build dependencies:
+
+- c99 ( clang / gcc )
+- CMake 3.4
+
+Basic dependencies:
+
+- OpenSSL
+- pthreads
+- Libevent
+- [LongBow](https://github.com/PARC/LongBow)
+
+Documentation dependencies:
+
+- Doxygen
+
+
+### Getting Started ###
+
+Libparc is built using cmake. You will need to have CMake 3.4 installed in order to build it.
+
 ```
-mkdir build
-cd build
-cmake ..
-make
-make install
-make test
+Download Libparc
+$ git clone git@github.com:PARC/Libparc.git Libparc
+
+Create build directory
+$ mkdir Libparc.build
+$ cd Libparc.build
+
+Prepare the build, give an install directory
+$ cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ../Libparc
+
+Compile the software
+$ make
+
+Run unit tests
+$ make test
+
+Install the software
+$ make install
 ```
 
-This will create the `include` and `lib` directories containing the necessary files to compile with LongBow.
+This will create the `include` and `lib` directories containing the necessary files to compile with LongBow in the `${INSTALL_DIR}`.
 
-### Compiling ###
+
+
+### Using Libparc ###
+
+Libparc is a set of functions and data structures for C. You can use it in your code by including the right header files and linking to the libparc library.
 
 ```
 LIBPARC=<directory-where-libparc-is-installed>
+
  -I${LIBPARC}/include -L${LIBPARC}/lib -lparc
 ```
 
 ### Contact ###
 
-Please see http://www.ccnx.org/
+- [Libparc GitHub](https://github.com/PARC/Libparc)
+- [CCNx Website](http://www.ccnx.org/)
+- [CCNx Mailing List](https://www.ccnx.org/mailman/listinfo/ccnx/)
+
 
 ### License ###
 
