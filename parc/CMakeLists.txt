@@ -13,10 +13,12 @@ set(LIBPARC_ALGOL_HEADER_FILES
     algol/parc_Base64.h 
     algol/parc_BitVector.h 
     algol/parc_Buffer.h 
+    algol/parc_BufferChunker.h
     algol/parc_BufferComposer.h 
     algol/parc_BufferDictionary.h 
     algol/parc_ByteArray.h 
     algol/parc_Clock.h 
+    algol/parc_Chunker.h
     algol/parc_CMacro.h 
     algol/parc_Collection.h 
     algol/parc_Deque.h 
@@ -31,6 +33,7 @@ set(LIBPARC_ALGOL_HEADER_FILES
     algol/parc_EventQueue.h 
     algol/parc_EventBuffer.h 
     algol/parc_File.h 
+    algol/parc_FileChunker.h
     algol/parc_FileInputStream.h 
     algol/parc_FileOutputStream.h 
     algol/parc_Hash.h 
@@ -84,15 +87,18 @@ set(LIBPARC_ALGOL_SOURCE_FILES
 	algol/parc_Base64.c 
 	algol/parc_BitVector.c 
 	algol/parc_Buffer.c 
+    algol/parc_BufferChunker.c
 	algol/parc_BufferComposer.c 
 	algol/parc_BufferDictionary.c 
 	algol/parc_ByteArray.c 
 	algol/parc_Clock.c 
+    algol/parc_Chunker.c
 	algol/parc_Deque.c 
 	algol/parc_Dictionary.c 
 	algol/parc_DisplayIndented.c 
 	algol/parc_Environment.c 
 	algol/parc_File.c 
+    algol/parc_FileChunker.c
 	algol/parc_FileInputStream.c 
 	algol/parc_FileOutputStream.c 
 	algol/parc_Hash.c 

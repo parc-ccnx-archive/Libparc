@@ -10,9 +10,11 @@ set(TestsExpectedToPass
   test_parc_Base64
   test_parc_BitVector
   test_parc_Buffer
+  test_parc_BufferChunker
   test_parc_BufferComposer
   test_parc_ByteArray
   test_parc_Clock
+  test_parc_Chunker
   test_parc_Deque
   test_parc_Dictionary
   test_parc_Display
@@ -25,6 +27,7 @@ set(TestsExpectedToPass
   test_parc_EventSocket
   test_parc_EventTimer
   test_parc_File
+  test_parc_FileChunker
   test_parc_FileInputStream
   test_parc_FileOutputStream
   test_parc_Hash
