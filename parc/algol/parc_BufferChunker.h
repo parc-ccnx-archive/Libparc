@@ -30,11 +30,11 @@
  * @brief A BufferChunker is a chunker that segments a PARCBuffer.
  *
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 
-#ifndef libccnx_parc_BufferChunker_h
-#define libccnx_parc_BufferChunker_h
+#ifndef libparc_parc_BufferChunker_h
+#define libparc_parc_BufferChunker_h
 
 #include <config.h>
 
@@ -48,7 +48,7 @@ struct parc_buffer_chunker;
 typedef struct parc_buffer_chunker PARCBufferChunker;
 
 /**
- * The mapping of a `PARCArrayList` to the generic `PARCList`.
+ * The mapping of a `PARCBufferChunker` to the generic `PARCChunker`.
  */
 extern PARCChunkerInterface *PARCBufferChunkerAsChunker;
 
@@ -58,26 +58,26 @@ extern PARCChunkerInterface *PARCBufferChunkerAsChunker;
  * @param [in] data A `PARCBuffer` which contains the data.
  * @param [in] chunkSize The size per chunk.
  *
- * @retval CCNxChunker A newly allocated `CCNxChunker`
+ * @retval PARCChunker A newly allocated `PARCChunker`
  * @retval NULL An error occurred.
  *
  * Example
  * @code
  * {
  *     PARCBuffer *dataToChunk = ...
- *     CCNxChunker *chunker = ccnxChunker_CreateFromBuffer(dataToChunk, 32);
+ *     PARCChunker *chunker = ccnxChunker_CreateFromBuffer(dataToChunk, 32);
  * }
  */
 PARCBufferChunker *parcBufferChunker_Create(PARCBuffer *data, size_t chunkSize);
 
 /**
- * Increase the number of references to a `CCNxChunker` instance.
+ * Increase the number of references to a `PARCChunker` instance.
  *
- * Note that new `CCNxChunker` is not created,
- * only that the given `CCNxChunker` reference count is incremented.
+ * Note that new `PARCChunker` is not created,
+ * only that the given `PARCChunker` reference count is incremented.
  * Discard the reference by invoking {@link ccnxChunker_Release}.
  *
- * @param [in] chunker A pointer to the original `CCNxChunker`.
+ * @param [in] chunker A pointer to the original `PARCChunker`.
  * @return The value of the input parameter @p chunker.
  *
  * Example:
@@ -211,4 +211,4 @@ PARCIterator *parcBufferChunker_ForwardIterator(const PARCBufferChunker *chunker
  */
 PARCIterator *parcBufferChunker_ReverseIterator(const PARCBufferChunker *chunker);
 
-#endif // libccnx_parc_BufferChunker_h
+#endif // libparc_parc_BufferChunker_h

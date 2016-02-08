@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @file ccnx_Chunker.h
+ * @file parc_Chunker.h
  * @ingroup ContentObject
  * @brief A Chunker is an object that breaks up a large piece of data from a `PARCBuffer`
  *        or a file and provides an iterator to walk over the chunks in sequential order.
  *
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 
-#ifndef libccnx_ccnx_Chunker_h
-#define libccnx_ccnx_Chunker_h
+#ifndef libparc_parc_Chunker_h
+#define libparc_parc_Chunker_h
 
 #include <config.h>
 
@@ -79,8 +79,8 @@ typedef struct PARCChunkerInterface {
  * @code
  * {
  *     PARCBuffer *dataToChunk = ...
- *     PARCChunkerBuffer *bufferChunker = ccnxBufferChunker_Create(dataToChunk, 32);
- *     PARCChunker *chunker = parcChunker_Create(bufferCunker, &CCNxBufferChunkerAsChunker);
+ *     PARCChunkerBuffer *bufferChunker = parcBufferChunker_Create(dataToChunk, 32);
+ *     PARCChunker *chunker = parcChunker_Create(bufferCunker, &PARCBufferChunkerAsChunker);
  * }
  */
 PARCChunker *parcChunker_Create(void *instance, PARCChunkerInterface *interface);
@@ -210,7 +210,7 @@ bool parcChunker_Equals(const PARCChunker *chunkerA, const PARCChunker *chunkerB
  * @code
  * {
  *     PARCBuffer *dataToChunk = ...
- *     CCNxBufferChunker *chunker = ...
+ *     PARCBufferChunker *chunker = ...
  *
  *     PARCIterator *itr = parcChunker_ForwardIterator(chunker);
  *
@@ -243,4 +243,4 @@ PARCIterator *parcChunker_ForwardIterator(const PARCChunker *chunker);
  * @endcode
  */
 PARCIterator *parcChunker_ReverseIterator(const PARCChunker *chunker);
-#endif // libccnx_ccnx_Chunker_h
+#endif // libparc_parc_Chunker_h

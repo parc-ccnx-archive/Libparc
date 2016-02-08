@@ -30,11 +30,11 @@
  * @brief A FileChunker is a chunker that segments the content of a file.
  *
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 
-#ifndef libccnx_parc_FileChunker_h
-#define libccnx_parc_FileChunker_h
+#ifndef libparc_parc_FileChunker_h
+#define libparc_parc_FileChunker_h
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ struct parc_buffer_chunker;
 typedef struct parc_buffer_chunker PARCFileChunker;
 
 /**
- * The mapping of a `PARCArrayList` to the generic `PARCList`.
+ * The mapping of a `PARCFileChunker` to the generic `PARCChunker`.
  */
 extern PARCChunkerInterface *PARCFileChunkerAsChunker;
 
@@ -60,26 +60,26 @@ extern PARCChunkerInterface *PARCFileChunkerAsChunker;
  * @param [in] file A `PARCFile` from which the data will be read.
  * @param [in] chunkSize The size per chunk.
  *
- * @retval CCNxChunker A newly allocated `CCNxChunker`
+ * @retval PARCFileChunker A newly allocated `PARCFileChunker`
  * @retval NULL An error occurred.
  *
  * Example
  * @code
  * {
  *     PARCBuffer *dataToChunk = ...
- *     CCNxChunker *chunker = ccnxChunker_CreateFromBuffer(dataToChunk, 32);
+ *     PARCFileChunker *chunker = PARCFileChunker_CreateFromBuffer(dataToChunk, 32);
  * }
  */
 PARCFileChunker *parcFileChunker_Create(PARCFile *file, size_t chunkSize);
 
 /**
- * Increase the number of references to a `CCNxChunker` instance.
+ * Increase the number of references to a `PARCFileChunker` instance.
  *
- * Note that new `CCNxChunker` is not created,
- * only that the given `CCNxChunker` reference count is incremented.
- * Discard the reference by invoking {@link ccnxChunker_Release}.
+ * Note that new `PARCFileChunker` is not created,
+ * only that the given `PARCFileChunker` reference count is incremented.
+ * Discard the reference by invoking {@link PARCFileChunker_Release}.
  *
- * @param [in] chunker A pointer to the original `CCNxChunker`.
+ * @param [in] chunker A pointer to the original `PARCFileChunker`.
  * @return The value of the input parameter @p chunker.
  *
  * Example:
@@ -212,4 +212,4 @@ PARCIterator *parcFileChunker_ForwardIterator(const PARCFileChunker *chunker);
  * @endcode
  */
 PARCIterator *parcFileChunker_ReverseIterator(const PARCFileChunker *chunker);
-#endif // libccnx_parc_FileChunker_h
+#endif // libparc_parc_FileChunker_h

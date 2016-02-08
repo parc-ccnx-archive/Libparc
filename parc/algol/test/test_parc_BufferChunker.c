@@ -26,7 +26,7 @@
  */
 /**
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 
 // Include the file(s) containing the functions to be tested.
@@ -34,8 +34,6 @@
 #include "../parc_BufferChunker.c"
 
 #include <stdio.h>
-
-#include <ccnx/common/ccnx_Name.h>
 
 #include <LongBow/unit-test.h>
 #include <parc/algol/parc_SafeMemory.h>
