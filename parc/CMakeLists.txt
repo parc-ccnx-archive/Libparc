@@ -261,6 +261,7 @@ set(LIBPARC_LOGGING_SOURCE_FILES
 set(LIBPARC_DEVELOPER_HEADER_FILES
     developer/parc_TimingIntel.h 
     developer/parc_Timer.h
+    developer/parc_Timing.h
 	)
 
 set(LIBPARC_DEVELOPER_SOURCE_FILES
