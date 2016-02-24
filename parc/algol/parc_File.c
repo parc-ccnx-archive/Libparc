@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
@@ -42,6 +42,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
+#include <sys/types.h>
+#include <pwd.h>
 
 #include <ftw.h>
 #include <inttypes.h>
@@ -69,7 +72,21 @@ _destroy(PARCFile **filePtr)
     parcPathName_Release(&file->pathName);
 }
 
-parcObject_ExtendPARCObject(PARCFile, _destroy, NULL, parcFile_ToString, NULL, NULL, NULL, NULL);
+static bool
+_parcFile_Destructor(PARCFile **filePtr)
+{
+    PARCFile *file = *filePtr;
+
+    parcPathName_Release(&file->pathName);
+
+    return true;
+}
+
+parcObject_Override(PARCFile, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcFile_Destructor,
+                    .toString = (PARCObjectToString *) parcFile_ToString);
+
+//parcObject_ExtendPARCObject(PARCFile, _destroy, NULL, parcFile_ToString, NULL, NULL, NULL, NULL);
 
 void
 parcFile_AssertValid(const PARCFile *instance)
@@ -257,6 +274,7 @@ parcFile_GetFileSize(const PARCFile *file)
     size_t fileSize = 0;
 
     char *fname = parcPathName_ToString(file->pathName);
+#if 0
     FILE *fp = fopen(fname, "r");
 
     assertNotNull(fp, "Could not open file '%s' to get size.", fname);
@@ -266,13 +284,27 @@ parcFile_GetFileSize(const PARCFile *file)
         fileSize = ftell(fp);
         fclose(fp);
     }
+#else
+    struct stat st;
+    
+    if (stat(fname, &st) == 0) {
+        fileSize = st.st_size;
+    }
+#endif
 
     parcMemory_Deallocate(&fname);
 
     return fileSize;
 }
 
+PARCFile *
+parcFile_CreateHome(void)
+{
+    char *path;
 
-
-
-
+    if ((path = getenv("HOME")) == NULL) {
+        path = getpwuid(getuid())->pw_dir;
+    }
+    
+    return parcFile_Create(path);
+}

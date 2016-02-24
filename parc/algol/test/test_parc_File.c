@@ -64,13 +64,17 @@ LONGBOW_TEST_FIXTURE(AcquireRelease)
 
 LONGBOW_TEST_FIXTURE_SETUP(AcquireRelease)
 {
+    longBowClipBoard_SetInt(testClipBoard, "initalAllocations", parcMemory_Outstanding());
+    
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(AcquireRelease)
 {
+    uint64_t initialAllocations = longBowClipBoard_GetAsInt(testClipBoard, "initalAllocations");
+
     uint32_t outstandingAllocations = parcSafeMemory_ReportAllocation(STDOUT_FILENO);
-    if (outstandingAllocations != 0) {
+    if (initialAllocations < outstandingAllocations) {
         printf("%s leaks memory by %d allocations\n", longBowTestCase_GetName(testCase), outstandingAllocations);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
@@ -98,17 +102,21 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateDeleteNewFile);
     LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateDelete_Directory);
     LONGBOW_RUN_TEST_CASE(Global, parcFile_Exists);
+    LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateHome);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
 {
+    longBowClipBoard_SetInt(testClipBoard, "initalAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
 {
+    uint64_t initialAllocations = longBowClipBoard_GetAsInt(testClipBoard, "initalAllocations");
+    
     uint32_t outstandingAllocations = parcSafeMemory_ReportAllocation(STDOUT_FILENO);
-    if (outstandingAllocations != 0) {
+    if (initialAllocations < outstandingAllocations) {
         printf("%s leaks memory by %d allocations\n", longBowTestCase_GetName(testCase), outstandingAllocations);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
@@ -186,6 +194,22 @@ LONGBOW_TEST_CASE(Global, parcFile_CreateDelete_Directory)
 
     parcFile_Release(&file);
     parcFile_Release(&directory);
+}
+
+LONGBOW_TEST_CASE(Global, parcFile_CreateHome)
+{
+    char *expected = "/tmp";
+    
+    setenv("HOME", expected, 1);
+    
+    PARCFile *file = parcFile_CreateHome();
+    
+    char *actual = parcFile_ToString(file);
+    
+    assertTrue(strcmp(expected, actual) == 0, "Expected %s, actual %s", expected, actual);
+
+    parcMemory_Deallocate(&actual);
+    parcFile_Release(&file);
 }
 
 LONGBOW_TEST_FIXTURE(Local)

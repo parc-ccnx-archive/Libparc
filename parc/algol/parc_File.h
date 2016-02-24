@@ -222,7 +222,40 @@ bool parcFile_Delete(const PARCFile *file);
  */
 PARCBufferComposer *parcFile_BuildString(const PARCFile *file, PARCBufferComposer *string);
 
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
 size_t parcFile_GetFileSize(const PARCFile *file);
+
+/**
+ * Create a PARCFile representation of the home directory of the current user.
+ *
+ * The return value must be released via `parcFile_Release`.
+ *
+ * @return non-NULL A pointer to a valid PARCFile instance.
+ * @return NULL An error occurred.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCFile *directory = parcFile_CreateHome();
+ * }
+ * @endcode
+ */
+PARCFile *parcFile_CreateHome(void);
 
 /**
  * Produce a null-terminated string representation of the specified `PARCFile` instance.
