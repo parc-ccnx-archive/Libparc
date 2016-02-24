@@ -267,12 +267,14 @@ set(LIBPARC_LOGGING_SOURCE_FILES
 set(LIBPARC_DEVELOPER_HEADER_FILES
     developer/parc_TimingIntel.h 
     developer/parc_Timer.h
+    developer/parc_Stopwatch.h
     developer/parc_Timing.h
 	)
 
 set(LIBPARC_DEVELOPER_SOURCE_FILES
     developer/parc_TimingIntel.c 
     developer/parc_Timer.c
+    developer/parc_Stopwatch.c
 	)
 
 
@@ -293,6 +295,14 @@ set(LIBPARC_SOURCE_FILES
 	${LIBPARC_LOGGING_HEADER_FILES}
 	${LIBPARC_DEVELOPER_HEADER_FILES}
 	)
+
+
+source_group(algol FILES ${LIBPARC_ALGOL_SOURCE_FILES} ${LIBPARC_ALGOL_HEADER_FILES})
+source_group(concurrent FILES ${LIBPARC_CONCURRENT_SOURCE_FILES} ${LIBPARC_CONCURRENT_HEADER_FILES})
+source_group(security FILES ${LIBPARC_SECURITY_SOURCE_FILES} ${LIBPARC_SECURITY_HEADER_FILES})
+source_group(developer FILES ${LIBPARC_DEVELOPER_SOURCE_FILES} ${LIBPARC_DEVELOPER_HEADER_FILES})
+source_group(logging FILES ${LIBPARC_LOGGING_SOURCE_FILES} ${LIBPARC_LOGGING_HEADER_FILES})
+source_group(testing FILES ${LIBPARC_TESTING_SOURCE_FILES} ${LIBPARC_TESTING_HEADER_FILES})
  
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")

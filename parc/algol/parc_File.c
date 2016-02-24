@@ -274,23 +274,12 @@ parcFile_GetFileSize(const PARCFile *file)
     size_t fileSize = 0;
 
     char *fname = parcPathName_ToString(file->pathName);
-#if 0
-    FILE *fp = fopen(fname, "r");
 
-    assertNotNull(fp, "Could not open file '%s' to get size.", fname);
-
-    if (NULL != fp) {
-        fseek(fp, 0, SEEK_END);
-        fileSize = ftell(fp);
-        fclose(fp);
-    }
-#else
     struct stat st;
     
     if (stat(fname, &st) == 0) {
         fileSize = st.st_size;
     }
-#endif
 
     parcMemory_Deallocate(&fname);
 

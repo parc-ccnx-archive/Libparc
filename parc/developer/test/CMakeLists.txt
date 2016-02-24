@@ -1,5 +1,5 @@
 set(TestsExpectedToPass
-  test_parc_Timer
+  test_parc_Stopwatch
   test_parc_Timing
   )
 
