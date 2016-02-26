@@ -33,7 +33,6 @@ find_package ( Threads REQUIRED )
 
 find_package ( OpenSSL REQUIRED )
 
-
 find_package( Doxygen )
 
 set(PARC_BIN_LIBRARIES
@@ -44,13 +43,20 @@ set(PARC_BIN_LIBRARIES
   ${CMAKE_THREAD_LIBS_INIT}
   )
 
+add_custom_target(cleanup_profiling_data
+        "touch" "/tmp/script"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Cleanup previous profiling data.")
+
 macro(AddTest testFile)
   add_executable(${ARGV0} ${ARGV0}.c)
   target_link_libraries(${ARGV0} ${PARC_BIN_LIBRARIES})
-  add_test(${ARGV0} ${ARGV0})
+  add_test(NAME ${ARGV0} COMMAND ${ARGV0})
   set_target_properties(${ARGV0} PROPERTIES FOLDER Test)
-endmacro(AddTest)
+  add_dependencies(${ARGV0} cleanup_profiling_data)
 
+
+endmacro(AddTest)
 
 
 add_subdirectory(parc)

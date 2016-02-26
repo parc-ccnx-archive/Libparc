@@ -270,6 +270,7 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_RunAndReset)
     bool actual = parcFutureTask_RunAndReset(task);
     
     assertTrue(actual, "Expectd parcFutureTask_RunAndReset to return true.");
+    assertFalse(parcFutureTask_IsDone(task), "Expected parcFutureTask_IsDone to be false");
     parcFutureTask_Release(&task);
 }
 
