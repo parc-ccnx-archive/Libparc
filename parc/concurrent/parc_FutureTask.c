@@ -1,0 +1,297 @@
+/*
+ * Copyright (c) 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Patent rights are not granted under this agreement. Patent rights are
+ *       available under FRAND terms.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/**
+ * @author Glenn Scott, Computing Science Laboratory, PARC
+ * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
+ */
+#include <config.h>
+#include <stdio.h>
+
+#include <parc/algol/parc_Object.h>
+#include <parc/algol/parc_DisplayIndented.h>
+#include <parc/algol/parc_Memory.h>
+#include <parc/algol/parc_Execution.h>
+
+#include <parc/concurrent/parc_FutureTask.h>
+
+struct PARCFutureTask {
+    void *(*function)(void *parameter);
+    void *parameter;
+    void *result;
+    bool isRunning;
+    bool isDone;
+    bool isCancelled;
+};
+
+static void
+_parcFutureTask_Initialise(PARCFutureTask *futureTask)
+{
+    futureTask->result = NULL;
+    futureTask->isDone = false;
+    futureTask->isCancelled = false;
+    futureTask->isRunning = false;
+}
+
+static bool
+_parcFutureTask_Destructor(PARCFutureTask **instancePtr)
+{
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCFutureTask pointer.");
+    PARCFutureTask *instance = *instancePtr;
+    
+    
+    /* cleanup the instance fields here */
+    return true;
+}
+
+parcObject_ImplementAcquire(parcFutureTask, PARCFutureTask);
+
+parcObject_ImplementRelease(parcFutureTask, PARCFutureTask);
+
+parcObject_Override(PARCFutureTask, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcFutureTask_Destructor,
+                    .copy = (PARCObjectCopy *) parcFutureTask_Copy,
+                    .toString = (PARCObjectToString *) parcFutureTask_ToString,
+                    .equals = (PARCObjectEquals *) parcFutureTask_Equals,
+                    .compare = (PARCObjectCompare *) parcFutureTask_Compare,
+                    .hashCode = (PARCObjectHashCode *) parcFutureTask_HashCode,
+                    .display = (PARCObjectDisplay *) parcFutureTask_Display);
+
+void
+parcFutureTask_AssertValid(const PARCFutureTask *task)
+{
+    assertTrue(parcFutureTask_IsValid(task),
+               "PARCFutureTask is not valid.");
+}
+
+PARCFutureTask *
+parcFutureTask_Create(void *(*function)(void *parameter), void *parameter)
+{
+    PARCFutureTask *result = parcObject_CreateInstance(PARCFutureTask);
+    
+    if (result != NULL) {
+        result->function = function;
+        result->parameter = parameter;
+        _parcFutureTask_Initialise(result);
+    }
+
+    return result;
+}
+
+int
+parcFutureTask_Compare(const PARCFutureTask *instance, const PARCFutureTask *other)
+{
+    int result = 0;
+    
+    return result;
+}
+
+PARCFutureTask *
+parcFutureTask_Copy(const PARCFutureTask *original)
+{
+    PARCFutureTask *result = parcFutureTask_Create(original->function, original->parameter);
+    
+    return result;
+}
+
+void
+parcFutureTask_Display(const PARCFutureTask *instance, int indentation)
+{
+    parcDisplayIndented_PrintLine(indentation, "PARCFutureTask@%p {", instance);
+    /* Call Display() functions for the fields here. */
+    parcDisplayIndented_PrintLine(indentation, "}");
+}
+
+bool
+parcFutureTask_Equals(const PARCFutureTask *x, const PARCFutureTask *y)
+{
+    bool result = false;
+    
+    if (x == y) {
+        result = true;
+    } else if (x == NULL || y == NULL) {
+        result = false;
+    } else {
+        if (x->function == y->function) {
+            if (x->parameter == y->parameter) {
+                result = true;
+            }
+        }
+    }
+    
+    return result;
+}
+
+PARCHashCode
+parcFutureTask_HashCode(const PARCFutureTask *instance)
+{
+    PARCHashCode result = 0;
+    
+    return result;
+}
+
+bool
+parcFutureTask_IsValid(const PARCFutureTask *instance)
+{
+    bool result = false;
+    
+    if (instance != NULL) {
+        result = true;
+    }
+    
+    return result;
+}
+
+PARCJSON *
+parcFutureTask_ToJSON(const PARCFutureTask *instance)
+{
+    PARCJSON *result = parcJSON_Create();
+    
+    if (result != NULL) {
+        
+    }
+    
+    return result;
+}
+
+char *
+parcFutureTask_ToString(const PARCFutureTask *instance)
+{
+    char *result = parcMemory_Format("PARCFutureTask@%p\n", instance);
+
+    return result;
+}
+
+// Attempts to cancel execution of this task.
+bool
+parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
+{
+    bool result = false;
+    
+    parcObject_Lock(task);
+    
+    if (task->isRunning) {
+        if (mayInterruptIfRunning) {
+            printf("Interrupting a running task is not implemented yet.\n");
+        }
+        result = false;
+    } else {
+        task->isCancelled = true;
+        task->isDone = true;
+        parcObject_Notify(task);
+    }
+    
+    parcObject_Unlock(task);
+    
+    return result;
+}
+
+////Protected method invoked when this task transitions to state isDone (whether normally or via cancellation).
+//void parcFutureTask_Done(PARCFutureTask *futureTask);
+
+//Waits if necessary for the computation to complete, and then retrieves its result.
+//void *parcFutureTask_Get(PARCFutureTask *futureTask);
+
+PARCFutureTaskResult
+parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout)
+{
+    PARCFutureTaskResult result;
+    
+    if (timeout == PARCTimeout_Immediate) {
+        parcObject_Lock(futureTask);
+        if (futureTask->isDone) {
+            result.execution = PARCExecution_OK;
+            result.value = futureTask->result;
+        } else {
+            result.execution = PARCExecution_Timeout;
+            result.value = 0;
+        }
+        parcObject_Unlock(futureTask);
+    } else {
+        result.execution = PARCExecution_Interrupted;
+        result.value = 0;
+        
+        parcObject_Lock(futureTask);
+        while (!futureTask->isDone) {
+            if (parcObject_WaitFor(futureTask, timeout)) {
+                result.execution = PARCExecution_OK;
+                result.value = futureTask->result;
+                break;
+            }
+        }
+        parcObject_Unlock(futureTask);
+    }
+    
+    return result;
+}
+
+bool
+parcFutureTask_IsCancelled(const PARCFutureTask *task)
+{
+    return task->isCancelled;
+}
+
+bool
+parcFutureTask_IsDone(const PARCFutureTask *task)
+{
+    return task->isDone;
+}
+
+static void *
+_parcFutureTask_Execute(PARCFutureTask *task)
+{
+    task->isRunning = true;
+    void *result = task->function(task->parameter);
+    task->isRunning = false;
+    
+    return result;
+}
+
+void
+parcFutureTask_Run(PARCFutureTask *task)
+{
+    parcObject_Lock(task);
+    if (!task->isDone) {
+        if (!task->isCancelled) {
+            task->result = _parcFutureTask_Execute(task);
+            task->isDone = true;
+            parcObject_Notify(task);
+        }
+    }
+    parcObject_Unlock(task);
+}
+
+bool
+parcFutureTask_RunAndReset(PARCFutureTask *task)
+{
+    bool result = false;
+    if (!task->isCancelled) {
+        _parcFutureTask_Execute(task);
+        _parcFutureTask_Initialise(task);
+        result = true;
+    }
+    return result;
+}

@@ -8,6 +8,7 @@ set(TestsExpectedToPass
   test_parc_RingBuffer_1x1
   test_parc_RingBuffer_NxM
   test_parc_Synchronizer
+  test_parc_FutureTask
   )
 
 # Enable gcov output for the tests

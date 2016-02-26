@@ -766,9 +766,11 @@ parcObject_Wait(const PARCObject *object)
     }
 }
 
-void
+bool
 parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
 {
+    bool result = true;
+    
     parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
@@ -777,12 +779,20 @@ parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
                           "You must Lock the object %p before calling parcObject_Wait", (void *) object);
 
     header->locking.notified = false;
-    pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, time);
+    int waitResult = pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, time);
+    
+    if (waitResult == ETIMEDOUT) {
+        result = false;
+    }
+    
+    return result;
 }
 
-void
+bool
 parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
 {
+    bool result = true;
+    
     parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
@@ -801,7 +811,13 @@ parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
     time.tv_sec += time.tv_nsec / 1000000000;
     time.tv_nsec = time.tv_nsec % 1000000000;
 
-    pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, &time);
+    int waitResult = pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, &time);
+    
+    if (waitResult == ETIMEDOUT) {
+        result = false;
+    }
+    
+    return result;
 }
 
 void

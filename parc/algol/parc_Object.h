@@ -1005,6 +1005,9 @@ void parcObject_Wait(const PARCObject *object);
  * This function must only be called by a thread that is the owner of this object's lock.
  *
  * @param [in] object A pointer to a valid PARCObject instance.
+ 
+ * @returns false if the alloted time was exceeded.
+ * @returns true if another thread invoked the `parcObject_Notify()` function
  *
  * Example:
  * @code
@@ -1020,7 +1023,7 @@ void parcObject_Wait(const PARCObject *object);
  * }
  * @endcode
  */
-void parcObject_WaitUntil(const PARCObject *object, const struct timespec *time);
+bool parcObject_WaitUntil(const PARCObject *object, const struct timespec *time);
 
 /**
  * @def parcObject_ImplementWaitUntil
@@ -1033,25 +1036,29 @@ void parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
  * @see parcObject_WaitUntil
  */
 #define parcObject_ImplementWaitUntil(_namespace, _type)                                           \
-    static inline void _namespace##_WaitUntil(const _type *pObject, const struct timespec *time) { \
-    parcObject_WaitUntil((const PARCObject *) pObject, time);                                      \
+    static inline bool _namespace##_WaitUntil(const _type *pObject, const struct timespec *time) { \
+        return parcObject_WaitUntil((const PARCObject *) pObject, time);                           \
 }  typedef void parcCMacro_Cat(_type, _WaitUntil_NOOP)
-
 
 /**
  * Causes the calling thread to wait until either another thread invokes the `parcObject_Notify()`
  * function on the same object or the given number of nanoseconds elapses.
  *
  * The calling thread must own the object's lock.
- * The calling thread will release ownership of this lock and wait until another thread invokes
- * `parcObject_Notify` or the computer's system time equals or exceeds that specified by @p time.
- * on the same object.
+ *
+ * The calling thread will release ownership of its lock and wait until another thread invokes
+ * `parcObject_Notify` on the same object,
+ * or the computer's system time equals or exceeds  the time specified by the
+ * time of invocation plus nanoSeconds.
  * The original calling thread then re-obtains ownership of the lock and resumes execution.
  *
  * This function must only be called by a thread that is the owner of this object's lock.
  *
  * @param [in] object A pointer to a valid PARCObject instance.
  * @param [in] nanoSeconds The number of nanoseconds to wait.
+ *
+ * @returns false if the allotted time was exceeded.
+ * @returns true if another thread invoked the `parcObject_Notify()` function
  *
  * Example:
  * @code
@@ -1060,7 +1067,7 @@ void parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
  * }
  * @endcode
  */
-void parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds);
+bool parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds);
 
 /**
  * @def parcObject_ImplementWaitUntil
@@ -1073,8 +1080,8 @@ void parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds);
  * @see parcObject_WaitUntil
  */
 #define parcObject_ImplementWaitFor(_namespace, _type)                                               \
-    static inline void _namespace##_WaitFor(const _type *pObject, const unsigned long nanoSeconds) { \
-        parcObject_WaitFor((const PARCObject *) pObject, nanoSeconds);                               \
+    static inline bool _namespace##_WaitFor(const _type *pObject, const unsigned long nanoSeconds) { \
+        return parcObject_WaitFor((const PARCObject *) pObject, nanoSeconds);                        \
     }  typedef void parcCMacro_Cat(_type, _WaitFor_NOOP)
 
 /**

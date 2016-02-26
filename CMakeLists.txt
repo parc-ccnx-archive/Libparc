@@ -21,6 +21,8 @@ link_directories($ENV{CCNX_DEPENDENCIES}/lib)
 include_directories($ENV{CCNX_DEPENDENCIES}/include)
 set(OPENSSL_ROOT_DIR $ENV{CCNX_DEPENDENCIES})
 
+include_directories(${PROJECT_BINARY_DIR}/parc ${PROJECT_SOURCE_DIR})
+
 find_package( LongBow REQUIRED )
 include_directories(${LONGBOW_INCLUDE_DIRS})
 
@@ -31,7 +33,6 @@ find_package ( Threads REQUIRED )
 
 find_package ( OpenSSL REQUIRED )
 
-include_directories(${PROJECT_BINARY_DIR}/parc ${PROJECT_SOURCE_DIR})
 
 find_package( Doxygen )
 

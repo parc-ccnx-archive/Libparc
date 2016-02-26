@@ -33,11 +33,6 @@
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
  */
 #ifndef libparc_parc_Vector_h
 #define libparc_parc_Vector_h

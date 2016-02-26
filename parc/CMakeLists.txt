@@ -32,6 +32,7 @@ set(LIBPARC_ALGOL_HEADER_FILES
     algol/parc_EventTimer.h 
     algol/parc_EventQueue.h 
     algol/parc_EventBuffer.h 
+    algol/parc_Execution.h 
     algol/parc_File.h 
     algol/parc_FileChunker.h
     algol/parc_FileInputStream.h 
@@ -124,6 +125,7 @@ set(LIBPARC_ALGOL_SOURCE_FILES
 	algol/parc_EventTimer.c 
 	algol/parc_EventQueue.c 
 	algol/parc_EventBuffer.c 
+	algol/parc_Execution.c 
 	algol/parc_HashMap.c 
 	algol/parc_Network.c 
 	algol/parc_Object.c 
@@ -225,6 +227,7 @@ set(LIBPARC_CONCURRENT_HEADER_FILES
 	concurrent/parc_AtomicUint32.h 
 	concurrent/parc_AtomicUint16.h 
 	concurrent/parc_AtomicUint8.h
+	concurrent/parc_FutureTask.h
 	)
 
 set(LIBPARC_CONCURRENT_SOURCE_FILES
@@ -238,6 +241,7 @@ set(LIBPARC_CONCURRENT_SOURCE_FILES
 	concurrent/parc_AtomicUint32.c 
 	concurrent/parc_AtomicUint16.c 
 	concurrent/parc_AtomicUint8.c
+	concurrent/parc_FutureTask.c
 	)
 
 set(LIBPARC_LOGGING_HEADER_FILES
