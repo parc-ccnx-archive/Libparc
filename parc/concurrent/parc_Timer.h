@@ -1,15 +1,56 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- * Copyright 2015 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
- * The content of this file, whole or in part, is subject to licensing terms.
- * If distributing this software, include this License Header Notice in each
- * file and provide the accompanying LICENSE file.
+ * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Patent rights are not granted under this agreement. Patent rights are
+ *       available under FRAND terms.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
  * @file parc_Timer.h
- * @brief <#Brief Description#>
+ * @brief A facility for threads to schedule tasks for future execution in a background thread.
  *
- * <#Detailed Description#>
+ * Tasks may be scheduled for one-time execution, or for repeated execution at regular intervals.
+ *
+ * Corresponding to each Timer object is a single background thread that is used to execute all of the timer's tasks,
+ * sequentially. Timer tasks should complete quickly.
+ * If a timer task takes excessive time to complete, it "hogs" the timer's task execution thread. 
+ * This can, in turn, delay the execution of subsequent tasks,
+ * which may "bunch up" and execute in rapid succession when (and if) the offending task finally completes.
+ *
+ * After the last live reference to a Timer object goes away and all outstanding tasks have completed execution,
+ * the timer's task execution thread terminates gracefully (and becomes subject to garbage collection).
+ * However, this can take arbitrarily long to occur.
+ * By default, the task execution thread does not run as a daemon thread,
+ * so it is capable of keeping an application from terminating.
+ * If a caller wants to terminate a timer's task execution thread rapidly, the caller should invoke the timer's cancel method.
+ *
+ * If the timer's task execution thread terminates unexpectedly,
+ * for example, because its stop method is invoked,
+ * any further attempt to schedule a task on the timer will result in an IllegalStateException,
+ * as if the timer's cancel method had been invoked.
+ *
+ * This class is thread-safe: multiple threads can share a single Timer object without the need for external synchronization.
+ *
+ * This class does not offer real-time guarantees: it schedules tasks using the Object.wait(long) method.
  *
  * @author <#gscott#>, Computing Science Laboratory, PARC
  * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
@@ -20,6 +61,7 @@
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
+#include <parc/concurrent/parc_FutureTask.h>
 
 struct PARCTimer;
 typedef struct PARCTimer PARCTimer;
@@ -344,5 +386,59 @@ PARCJSON *parcTimer_ToJSON(const PARCTimer *instance);
  *
  * @see parcTimer_Display
  */
-char *parcTimer_ToString(const PARCTimer *instance);
+char *parcTimer_ToString(const PARCTimer *timer);
+
+/**
+ * Terminates this timer, discarding any currently scheduled tasks.
+ *
+ * Does not interfere with a currently executing task (if it exists).
+ * Once a timer has been terminated, its execution thread terminates gracefully,
+ * and no more tasks may be scheduled on it.
+ *
+ * Note that calling this method from within the run method of a timer task that was invoked
+ * by this timer absolutely guarantees that the ongoing task execution is the last task execution
+ * that will ever be performed by this timer.
+ *
+ * This method may be called repeatedly; the second and subsequent calls have no effect.
+ */
+void parcTimer_Cancel(PARCTimer *timer);
+
+/**
+ * Removes all cancelled tasks from this timer's task queue.
+ *
+ * Calling this method has no effect on the behavior of the timer,
+ * but eliminates the references to the cancelled tasks from the queue.
+ * If there are no external references to these tasks, they become eligible for garbage collection.
+ *
+ * Most programs will have no need to call this method.
+ * It is designed for use by the rare application that cancels a large number of tasks.
+ * Calling this method trades time for space: the runtime of the method may be proportional to
+ * n + c log n, where n is the number of tasks in the queue and c is the number of cancelled tasks.
+ *
+ * It is permissible to call this method from within a task scheduled on this timer.
+ *
+ * @returns the number of tasks removed from the queue.
+ */
+int parcTimer_Purge(PARCTimer *timer);
+ 
+/**
+ * Schedules the specified task for execution at the specified time.
+ */
+void parcTimer_ScheduleAtTime(PARCTimer *timer, PARCFutureTask *task, time_t absoluteTime);
+
+/**
+ * Schedules the specified task for repeated fixed-delay execution, beginning at the specified time.
+ */
+void parcTimer_ScheduleAtTimeAndRepeat(PARCTimer *timer, PARCFutureTask *task, time_t firstTime, long period);
+
+/**
+ * Schedules the specified task for execution after the specified delay.
+ */
+void parcTimer_ScheduleAfterDelay(PARCTimer *timer, PARCFutureTask *task, long delay);
+
+/**
+ * Schedules the specified task for repeated fixed-delay execution, beginning after the specified delay.
+ */
+void parcTimer_ScheduleAfterDelayAndRepeat(PARCTimer *timer, PARCFutureTask *task, long delay, long period);
+
 #endif

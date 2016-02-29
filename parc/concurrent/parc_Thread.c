@@ -25,82 +25,85 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#gscott#>, Computing Science Laboratory, PARC
+ * @author Glenn Scott, Computing Science Laboratory, PARC
  * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <config.h>
+#include <pthread.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 
-#include "parc_Timer.h"
+#include <parc/concurrent/parc_Thread.h>
 
-struct PARCTimer {
-    
+struct PARCThread {
+    void *(*run)(void *);
+    PARCObject *argument;
+    pthread_t thread;
 };
 
 static void
-_parcTimer_Finalize(PARCTimer **instancePtr)
+_parcThread_Finalize(PARCThread **instancePtr)
 {
-    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCTimer pointer.");
-    
-    
-    /* cleanup the instance fields here */
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
+    PARCThread *thread = *instancePtr;
+
+    parcObject_Release(&thread->argument);
 }
 
-parcObject_ImplementAcquire(parcTimer, PARCTimer);
+parcObject_ImplementAcquire(parcThread, PARCThread);
 
-parcObject_ImplementRelease(parcTimer, PARCTimer);
+parcObject_ImplementRelease(parcThread, PARCThread);
 
-parcObject_ExtendPARCObject(PARCTimer, _parcTimer_Finalize, parcTimer_Copy, parcTimer_ToString, parcTimer_Equals, parcTimer_Compare, parcTimer_HashCode, parcTimer_ToJSON);
+parcObject_ExtendPARCObject(PARCThread, _parcThread_Finalize, parcThread_Copy, parcThread_ToString, parcThread_Equals, parcThread_Compare, parcThread_HashCode, parcThread_ToJSON);
 
 
 void
-parcTimer_AssertValid(const PARCTimer *instance)
+parcThread_AssertValid(const PARCThread *instance)
 {
-    assertTrue(parcTimer_IsValid(instance),
-               "PARCTimer is not valid.");
+    assertTrue(parcThread_IsValid(instance),
+               "PARCThread is not valid.");
 }
 
-PARCTimer *
-parcTimer_Create(void)
+PARCThread *
+parcThread_CreateImpl(void *(*run)(PARCObject *), PARCObject *restrict argument)
 {
-    PARCTimer *result = parcObject_CreateInstance(PARCTimer);
+    PARCThread *result = parcObject_CreateAndClearInstance(PARCThread);
     
-    if (result != NULL) {
-        
+    if (result) {
+        result->run = run;
+        result->argument = parcObject_Acquire(argument);
     }
 
     return result;
 }
 
 int
-parcTimer_Compare(const PARCTimer *instance, const PARCTimer *other)
+parcThread_Compare(const PARCThread *instance, const PARCThread *other)
 {
     int result = 0;
-    
     return result;
 }
 
-PARCTimer *
-parcTimer_Copy(const PARCTimer *original)
+PARCThread *
+parcThread_Copy(const PARCThread *original)
 {
-    PARCTimer *result = NULL;
+    PARCThread *result = NULL;
     
     return result;
 }
 
 void
-parcTimer_Display(const PARCTimer *instance, int indentation)
+parcThread_Display(const PARCThread *instance, int indentation)
 {
-    parcDisplayIndented_PrintLine(indentation, "PARCTimer@%p {", instance);
+    parcDisplayIndented_PrintLine(indentation, "PARCThread@%p {", instance);
     /* Call Display() functions for the fields here. */
     parcDisplayIndented_PrintLine(indentation, "}");
 }
 
 bool
-parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
+parcThread_Equals(const PARCThread *x, const PARCThread *y)
 {
     bool result = false;
     
@@ -116,7 +119,7 @@ parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
 }
 
 PARCHashCode
-parcTimer_HashCode(const PARCTimer *instance)
+parcThread_HashCode(const PARCThread *instance)
 {
     PARCHashCode result = 0;
     
@@ -124,11 +127,11 @@ parcTimer_HashCode(const PARCTimer *instance)
 }
 
 bool
-parcTimer_IsValid(const PARCTimer *instance)
+parcThread_IsValid(const PARCThread *thread)
 {
     bool result = false;
     
-    if (instance != NULL) {
+    if (thread != NULL) {
         result = true;
     }
     
@@ -136,58 +139,29 @@ parcTimer_IsValid(const PARCTimer *instance)
 }
 
 PARCJSON *
-parcTimer_ToJSON(const PARCTimer *instance)
+parcThread_ToJSON(const PARCThread *thread)
 {
     PARCJSON *result = parcJSON_Create();
-    
-    if (result != NULL) {
-        
-    }
     
     return result;
 }
 
 char *
-parcTimer_ToString(const PARCTimer *instance)
+parcThread_ToString(const PARCThread *thread)
 {
-    char *result = parcMemory_Format("PARCTimer@%p\n", instance);
+    char *result = parcMemory_Format("PARCThread@%p\n", thread);
 
     return result;
 }
 
 void
-parcTimer_Cancel(PARCTimer *timer)
+parcThread_Start(PARCThread *thread)
 {
-    
+    pthread_create(&thread->thread, NULL, (void *(*)(void *)) thread->run, thread->argument);
 }
 
-int
-parcTimer_Purge(PARCTimer *timer)
+PARCObject *
+parcThread_GetArgument(const PARCThread *thread)
 {
-    return 0;
+    return thread->argument;
 }
-
-void
-parcTimer_ScheduleAtTime(PARCTimer *timer, PARCFutureTask *task, time_t absoluteTime)
-{
-    
-}
-
-void
-parcTimer_ScheduleAtTimeAndRepeat(PARCTimer *timer, PARCFutureTask *task, time_t firstTime, long period)
-{
-    
-}
-
-void
-parcTimer_ScheduleAfterDelay(PARCTimer *timer, PARCFutureTask *task, long delay)
-{
-    
-}
-
-void
-parcTimer_ScheduleAfterDelayAndRepeat(PARCTimer *timer, PARCFutureTask *task, long delay, long period)
-{
-    
-}
-

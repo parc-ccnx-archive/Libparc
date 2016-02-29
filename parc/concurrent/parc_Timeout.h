@@ -31,6 +31,7 @@
 #ifndef parc_Timeout_h
 #define parc_Timeout_h
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint64_t PARCTimeout;
 
@@ -64,4 +65,46 @@ typedef uint64_t PARCTimeout;
  * This represents a timeout that will occur in the specified number of microseconds.
  */
 #define PARCTimeout_MilliSeconds(_msec_) ((PARCTimeout) _msec_ * 1000000)
+
+/**
+ * Determine if two `PARCTimeout` instances are equal.
+ *
+ * The following equivalence relations on non-null `PARCTimeout` instances are maintained: *
+ *   * It is reflexive: for any non-null reference value x, `parcTimeout_Equals(x, x)` must return true.
+ *
+ *   * It is symmetric: for any non-null reference values x and y, `parcTimeout_Equals(x, y)` must return true if and only if
+ *        `parcTimeout_Equals(y x)` returns true.
+ *
+ *   * It is transitive: for any non-null reference values x, y, and z, if
+ *        `parcTimeout_Equals(x, y)` returns true and
+ *        `parcTimeout_Equals(y, z)` returns true,
+ *        then `parcTimeout_Equals(x, z)` must return true.
+ *
+ *   * It is consistent: for any non-null reference values x and y, multiple invocations of `parcTimeout_Equals(x, y)`
+ *         consistently return true or consistently return false.
+ *
+ *   * For any non-null reference value x, `parcTimeout_Equals(x, NULL)` must return false.
+ *
+ * @param [in] x A valid PARCTimeout instance.
+ * @param [in] y A valid PARCTimeout instance.
+ *
+ * @return true The instances x and y are equal.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCTimeout *a = parcTimeout_Create();
+ *     PARCTimeout *b = parcTimeout_Create();
+ *
+ *     if (parcTimeout_Equals(a, b)) {
+ *         printf("Instances are equal.\n");
+ *     }
+ *
+ *     parcTimeout_Release(&a);
+ *     parcTimeout_Release(&b);
+ * }
+ * @endcode
+ * @see parcTimeout_HashCode
+ */
+bool parcTimeout_Equals(PARCTimeout x, PARCTimeout y);
 #endif /* parc_Timeout_h */

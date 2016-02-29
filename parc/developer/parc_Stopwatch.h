@@ -25,16 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @file parc_Timer.h
+ * @file parc_Stopwatch.h
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>
  *
- * @author <#gscott#>, Palo Alto Research Center (Xerox PARC)
- * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
+ * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-#ifndef PARCLibrary_parc_Timer
-#define PARCLibrary_parc_Timer
+#ifndef PARCLibrary_parc_Stopwatch
+#define PARCLibrary_parc_Stopwatch
 #include <stdbool.h>
 
 #include <parc/algol/parc_JSON.h>
@@ -50,7 +50,7 @@ typedef struct PARCStopwatch PARCStopwatch;
  * only that the given `PARCStopwatch` reference count is incremented.
  * Discard the reference by invoking `parcStopwatch_Release`.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * @return The same value as @p instance.
  *
@@ -66,7 +66,7 @@ typedef struct PARCStopwatch PARCStopwatch;
  * }
  * @endcode
  */
-PARCStopwatch *parcStopwatch_Acquire(const PARCStopwatch *instance);
+PARCStopwatch *parcStopwatch_Acquire(const PARCStopwatch *stopwatch);
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
 #  define parcStopwatch_OptionalAssertValid(_instance_)
@@ -77,7 +77,7 @@ PARCStopwatch *parcStopwatch_Acquire(const PARCStopwatch *instance);
 /**
  * Assert that the given `PARCStopwatch` instance is valid.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * Example:
  * @code
@@ -92,7 +92,7 @@ PARCStopwatch *parcStopwatch_Acquire(const PARCStopwatch *instance);
  * }
  * @endcode
  */
-void parcStopwatch_AssertValid(const PARCStopwatch *instance);
+void parcStopwatch_AssertValid(const PARCStopwatch *stopwatch);
 
 /**
  * Create an instance of PARCStopwatch
@@ -119,7 +119,7 @@ PARCStopwatch *parcStopwatch_Create(void);
  * Returns a negative integer, zero, or a positive integer as @p instance
  * is less than, equal to, or greater than @p other.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  * @param [in] other A pointer to a valid PARCStopwatch instance.
  *
  * @return <0 Instance is less than @p other.
@@ -143,7 +143,7 @@ PARCStopwatch *parcStopwatch_Create(void);
  *
  * @see parcStopwatch_Equals
  */
-int parcStopwatch_Compare(const PARCStopwatch *instance, const PARCStopwatch *other);
+int parcStopwatch_Compare(const PARCStopwatch *stopwatch, const PARCStopwatch *other);
 
 /**
  * Create an independent copy the given `PARCBuffer`
@@ -172,7 +172,7 @@ PARCStopwatch *parcStopwatch_Copy(const PARCStopwatch *original);
 /**
  * Print a human readable representation of the given `PARCStopwatch`.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  * @param [in] indentation The indentation level to use for printing.
  *
  * Example:
@@ -186,7 +186,7 @@ PARCStopwatch *parcStopwatch_Copy(const PARCStopwatch *original);
  * }
  * @endcode
  */
-void parcStopwatch_Display(const PARCStopwatch *instance, int indentation);
+void parcStopwatch_Display(const PARCStopwatch *stopwatch, int indentation);
 
 /**
  * Determine if two `PARCStopwatch` instances are equal.
@@ -248,7 +248,7 @@ bool parcStopwatch_Equals(const PARCStopwatch *x, const PARCStopwatch *y);
  * then calling the `parcStopwatch_HashCode`
  * method on each of the two objects must produce distinct integer results.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * @return The hashcode for the given instance.
  *
@@ -262,7 +262,7 @@ bool parcStopwatch_Equals(const PARCStopwatch *x, const PARCStopwatch *y);
  * }
  * @endcode
  */
-PARCHashCode parcStopwatch_HashCode(const PARCStopwatch *instance);
+PARCHashCode parcStopwatch_HashCode(const PARCStopwatch *stopwatch);
 
 /**
  * Determine if an instance of `PARCStopwatch` is valid.
@@ -270,7 +270,7 @@ PARCHashCode parcStopwatch_HashCode(const PARCStopwatch *instance);
  * Valid means the internal state of the type is consistent with its required current or future behaviour.
  * This may include the validation of internal instances of types.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * @return true The instance is valid.
  * @return false The instance is not valid.
@@ -289,7 +289,7 @@ PARCHashCode parcStopwatch_HashCode(const PARCStopwatch *instance);
  * @endcode
  *
  */
-bool parcStopwatch_IsValid(const PARCStopwatch *instance);
+bool parcStopwatch_IsValid(const PARCStopwatch *stopwatch);
 
 /**
  * Release a previously acquired reference to the given `PARCStopwatch` instance,
@@ -336,14 +336,14 @@ void parcStopwatch_Release(PARCStopwatch **instancePtr);
  * }
  * @endcode
  */
-PARCJSON *parcStopwatch_ToJSON(const PARCStopwatch *instance);
+PARCJSON *parcStopwatch_ToJSON(const PARCStopwatch *stopwatch);
 
 /**
  * Produce a null-terminated string representation of the specified `PARCStopwatch`.
  *
  * The result must be freed by the caller via {@link parcMemory_Deallocate}.
  *
- * @param [in] instance A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * @return NULL Cannot allocate memory.
  * @return non-NULL A pointer to an allocated, null-terminated C string that must be deallocated via {@link parcMemory_Deallocate}.
@@ -363,14 +363,14 @@ PARCJSON *parcStopwatch_ToJSON(const PARCStopwatch *instance);
  *
  * @see parcStopwatch_Display
  */
-char *parcStopwatch_ToString(const PARCStopwatch *instance);
+char *parcStopwatch_ToString(const PARCStopwatch *stopwatch);
 
 /**
  * <#One Line Description#>
  *
  * <#Paragraphs Of Explanation#>
  *
- * @param [in] timer A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * Example:
  * @code
@@ -379,14 +379,14 @@ char *parcStopwatch_ToString(const PARCStopwatch *instance);
  * }
  * @endcode
  */
-void parcStopwatch_Start(PARCStopwatch *timer);
+void parcStopwatch_Start(PARCStopwatch *stopwatch);
 
 /**
  * <#One Line Description#>
  *
  * <#Paragraphs Of Explanation#>
  *
- * @param [in] timer A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * Example:
  * @code
@@ -395,14 +395,14 @@ void parcStopwatch_Start(PARCStopwatch *timer);
  * }
  * @endcode
  */
-void parcStopwatch_Stop(PARCStopwatch *timer);
+void parcStopwatch_Stop(PARCStopwatch *stopwatch);
 
 /**
  * <#One Line Description#>
  *
  * <#Paragraphs Of Explanation#>
  *
- * @param [in] timer A pointer to a valid PARCStopwatch instance.
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
  * @return The difference between the start and stop times.
  *
@@ -413,5 +413,5 @@ void parcStopwatch_Stop(PARCStopwatch *timer);
  * }
  * @endcode
  */
-uint64_t parcStopwatch_ElapsedTime(const PARCStopwatch *timer);
+uint64_t parcStopwatch_ElapsedTime(const PARCStopwatch *stopwatch);
 #endif

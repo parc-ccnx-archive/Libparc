@@ -217,31 +217,43 @@ set(LIBPARC_SECURITY_SOURCE_FILES
 
 
 set(LIBPARC_CONCURRENT_HEADER_FILES
-	concurrent/parc_Notifier.h 
-	concurrent/parc_RingBuffer.h 
-	concurrent/parc_RingBuffer_1x1.h 
-	concurrent/parc_RingBuffer_NxM.h 
-	concurrent/parc_Synchronizer.h 
-	concurrent/parc_Lock.h 
-	concurrent/parc_AtomicUint64.h 
-	concurrent/parc_AtomicUint32.h 
-	concurrent/parc_AtomicUint16.h 
+	concurrent/parc_AtomicUint16.h
+	concurrent/parc_AtomicUint32.h
+	concurrent/parc_AtomicUint64.h
 	concurrent/parc_AtomicUint8.h
 	concurrent/parc_FutureTask.h
+	concurrent/parc_Lock.h
+	concurrent/parc_Notifier.h
+	concurrent/parc_RingBuffer.h
+	concurrent/parc_RingBuffer_1x1.h
+	concurrent/parc_RingBuffer_NxM.h
+	concurrent/parc_ScheduledTask.h
+	concurrent/parc_ScheduledThreadPool.h
+	concurrent/parc_Synchronizer.h
+	concurrent/parc_Thread.h
+	concurrent/parc_ThreadPool.h
+	concurrent/parc_Timeout.h
+	concurrent/parc_Timer.h
 	)
 
 set(LIBPARC_CONCURRENT_SOURCE_FILES
-	concurrent/parc_Notifier.c 
-	concurrent/parc_RingBuffer.c 
-	concurrent/parc_RingBuffer_1x1.c 
-	concurrent/parc_RingBuffer_NxM.c 
-	concurrent/parc_Synchronizer.c 
-	concurrent/parc_Lock.c 
-	concurrent/parc_AtomicUint64.c 
-	concurrent/parc_AtomicUint32.c 
-	concurrent/parc_AtomicUint16.c 
+	concurrent/parc_AtomicUint16.c
+	concurrent/parc_AtomicUint32.c
+	concurrent/parc_AtomicUint64.c
 	concurrent/parc_AtomicUint8.c
 	concurrent/parc_FutureTask.c
+	concurrent/parc_Lock.c
+	concurrent/parc_Notifier.c
+	concurrent/parc_RingBuffer.c
+	concurrent/parc_RingBuffer_1x1.c
+	concurrent/parc_RingBuffer_NxM.c
+	concurrent/parc_ScheduledTask.c
+	concurrent/parc_ScheduledThreadPool.c
+	concurrent/parc_Synchronizer.c
+	concurrent/parc_Thread.c
+	concurrent/parc_ThreadPool.c
+	concurrent/parc_Timeout.c
+	concurrent/parc_Timer.c
 	)
 
 set(LIBPARC_LOGGING_HEADER_FILES
@@ -270,14 +282,12 @@ set(LIBPARC_LOGGING_SOURCE_FILES
 
 set(LIBPARC_DEVELOPER_HEADER_FILES
     developer/parc_TimingIntel.h 
-    developer/parc_Timer.h
     developer/parc_Stopwatch.h
     developer/parc_Timing.h
 	)
 
 set(LIBPARC_DEVELOPER_SOURCE_FILES
     developer/parc_TimingIntel.c 
-    developer/parc_Timer.c
     developer/parc_Stopwatch.c
 	)
 

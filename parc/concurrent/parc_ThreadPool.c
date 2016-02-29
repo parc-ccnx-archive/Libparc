@@ -34,39 +34,41 @@
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 
-#include "parc_Timer.h"
+#include "parc_ThreadPool.h"
 
-struct PARCTimer {
+struct PARCThreadPool {
     
 };
 
 static void
-_parcTimer_Finalize(PARCTimer **instancePtr)
+_parcThreadPool_Finalize(PARCThreadPool **instancePtr)
 {
-    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCTimer pointer.");
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThreadPool pointer.");
+//    PARCThreadPool *instance = *instancePtr;
     
     
     /* cleanup the instance fields here */
 }
 
-parcObject_ImplementAcquire(parcTimer, PARCTimer);
+parcObject_ImplementAcquire(parcThreadPool, PARCThreadPool);
 
-parcObject_ImplementRelease(parcTimer, PARCTimer);
+parcObject_ImplementRelease(parcThreadPool, PARCThreadPool);
 
-parcObject_ExtendPARCObject(PARCTimer, _parcTimer_Finalize, parcTimer_Copy, parcTimer_ToString, parcTimer_Equals, parcTimer_Compare, parcTimer_HashCode, parcTimer_ToJSON);
+parcObject_ExtendPARCObject(PARCThreadPool, _parcThreadPool_Finalize, parcThreadPool_Copy, parcThreadPool_ToString, parcThreadPool_Equals, parcThreadPool_Compare, parcThreadPool_HashCode, parcThreadPool_ToJSON);
 
 
 void
-parcTimer_AssertValid(const PARCTimer *instance)
+parcThreadPool_AssertValid(const PARCThreadPool *instance)
 {
-    assertTrue(parcTimer_IsValid(instance),
-               "PARCTimer is not valid.");
+    assertTrue(parcThreadPool_IsValid(instance),
+               "PARCThreadPool is not valid.");
 }
 
-PARCTimer *
-parcTimer_Create(void)
+
+PARCThreadPool *
+parcThreadPool_Create(int poolSize)
 {
-    PARCTimer *result = parcObject_CreateInstance(PARCTimer);
+    PARCThreadPool *result = parcObject_CreateInstance(PARCThreadPool);
     
     if (result != NULL) {
         
@@ -76,31 +78,31 @@ parcTimer_Create(void)
 }
 
 int
-parcTimer_Compare(const PARCTimer *instance, const PARCTimer *other)
+parcThreadPool_Compare(const PARCThreadPool *instance, const PARCThreadPool *other)
 {
     int result = 0;
     
     return result;
 }
 
-PARCTimer *
-parcTimer_Copy(const PARCTimer *original)
+PARCThreadPool *
+parcThreadPool_Copy(const PARCThreadPool *original)
 {
-    PARCTimer *result = NULL;
+    PARCThreadPool *result = NULL;
     
     return result;
 }
 
 void
-parcTimer_Display(const PARCTimer *instance, int indentation)
+parcThreadPool_Display(const PARCThreadPool *instance, int indentation)
 {
-    parcDisplayIndented_PrintLine(indentation, "PARCTimer@%p {", instance);
+    parcDisplayIndented_PrintLine(indentation, "PARCThreadPool@%p {", instance);
     /* Call Display() functions for the fields here. */
     parcDisplayIndented_PrintLine(indentation, "}");
 }
 
 bool
-parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
+parcThreadPool_Equals(const PARCThreadPool *x, const PARCThreadPool *y)
 {
     bool result = false;
     
@@ -116,7 +118,7 @@ parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
 }
 
 PARCHashCode
-parcTimer_HashCode(const PARCTimer *instance)
+parcThreadPool_HashCode(const PARCThreadPool *instance)
 {
     PARCHashCode result = 0;
     
@@ -124,7 +126,7 @@ parcTimer_HashCode(const PARCTimer *instance)
 }
 
 bool
-parcTimer_IsValid(const PARCTimer *instance)
+parcThreadPool_IsValid(const PARCThreadPool *instance)
 {
     bool result = false;
     
@@ -136,7 +138,7 @@ parcTimer_IsValid(const PARCTimer *instance)
 }
 
 PARCJSON *
-parcTimer_ToJSON(const PARCTimer *instance)
+parcThreadPool_ToJSON(const PARCThreadPool *instance)
 {
     PARCJSON *result = parcJSON_Create();
     
@@ -148,46 +150,9 @@ parcTimer_ToJSON(const PARCTimer *instance)
 }
 
 char *
-parcTimer_ToString(const PARCTimer *instance)
+parcThreadPool_ToString(const PARCThreadPool *instance)
 {
-    char *result = parcMemory_Format("PARCTimer@%p\n", instance);
+    char *result = parcMemory_Format("PARCThreadPool@%p\n", instance);
 
     return result;
 }
-
-void
-parcTimer_Cancel(PARCTimer *timer)
-{
-    
-}
-
-int
-parcTimer_Purge(PARCTimer *timer)
-{
-    return 0;
-}
-
-void
-parcTimer_ScheduleAtTime(PARCTimer *timer, PARCFutureTask *task, time_t absoluteTime)
-{
-    
-}
-
-void
-parcTimer_ScheduleAtTimeAndRepeat(PARCTimer *timer, PARCFutureTask *task, time_t firstTime, long period)
-{
-    
-}
-
-void
-parcTimer_ScheduleAfterDelay(PARCTimer *timer, PARCFutureTask *task, long delay)
-{
-    
-}
-
-void
-parcTimer_ScheduleAfterDelayAndRepeat(PARCTimer *timer, PARCFutureTask *task, long delay, long period)
-{
-    
-}
-

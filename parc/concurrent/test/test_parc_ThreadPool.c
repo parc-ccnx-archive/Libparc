@@ -9,7 +9,7 @@
  * @author <#gscott#>, Computing Science Laboratory, PARC
  * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
-#include "../parc_Timer.c"
+#include "../parc_ThreadPool.c"
 
 #include <LongBow/testing.h>
 #include <LongBow/debugging.h>
@@ -20,7 +20,7 @@
 #include <parc/testing/parc_MemoryTesting.h>
 #include <parc/testing/parc_ObjectTesting.h>
 
-LONGBOW_TEST_RUNNER(parc_Timer)
+LONGBOW_TEST_RUNNER(parc_ThreadPool)
 {
     // The following Test Fixtures will run their corresponding Test Cases.
     // Test Fixtures are run in the order specified, but all tests should be idempotent.
@@ -31,13 +31,13 @@ LONGBOW_TEST_RUNNER(parc_Timer)
 }
 
 // The Test Runner calls this function once before any Test Fixtures are run.
-LONGBOW_TEST_RUNNER_SETUP(parc_Timer)
+LONGBOW_TEST_RUNNER_SETUP(parc_ThreadPool)
 {
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 // The Test Runner calls this function once after all the Test Fixtures are run.
-LONGBOW_TEST_RUNNER_TEARDOWN(parc_Timer)
+LONGBOW_TEST_RUNNER_TEARDOWN(parc_ThreadPool)
 {
     return LONGBOW_STATUS_SUCCEEDED;
 }
@@ -63,25 +63,25 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCTimer *instance = parcTimer_Create();
-    assertNotNull(instance, "Expected non-null result from parcTimer_Create();");
+    PARCThreadPool *instance = parcThreadPool_Create(6);
+    assertNotNull(instance, "Expected non-null result from parcThreadPool_Create();");
 
-    parcObjectTesting_AssertAcquireReleaseContract(parcTimer_Acquire, instance);
+    parcObjectTesting_AssertAcquireReleaseContract(parcThreadPool_Acquire, instance);
     
-    parcTimer_Release(&instance);
-    assertNull(instance, "Expected null result from parcTimer_Release();");
+    parcThreadPool_Release(&instance);
+    assertNull(instance, "Expected null result from parcThreadPool_Release();");
 }
 
 LONGBOW_TEST_FIXTURE(Object)
 {
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_Compare);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_Copy);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_Display);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_Equals);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_HashCode);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_IsValid);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_ToJSON);
-    LONGBOW_RUN_TEST_CASE(Object, parcTimer_ToString);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Compare);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Copy);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Display);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Equals);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_HashCode);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_IsValid);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_ToJSON);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_ToString);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Object)
@@ -98,83 +98,83 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_CASE(Object,  parcTimer_Compare)
+LONGBOW_TEST_CASE(Object,  parcThreadPool_Compare)
 {
     testUnimplemented("");
 
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_Copy)
+LONGBOW_TEST_CASE(Object, parcThreadPool_Copy)
 {
-    PARCTimer *instance = parcTimer_Create();
-    PARCTimer *copy = parcTimer_Copy(instance);
-    assertTrue(parcTimer_Equals(instance, copy), "Expected the copy to be equal to the original");
+    PARCThreadPool *instance = parcThreadPool_Create(6);
+    PARCThreadPool *copy = parcThreadPool_Copy(instance);
+    assertTrue(parcThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
 
-    parcTimer_Release(&instance);
-    parcTimer_Release(&copy);
+    parcThreadPool_Release(&instance);
+    parcThreadPool_Release(&copy);
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_Display)
+LONGBOW_TEST_CASE(Object, parcThreadPool_Display)
 {
-    PARCTimer *instance = parcTimer_Create();
-    parcTimer_Display(instance, 0);
-    parcTimer_Release(&instance);
+    PARCThreadPool *instance = parcThreadPool_Create(6);
+    parcThreadPool_Display(instance, 0);
+    parcThreadPool_Release(&instance);
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_Equals)
+LONGBOW_TEST_CASE(Object, parcThreadPool_Equals)
 {
-    PARCTimer *x = parcTimer_Create();
-    PARCTimer *y = parcTimer_Create();
-    PARCTimer *z = parcTimer_Create();
+    PARCThreadPool *x = parcThreadPool_Create(6);
+    PARCThreadPool *y = parcThreadPool_Create(6);
+    PARCThreadPool *z = parcThreadPool_Create(6);
 
     parcObjectTesting_AssertEquals(x, y, z, NULL);
 
-    parcTimer_Release(&x);
-    parcTimer_Release(&y);
-    parcTimer_Release(&z);
+    parcThreadPool_Release(&x);
+    parcThreadPool_Release(&y);
+    parcThreadPool_Release(&z);
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_HashCode)
+LONGBOW_TEST_CASE(Object, parcThreadPool_HashCode)
 {
-    PARCTimer *x = parcTimer_Create();
-    PARCTimer *y = parcTimer_Create();
+    PARCThreadPool *x = parcThreadPool_Create(6);
+    PARCThreadPool *y = parcThreadPool_Create(6);
     
     parcObjectTesting_AssertHashCode(x, y);
     
-    parcTimer_Release(&x);
-    parcTimer_Release(&y);
+    parcThreadPool_Release(&x);
+    parcThreadPool_Release(&y);
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_IsValid)
+LONGBOW_TEST_CASE(Object, parcThreadPool_IsValid)
 {
-    PARCTimer *instance = parcTimer_Create();
-    assertTrue(parcTimer_IsValid(instance), "Expected parcTimer_Create to result in a valid instance.");
+    PARCThreadPool *instance = parcThreadPool_Create(6);
+    assertTrue(parcThreadPool_IsValid(instance), "Expected parcThreadPool_Create to result in a valid instance.");
     
-    parcTimer_Release(&instance);
-    assertFalse(parcTimer_IsValid(instance), "Expected parcTimer_Release to result in an invalid instance.");
+    parcThreadPool_Release(&instance);
+    assertFalse(parcThreadPool_IsValid(instance), "Expected parcThreadPool_Release to result in an invalid instance.");
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_ToJSON)
+LONGBOW_TEST_CASE(Object, parcThreadPool_ToJSON)
 {
-    PARCTimer *instance = parcTimer_Create();
+    PARCThreadPool *instance = parcThreadPool_Create(6);
     
-    PARCJSON *json = parcTimer_ToJSON(instance);
+    PARCJSON *json = parcThreadPool_ToJSON(instance);
 
     parcJSON_Release(&json);
 
-    parcTimer_Release(&instance);
+    parcThreadPool_Release(&instance);
 }
 
-LONGBOW_TEST_CASE(Object, parcTimer_ToString)
+LONGBOW_TEST_CASE(Object, parcThreadPool_ToString)
 {
-    PARCTimer *instance = parcTimer_Create();
+    PARCThreadPool *instance = parcThreadPool_Create(6);
     
-    char *string = parcTimer_ToString(instance);
+    char *string = parcThreadPool_ToString(instance);
     
-    assertNotNull(string, "Expected non-NULL result from parcTimer_ToString");
+    assertNotNull(string, "Expected non-NULL result from parcThreadPool_ToString");
     
     parcMemory_Deallocate((void **) &string);
-    parcTimer_Release(&instance);
+    parcThreadPool_Release(&instance);
 }
 
 LONGBOW_TEST_FIXTURE(Specialization)
@@ -198,7 +198,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 int
 main(int argc, char *argv[argc])
 {
-    LongBowRunner *testRunner = LONGBOW_TEST_RUNNER_CREATE(parc_Timer);
+    LongBowRunner *testRunner = LONGBOW_TEST_RUNNER_CREATE(parc_ThreadPool);
     int exitStatus = longBowMain(argc, argv, testRunner, NULL);
     longBowTestRunner_Destroy(&testRunner);
     exit(exitStatus);

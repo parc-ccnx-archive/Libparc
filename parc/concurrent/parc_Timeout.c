@@ -29,3 +29,9 @@
  * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <parc/concurrent/parc_Timeout.h>
+
+bool
+parcTimeout_Equals(PARCTimeout x, PARCTimeout y)
+{
+    return x == y;
+}
