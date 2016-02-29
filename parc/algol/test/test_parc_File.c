@@ -102,7 +102,6 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateDeleteNewFile);
     LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateDelete_Directory);
     LONGBOW_RUN_TEST_CASE(Global, parcFile_Exists);
-    LONGBOW_RUN_TEST_CASE(Global, parcFile_CreateHome);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -194,22 +193,6 @@ LONGBOW_TEST_CASE(Global, parcFile_CreateDelete_Directory)
 
     parcFile_Release(&file);
     parcFile_Release(&directory);
-}
-
-LONGBOW_TEST_CASE(Global, parcFile_CreateHome)
-{
-    char *expected = "/tmp";
-    
-    setenv("HOME", expected, 1);
-    
-    PARCFile *file = parcFile_CreateHome();
-    
-    char *actual = parcFile_ToString(file);
-    
-    assertTrue(strcmp(expected, actual) == 0, "Expected %s, actual %s", expected, actual);
-
-    parcMemory_Deallocate(&actual);
-    parcFile_Release(&file);
 }
 
 LONGBOW_TEST_FIXTURE(Local)

@@ -258,35 +258,36 @@ LONGBOW_TEST_CASE(Static, validateAlignment)
 
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid)
 {
-    _PARCObjectHeader header;
-    header.references = 1;
-    header.objectLength = 8;
-    header.objectAlignment = sizeof(void *);
-    header.descriptor = &PARCObject_Descriptor;
-
-    assertTrue(_objectHeaderIsValid(&header), "Expected _PARCObjectHeader to be valid");
+    PARCObject *object = parcObject_CreateImpl(10);
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    assertTrue(_parcObjectHeader_IsValid(header, object), "Expected _parcObject_HeaderHeaderIsValid to be valid");
+    
+    parcObject_Release(&object);
 }
 
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid_InvalidAlignment)
 {
-    _PARCObjectHeader header;
-    header.references = 1;
-    header.objectLength = 8;
-    header.objectAlignment = sizeof(void *) + 1;
-    header.descriptor = &PARCObject_Descriptor;
+    PARCObject *object = parcObject_CreateImpl(10);
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    header->objectAlignment = sizeof(void *) + 1;
+    
+    assertFalse(_parcObjectHeader_IsValid(header, object), "Expected _parcObject_HeaderHeaderIsValid to be invalid");
 
-    assertFalse(_objectHeaderIsValid(&header), "Expected _PARCObjectHeader to be invalid");
+    header->objectAlignment = sizeof(void *);
+    parcObject_Release(&object);
 }
 
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid_InvalidLength)
 {
-    _PARCObjectHeader header;
-    header.references = 1;
-    header.objectLength = 0;
-    header.objectAlignment = sizeof(void *);
-    header.descriptor = &PARCObject_Descriptor;
+    PARCObject *object = parcObject_CreateImpl(10);
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    header->objectLength = 0;
 
-    assertFalse(_objectHeaderIsValid(&header), "Expected _PARCObjectHeader to be invalid");
+    assertFalse(_parcObjectHeader_IsValid(header, object), "Expected _parcObject_HeaderHeaderIsValid to be invalid");
+    
+    header->objectLength = 10;
+    parcObject_Release(&object);
 }
 
 LONGBOW_TEST_CASE(Static, _parcObject_PrefixLength)

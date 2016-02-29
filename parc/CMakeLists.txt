@@ -88,18 +88,18 @@ set(LIBPARC_ALGOL_SOURCE_FILES
 	algol/parc_Base64.c 
 	algol/parc_BitVector.c 
 	algol/parc_Buffer.c 
-    algol/parc_BufferChunker.c
+        algol/parc_BufferChunker.c
 	algol/parc_BufferComposer.c 
 	algol/parc_BufferDictionary.c 
 	algol/parc_ByteArray.c 
 	algol/parc_Clock.c 
-    algol/parc_Chunker.c
+        algol/parc_Chunker.c
 	algol/parc_Deque.c 
 	algol/parc_Dictionary.c 
 	algol/parc_DisplayIndented.c 
 	algol/parc_Environment.c 
 	algol/parc_File.c 
-    algol/parc_FileChunker.c
+        algol/parc_FileChunker.c
 	algol/parc_FileInputStream.c 
 	algol/parc_FileOutputStream.c 
 	algol/parc_Hash.c 
@@ -300,8 +300,11 @@ set(LIBPARC_SOURCE_FILES
 	${LIBPARC_DEVELOPER_HEADER_FILES}
 	)
 
+set(LIBPARC_ALGOL_FILES ${LIBPARC_ALGOL_SOURCE_FILES} ${LIBPARC_ALGOL_HEADER_FILES})
+list(SORT LIBPARC_ALGOL_FILES)
+source_group(algol FILES ${LIBPARC_ALGOL_FILES})
 
-source_group(algol FILES ${LIBPARC_ALGOL_SOURCE_FILES} ${LIBPARC_ALGOL_HEADER_FILES})
+#source_group(algol FILES ${LIBPARC_ALGOL_SOURCE_FILES} ${LIBPARC_ALGOL_HEADER_FILES})
 source_group(concurrent FILES ${LIBPARC_CONCURRENT_SOURCE_FILES} ${LIBPARC_CONCURRENT_HEADER_FILES})
 source_group(security FILES ${LIBPARC_SECURITY_SOURCE_FILES} ${LIBPARC_SECURITY_HEADER_FILES})
 source_group(developer FILES ${LIBPARC_DEVELOPER_SOURCE_FILES} ${LIBPARC_DEVELOPER_HEADER_FILES})
@@ -335,13 +338,13 @@ foreach(lib ${libparcLibraries})
   set_property(TARGET ${lib} PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endforeach()
 
-install(FILES ${LIBPARC_ALGOL_HEADER_FILES}    DESTINATION include/parc/algol )
-install(FILES ${LIBPARC_SECURITY_HEADER_FILES}    DESTINATION include/parc/security )
+install(FILES ${LIBPARC_ALGOL_HEADER_FILES}      DESTINATION include/parc/algol )
+install(FILES ${LIBPARC_SECURITY_HEADER_FILES}   DESTINATION include/parc/security )
 install(FILES ${LIBPARC_LOGGING_HEADER_FILES}    DESTINATION include/parc/logging )
 install(FILES ${LIBPARC_TESTING_HEADER_FILES}    DESTINATION include/parc/testing )
-install(FILES ${LIBPARC_CONCURRENT_HEADER_FILES}    DESTINATION include/parc/concurrent )
-install(FILES ${LIBPARC_DEVELOPER_HEADER_FILES}    DESTINATION include/parc/developer )
-install(FILES ${LIBPARC_BASE_HEADER_FILES}     DESTINATION include/parc )
+install(FILES ${LIBPARC_CONCURRENT_HEADER_FILES} DESTINATION include/parc/concurrent )
+install(FILES ${LIBPARC_DEVELOPER_HEADER_FILES}  DESTINATION include/parc/developer )
+install(FILES ${LIBPARC_BASE_HEADER_FILES}       DESTINATION include/parc )
 	
 add_subdirectory(security/command-line)
 add_subdirectory(algol/test)

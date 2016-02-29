@@ -152,21 +152,40 @@ _objectHeader_Locking(const PARCObject *object)
     return &(_parcObject_Header(object)->locking);
 }
 
+
 static inline bool
-_objectHeaderIsValid(const _PARCObjectHeader *header)
+_parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     bool result = true;
-
-    if (header->references == 0) {
+    
+    if ((intptr_t) header >= (intptr_t) object) {
+        result = false;
+    } else if (header->references == 0) {
         result = false;
     } else if (_alignmentIsValid(header->objectAlignment) == false) {
         result = false;
     } else if (header->objectLength == 0) {
         result = false;
     }
-
+    
     return result;
 }
+    
+//static inline bool
+//_objectHeaderIsValid(const _PARCObjectHeader *header)
+//{
+//    bool result = true;
+//
+//    if (header->references == 0) {
+//        result = false;
+//    } else if (_alignmentIsValid(header->objectAlignment) == false) {
+//        result = false;
+//    } else if (header->objectLength == 0) {
+//        result = false;
+//    }
+//
+//    return result;
+//}
 
 /**
  * Compute the origin of the allocated memory.
@@ -344,7 +363,7 @@ parcObject_IsValid(const PARCObject *object)
     if (object == NULL) {
         result = false;
     } else {
-        if (_objectHeaderIsValid(_parcObject_Header(object)) == false) {
+        if (_parcObjectHeader_IsValid(_parcObject_Header(object), object) == false) {
             result = false;
         }
     }
@@ -431,16 +450,24 @@ parcObject_Compare(const PARCObject *x, const PARCObject *y)
 bool
 parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *descriptor)
 {
-    PARCObjectDescriptor *d = _objectHeader_Descriptor(object);
-
-    while (true) {
-        if (d == descriptor) {
-            return true;
+    bool result = false;
+    
+    if (object != NULL) {
+        _PARCObjectHeader *header = _parcObject_Header(object);
+        
+        if (_parcObjectHeader_IsValid(header, object)) {
+            PARCObjectDescriptor *d = _objectHeader_Descriptor(object);
+            
+            while (result == false) {
+                if (d == descriptor) {
+                    result = true;
+                }
+                d = d->super;
+            }
         }
-        d = d->super;
     }
-
-    return false;
+    
+    return result;
 }
 
 bool

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +26,33 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
+#include <sys/types.h>
+#include <pwd.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <parc/algol/parc_Environment.h>
+#include <parc/algol/parc_File.h>
 
 const char *
 parcEnvironment_GetHomeDirectory(void)
 {
     char *result = getenv("HOME");
     return result;
+}
+
+PARCFile *
+parcEnvironment_HomeDirectory(void)
+{
+    char *path;
+    
+    if ((path = getenv("HOME")) == NULL) {
+        path = getpwuid(getuid())->pw_dir;
+    }
+    
+    return parcFile_Create(path);
 }

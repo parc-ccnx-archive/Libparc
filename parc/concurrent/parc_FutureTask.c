@@ -60,10 +60,12 @@ static bool
 _parcFutureTask_Destructor(PARCFutureTask **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCFutureTask pointer.");
-    PARCFutureTask *instance = *instancePtr;
+    PARCFutureTask *task = *instancePtr;
     
+    if (parcObject_IsInstanceOf(task->parameter, &PARCObject_Descriptor)) {
+        parcObject_Release(&task->parameter);
+    }
     
-    /* cleanup the instance fields here */
     return true;
 }
 
@@ -91,6 +93,10 @@ PARCFutureTask *
 parcFutureTask_Create(void *(*function)(void *parameter), void *parameter)
 {
     PARCFutureTask *result = parcObject_CreateInstance(PARCFutureTask);
+
+    if (parcObject_IsInstanceOf(parameter, &PARCObject_Descriptor)) {
+        parameter = parcObject_Acquire(parameter);
+    }
     
     if (result != NULL) {
         result->function = function;

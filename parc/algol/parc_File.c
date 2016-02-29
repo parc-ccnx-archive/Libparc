@@ -43,8 +43,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <sys/types.h>
-#include <pwd.h>
 
 #include <ftw.h>
 #include <inttypes.h>
@@ -64,14 +62,6 @@ struct parc_file {
     PARCPathName *pathName;
 };
 
-static void
-_destroy(PARCFile **filePtr)
-{
-    PARCFile *file = *filePtr;
-
-    parcPathName_Release(&file->pathName);
-}
-
 static bool
 _parcFile_Destructor(PARCFile **filePtr)
 {
@@ -85,8 +75,6 @@ _parcFile_Destructor(PARCFile **filePtr)
 parcObject_Override(PARCFile, PARCObject,
                     .destructor = (PARCObjectDestructor *) _parcFile_Destructor,
                     .toString = (PARCObjectToString *) parcFile_ToString);
-
-//parcObject_ExtendPARCObject(PARCFile, _destroy, NULL, parcFile_ToString, NULL, NULL, NULL, NULL);
 
 void
 parcFile_AssertValid(const PARCFile *instance)
@@ -284,16 +272,4 @@ parcFile_GetFileSize(const PARCFile *file)
     parcMemory_Deallocate(&fname);
 
     return fileSize;
-}
-
-PARCFile *
-parcFile_CreateHome(void)
-{
-    char *path;
-
-    if ((path = getenv("HOME")) == NULL) {
-        path = getpwuid(getuid())->pw_dir;
-    }
-    
-    return parcFile_Create(path);
 }

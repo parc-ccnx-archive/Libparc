@@ -44,7 +44,7 @@ set(PARC_BIN_LIBRARIES
   )
 
 add_custom_target(cleanup_profiling_data
-        "touch" "/tmp/script"
+        "find" "." "-name" "*.gcda" "-delete"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Cleanup previous profiling data.")
 

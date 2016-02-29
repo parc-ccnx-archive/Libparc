@@ -45,16 +45,20 @@ LONGBOW_TEST_RUNNER_TEARDOWN(parc_FutureTask)
 LONGBOW_TEST_FIXTURE(CreateAcquireRelease)
 {
     LONGBOW_RUN_TEST_CASE(CreateAcquireRelease, CreateRelease);
+    LONGBOW_RUN_TEST_CASE(CreateAcquireRelease, CreateRelease_PARCObject);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(CreateAcquireRelease)
 {
+    longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
+    
+    if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
@@ -78,6 +82,21 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNull(instance, "Expected null result from parcFutureTask_Release();");
 }
 
+LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease_PARCObject)
+{
+    PARCObject *object = parcObject_CreateImpl(10);
+    
+    PARCFutureTask *instance = parcFutureTask_Create(_function, object);
+    parcObject_Release(&object);
+    
+    assertNotNull(instance, "Expected non-null result from parcFutureTask_Create(_function, object);");
+    
+    parcObjectTesting_AssertAcquireReleaseContract(parcFutureTask_Acquire, instance);
+    
+    parcFutureTask_Release(&instance);
+    assertNull(instance, "Expected null result from parcFutureTask_Release();");
+}
+
 LONGBOW_TEST_FIXTURE(Object)
 {
     LONGBOW_RUN_TEST_CASE(Object, parcFutureTask_Compare);
@@ -92,12 +111,15 @@ LONGBOW_TEST_FIXTURE(Object)
 
 LONGBOW_TEST_FIXTURE_SETUP(Object)
 {
+    longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
+    
+    if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
@@ -132,12 +154,14 @@ LONGBOW_TEST_CASE(Object, parcFutureTask_Equals)
     PARCFutureTask *x = parcFutureTask_Create(_function, _function);
     PARCFutureTask *y = parcFutureTask_Create(_function, _function);
     PARCFutureTask *z = parcFutureTask_Create(_function, _function);
+    PARCFutureTask *u1 = parcFutureTask_Create(_function, NULL);
 
-    parcObjectTesting_AssertEquals(x, y, z, NULL);
+    parcObjectTesting_AssertEquals(x, y, z, u1, NULL);
 
     parcFutureTask_Release(&x);
     parcFutureTask_Release(&y);
     parcFutureTask_Release(&z);
+    parcFutureTask_Release(&u1);
 }
 
 LONGBOW_TEST_CASE(Object, parcFutureTask_HashCode)
@@ -195,12 +219,15 @@ LONGBOW_TEST_FIXTURE(Specialization)
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
 {
+    longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
+    
+    if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
