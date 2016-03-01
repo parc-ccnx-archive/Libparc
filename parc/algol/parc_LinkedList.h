@@ -286,6 +286,21 @@ PARCLinkedList *parcLinkedList_AppendAll(PARCLinkedList *list, const PARCLinkedL
 PARCLinkedList *parcLinkedList_Prepend(PARCLinkedList *list, const PARCObject *element);
 
 /**
+ * Remove the first occurrence of the given element from the specified 'PARCLinkedList'.
+ * The element's reference count is decremented.
+ * 
+ * @param [in] element the element to remove
+ * @return true if the element was found in the list and successfully removed
+ * 
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ */
+bool parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element);
+
+/**
  * Return the first element of the specified `PARCLinkedList` and remove it from the list.
  * The element's reference count is not modified,
  * the caller must release the returned element when it is finished with it.
