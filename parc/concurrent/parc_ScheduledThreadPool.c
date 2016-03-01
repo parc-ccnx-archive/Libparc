@@ -15,23 +15,53 @@
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_SortedList.h>
+#include <parc/algol/parc_LinkedList.h>
 
 #include <parc/concurrent/parc_ScheduledThreadPool.h>
-
+#include <parc/concurrent/parc_Thread.h>
 
 struct PARCScheduledThreadPool {
     bool continueExistingPeriodicTasksAfterShutdown;
     bool executeExistingDelayedTasksAfterShutdown;
     bool removeOnCancel;
     PARCSortedList *workQueue;
+    PARCLinkedList *threads;
     int poolSize;
 };
 
-static void
-workingThread(PARCScheduledThreadPool *pool)
+PARCObject *
+parcSortedlist_Pop(PARCSortedList *list)
 {
+    PARCObject *result = parcSortedList_GetAtIndex(list, 0);
+    parcSortedList_Remove(list, result);
+    return result;
+}
 
+
+static PARCScheduledTask *
+_getNextTask(PARCScheduledThreadPool *pool)
+{
+    parcSortedList_Lock(pool->workQueue);
+    while (parcSortedList_Size(pool->workQueue) == 0) {
+        parcSortedList_Wait(pool->workQueue);
+    }
+    PARCScheduledTask *result = parcSortedlist_Pop(pool->workQueue);
     
+    parcSortedList_Unlock(pool->workQueue);
+    
+    return result;
+}
+
+static void
+_workingThread(PARCScheduledThreadPool *pool)
+{
+    while (true) {
+        PARCScheduledTask *task = _getNextTask(pool);
+        while(parcScheduledTask_GetDelay(task) > 0) {
+            parcObject_WaitFor(task, parcScheduledTask_GetDelay(task));
+        }
+        parcScheduledTask_Get(task, PARCTimeout_Never);
+    }
 }
 
 static bool
@@ -41,6 +71,7 @@ _parcScheduledThreadPool_Destructor(PARCScheduledThreadPool **instancePtr)
     PARCScheduledThreadPool *pool = *instancePtr;
     
     parcSortedList_Release(&pool->workQueue);
+    parcLinkedList_Release(&pool->threads);
     
     return true;
 }
@@ -56,7 +87,8 @@ parcObject_Override(PARCScheduledThreadPool, PARCObject,
                     .equals = (PARCObjectEquals *) parcScheduledThreadPool_Equals,
                     .compare = (PARCObjectCompare *) parcScheduledThreadPool_Compare,
                     .hashCode = (PARCObjectHashCode *) parcScheduledThreadPool_HashCode,
-                    .display = (PARCObjectDisplay *) parcScheduledThreadPool_Display);
+//                    .display = (PARCObjectDisplay *) parcScheduledThreadPool_Display
+                    );
 
 void
 parcScheduledThreadPool_AssertValid(const PARCScheduledThreadPool *instance)
@@ -74,10 +106,18 @@ parcScheduledThreadPool_Create(int poolSize)
     if (result != NULL) {
         result->poolSize = poolSize;
         result->workQueue = parcSortedList_Create();
+        result->threads = parcLinkedList_Create();
         
         result->continueExistingPeriodicTasksAfterShutdown = false;
         result->executeExistingDelayedTasksAfterShutdown = false;
         result->removeOnCancel = true;
+        
+        for (int i = 0; i < poolSize; i++) {
+            PARCThread *thread = parcThread_Create(_workingThread, result);
+            parcLinkedList_Append(result->threads, thread);
+//            parcThread_Start(thread);
+            parcThread_Release(&thread);
+        }
     }
 
     return result;
@@ -236,11 +276,20 @@ void
 parcScheduledThreadPool_Shutdown(PARCScheduledThreadPool *pool)
 {
     
+    
 }
 
 PARCList *
 parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
 {
+    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
+
+    while (parcIterator_HasNext(iterator)) {
+        PARCThread *thread = parcIterator_Next(iterator);
+        bool success = parcThread_Cancel(thread);
+    }
+    parcIterator_Release(&iterator);
+    
     return NULL;
 }
 

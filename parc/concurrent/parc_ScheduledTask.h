@@ -94,7 +94,7 @@ void parcScheduledTask_AssertValid(const PARCScheduledTask *instance);
  * }
  * @endcode
  */
-PARCScheduledTask *parcScheduledTask_Create(PARCFutureTask *task, PARCTimeout delay);
+PARCScheduledTask *parcScheduledTask_Create(PARCFutureTask *task, time_t executionTime);
 
 /**
  * Compares @p instance with @p other for order.

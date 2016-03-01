@@ -43,21 +43,31 @@ struct PARCThread {
     pthread_t thread;
 };
 
-static void
-_parcThread_Finalize(PARCThread **instancePtr)
+static bool
+_parcThread_Destructor(PARCThread **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
 
-    parcObject_Release(&thread->argument);
+    if (thread->argument != NULL) {
+        parcObject_Release(&thread->argument);
+    }
+    
+    return true;
 }
 
 parcObject_ImplementAcquire(parcThread, PARCThread);
 
 parcObject_ImplementRelease(parcThread, PARCThread);
 
-parcObject_ExtendPARCObject(PARCThread, _parcThread_Finalize, parcThread_Copy, parcThread_ToString, parcThread_Equals, parcThread_Compare, parcThread_HashCode, parcThread_ToJSON);
-
+parcObject_Override(PARCThread, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcThread_Destructor,
+                    .copy = (PARCObjectCopy *) parcThread_Copy,
+                    .toString = (PARCObjectToString *) parcThread_ToString,
+                    .equals = (PARCObjectEquals *) parcThread_Equals,
+                    .compare = (PARCObjectCompare *) parcThread_Compare,
+                    .hashCode = (PARCObjectHashCode *) parcThread_HashCode,
+                    .display = (PARCObjectDisplay *) parcThread_Display);
 
 void
 parcThread_AssertValid(const PARCThread *instance)
@@ -67,12 +77,12 @@ parcThread_AssertValid(const PARCThread *instance)
 }
 
 PARCThread *
-parcThread_CreateImpl(void *(*run)(PARCObject *), PARCObject *restrict argument)
+parcThread_CreateImpl(void *(*runFunction)(PARCObject *), PARCObject *restrict argument)
 {
     PARCThread *result = parcObject_CreateAndClearInstance(PARCThread);
     
     if (result) {
-        result->run = run;
+        result->run = runFunction;
         result->argument = parcObject_Acquire(argument);
     }
 
@@ -112,7 +122,9 @@ parcThread_Equals(const PARCThread *x, const PARCThread *y)
     } else if (x == NULL || y == NULL) {
         result = false;
     } else {
-        /* perform instance specific equality tests here. */
+        if (x->thread == y->thread) {
+            result = true;
+        }
     }
     
     return result;
@@ -164,4 +176,13 @@ PARCObject *
 parcThread_GetArgument(const PARCThread *thread)
 {
     return thread->argument;
+}
+
+bool
+parcThread_Cancel(const PARCThread *thread)
+{
+    parcObject_Release(&thread->argument);
+    int returnValue = pthread_cancel(thread->thread);
+    
+    return returnValue == 0;
 }

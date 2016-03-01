@@ -37,7 +37,7 @@
 #include "parc_ThreadPool.h"
 
 struct PARCThreadPool {
-    
+    int poolSize;
 };
 
 static void
@@ -71,7 +71,7 @@ parcThreadPool_Create(int poolSize)
     PARCThreadPool *result = parcObject_CreateInstance(PARCThreadPool);
     
     if (result != NULL) {
-        
+        result->poolSize = poolSize;
     }
 
     return result;
@@ -88,7 +88,7 @@ parcThreadPool_Compare(const PARCThreadPool *instance, const PARCThreadPool *oth
 PARCThreadPool *
 parcThreadPool_Copy(const PARCThreadPool *original)
 {
-    PARCThreadPool *result = NULL;
+    PARCThreadPool *result = parcThreadPool_Create(original->poolSize);
     
     return result;
 }
@@ -112,6 +112,9 @@ parcThreadPool_Equals(const PARCThreadPool *x, const PARCThreadPool *y)
         result = false;
     } else {
         /* perform instance specific equality tests here. */
+        if (x->poolSize == y->poolSize) {
+            result = true;
+        }
     }
     
     return result;

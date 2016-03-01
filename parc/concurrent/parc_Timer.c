@@ -37,7 +37,7 @@
 #include "parc_Timer.h"
 
 struct PARCTimer {
-    
+    int delay;
 };
 
 static void
@@ -86,7 +86,7 @@ parcTimer_Compare(const PARCTimer *instance, const PARCTimer *other)
 PARCTimer *
 parcTimer_Copy(const PARCTimer *original)
 {
-    PARCTimer *result = NULL;
+    PARCTimer *result = parcTimer_Create();
     
     return result;
 }
@@ -109,7 +109,7 @@ parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
     } else if (x == NULL || y == NULL) {
         result = false;
     } else {
-        /* perform instance specific equality tests here. */
+        return true;
     }
     
     return result;

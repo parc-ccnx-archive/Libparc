@@ -113,7 +113,7 @@ void parcThread_AssertValid(const PARCThread *instance);
  * }
  * @endcode
  */
-#define parcThread_Create(_run_, _argument_) parcThread_CreateImpl((void *(*)(PARCObject *)) _run_, (PARCObject *) _argument_)
+#define parcThread_Create(_runFunction_, _argument_) parcThread_CreateImpl((void *(*)(PARCObject *)) _runFunction_, (PARCObject *) _argument_)
 
 PARCThread *parcThread_CreateImpl(PARCObject *(*run)(PARCObject *), PARCObject *restrict argument);
 
@@ -404,4 +404,22 @@ void parcThread_Start(PARCThread *thread);
  * @endcode
  */
 PARCObject *parcThread_GetArgument(const PARCThread *thread);
+
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+bool parcThread_Cancel(const PARCThread *thread);
 #endif

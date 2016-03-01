@@ -10,17 +10,19 @@
  * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <config.h>
+#include <sys/time.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
+#include <parc/algol/parc_Time.h>
 
 #include <parc/concurrent/parc_ScheduledTask.h>
 #include <parc/concurrent/parc_FutureTask.h>
 
 struct PARCScheduledTask {
     PARCFutureTask *task;
-    PARCTimeout delay;
+    uint64_t executionTime;
 };
 
 static bool
@@ -55,13 +57,13 @@ parcScheduledTask_AssertValid(const PARCScheduledTask *instance)
 
 
 PARCScheduledTask *
-parcScheduledTask_Create(PARCFutureTask *task, PARCTimeout delay)
+parcScheduledTask_Create(PARCFutureTask *task, time_t executionTime)
 {
     PARCScheduledTask *result = parcObject_CreateInstance(PARCScheduledTask);
     
     if (result != NULL) {
         result->task = parcFutureTask_Acquire(task);
-        result->delay = delay;
+        result->executionTime = executionTime;
     }
 
     return result;
@@ -78,7 +80,7 @@ parcScheduledTask_Compare(const PARCScheduledTask *instance, const PARCScheduled
 PARCScheduledTask *
 parcScheduledTask_Copy(const PARCScheduledTask *original)
 {
-    PARCScheduledTask *result = parcScheduledTask_Create(original->task, original->delay);
+    PARCScheduledTask *result = parcScheduledTask_Create(original->task, original->executionTime);
     
     return result;
 }
@@ -102,7 +104,7 @@ parcScheduledTask_Equals(const PARCScheduledTask *x, const PARCScheduledTask *y)
         result = false;
     } else {
         if (parcFutureTask_Equals(x->task, y->task)) {
-            if (parcTimeout_Equals(x->delay, y->delay)) {
+            if (x->executionTime == y->executionTime) {
                 result = true;
             }
         }
@@ -154,7 +156,9 @@ parcScheduledTask_ToString(const PARCScheduledTask *instance)
 PARCTimeout
 parcScheduledTask_GetDelay(const PARCScheduledTask *task)
 {
-    return task->delay;
+    PARCTimeout delay = task->executionTime - parcTime_NowNanoseconds();
+    
+    return delay;
 }
 
 bool
@@ -180,4 +184,3 @@ parcScheduledTask_IsDone(const PARCScheduledTask *task)
 {
     return parcFutureTask_IsDone(task->task);
 }
-
