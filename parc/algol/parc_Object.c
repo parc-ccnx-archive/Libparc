@@ -637,7 +637,6 @@ parcObject_Release(PARCObject **objectPointer)
 
     parcObject_OptionalAssertValid(object);
 
-
     PARCReferenceCount result = parcAtomicUint64_Decrement(&header->references);
 
     if (result == 0) {
@@ -719,14 +718,17 @@ parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer)
 bool
 parcObject_Unlock(const PARCObject *object)
 {
-    parcObject_OptionalAssertValid(object);
-
     bool result = false;
-
-    _PARCObjectLocking *locking = _objectHeader_Locking(object);
-    locking->locker = (pthread_t) NULL;
-    result = (pthread_mutex_unlock(&locking->lock) == 0);
-
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    if (header->references > 0) {
+        _parcObjectHeader_AssertValid(header, object);
+        
+        if (object != NULL) {            
+            _PARCObjectLocking *locking = &header->locking;
+            locking->locker = (pthread_t) NULL;
+            result = (pthread_mutex_unlock(&locking->lock) == 0);
+        }
+    }
     return result;
 }
 
@@ -734,20 +736,22 @@ bool
 parcObject_Lock(const PARCObject *object)
 {
     extern int errno;
-
+    
     bool result = false;
-
-    parcObject_OptionalAssertValid(object);
-
-    _PARCObjectLocking *locking = _objectHeader_Locking(object);
-    trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
-
-    errno = pthread_mutex_lock(&locking->lock);
-    if (errno == 0) {
-        locking->locker = pthread_self();
-        result = true;
+    
+    if (object != NULL) {        
+        parcObject_OptionalAssertValid(object);
+        
+        _PARCObjectLocking *locking = _objectHeader_Locking(object);
+        trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
+        
+        errno = pthread_mutex_lock(&locking->lock);
+        if (errno == 0) {
+            locking->locker = pthread_self();
+            result = true;
+        }
     }
-
+    
     return result;
 }
 
@@ -755,16 +759,18 @@ bool
 parcObject_TryLock(const PARCObject *object)
 {
     bool result = false;
-
-    parcObject_OptionalAssertValid(object);
-
-    _PARCObjectLocking *locking = _objectHeader_Locking(object);
-
-    trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
-
-    result = (pthread_mutex_trylock(&locking->lock) == 0);
-    if (result == true) {
-        locking->locker = pthread_self();
+    
+    if (object != NULL) {
+        parcObject_OptionalAssertValid(object);
+        
+        _PARCObjectLocking *locking = _objectHeader_Locking(object);
+        
+        trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
+        
+        result = (pthread_mutex_trylock(&locking->lock) == 0);
+        if (result == true) {
+            locking->locker = pthread_self();
+        }
     }
     return result;
 }

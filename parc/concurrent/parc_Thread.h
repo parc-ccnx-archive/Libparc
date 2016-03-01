@@ -113,9 +113,9 @@ void parcThread_AssertValid(const PARCThread *instance);
  * }
  * @endcode
  */
-#define parcThread_Create(_runFunction_, _argument_) parcThread_CreateImpl((void *(*)(PARCObject *)) _runFunction_, (PARCObject *) _argument_)
+//#define parcThread_Create(_runFunction_, _argument_) parcThread_CreateImpl((void (*)(PARCObject *)) _runFunction_, (PARCObject *) _argument_)
 
-PARCThread *parcThread_CreateImpl(PARCObject *(*run)(PARCObject *), PARCObject *restrict argument);
+PARCThread *parcThread_Create(void *(*run)(PARCThread *), PARCObject *restrict argument);
 
 /**
  * Compares @p instance with @p other for order.
@@ -403,7 +403,7 @@ void parcThread_Start(PARCThread *thread);
  * }
  * @endcode
  */
-PARCObject *parcThread_GetArgument(const PARCThread *thread);
+PARCObject *parcThread_GetParameter(const PARCThread *thread);
 
 /**
  * <#One Line Description#>
@@ -421,5 +421,13 @@ PARCObject *parcThread_GetArgument(const PARCThread *thread);
  * }
  * @endcode
  */
-bool parcThread_Cancel(const PARCThread *thread);
+bool parcThread_Cancel(PARCThread *thread);
+
+bool parcThread_IsCancelled(const PARCThread *thread);
+
+bool parcThread_IsRunning(const PARCThread *thread);
+
+int parcThread_GetId(const PARCThread *thread);
+
+void parcThread_Join(const PARCThread *thread);
 #endif

@@ -10,6 +10,7 @@
  * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <config.h>
+#include <stdio.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -37,31 +38,29 @@ parcSortedlist_Pop(PARCSortedList *list)
     return result;
 }
 
-
-static PARCScheduledTask *
-_getNextTask(PARCScheduledThreadPool *pool)
+static void *
+_workingThread(PARCThread *thread)
 {
-    parcSortedList_Lock(pool->workQueue);
-    while (parcSortedList_Size(pool->workQueue) == 0) {
-        parcSortedList_Wait(pool->workQueue);
-    }
-    PARCScheduledTask *result = parcSortedlist_Pop(pool->workQueue);
-    
-    parcSortedList_Unlock(pool->workQueue);
-    
-    return result;
-}
+//    PARCScheduledThreadPool *pool = parcThread_GetParameter(thread);
 
-static void
-_workingThread(PARCScheduledThreadPool *pool)
-{
-    while (true) {
-        PARCScheduledTask *task = _getNextTask(pool);
-        while(parcScheduledTask_GetDelay(task) > 0) {
-            parcObject_WaitFor(task, parcScheduledTask_GetDelay(task));
+    { char *string = parcThread_ToString(thread); printf("%s lock pool\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+    
+    if (parcObject_Lock(thread)) {
+        { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+
+        while (parcThread_IsCancelled(thread) == false) {
+            parcObject_Wait(thread);
         }
-        parcScheduledTask_Get(task, PARCTimeout_Never);
+
+        { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+        parcObject_Unlock(thread);
+    } else {
+        { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
     }
+
+    { char *string = parcThread_ToString(thread); printf("%s done\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+
+    return NULL;
 }
 
 static bool
@@ -80,6 +79,14 @@ parcObject_ImplementAcquire(parcScheduledThreadPool, PARCScheduledThreadPool);
 
 parcObject_ImplementRelease(parcScheduledThreadPool, PARCScheduledThreadPool);
 
+//inline void
+//parcScheduledThreadPool_Release(PARCScheduledThreadPool **pObject) {
+//    PARCScheduledThreadPool *pool = *pObject;
+//    if (parcObject_Lock(pool)) {
+//        parcObject_Release((PARCObject **) pObject);
+//    }
+//}
+
 parcObject_Override(PARCScheduledThreadPool, PARCObject,
                     .destructor = (PARCObjectDestructor *) _parcScheduledThreadPool_Destructor,
                     .copy = (PARCObjectCopy *) parcScheduledThreadPool_Copy,
@@ -97,7 +104,6 @@ parcScheduledThreadPool_AssertValid(const PARCScheduledThreadPool *instance)
                "PARCScheduledThreadPool is not valid.");
 }
 
-
 PARCScheduledThreadPool *
 parcScheduledThreadPool_Create(int poolSize)
 {
@@ -112,14 +118,17 @@ parcScheduledThreadPool_Create(int poolSize)
         result->executeExistingDelayedTasksAfterShutdown = false;
         result->removeOnCancel = true;
         
-        for (int i = 0; i < poolSize; i++) {
-            PARCThread *thread = parcThread_Create(_workingThread, result);
-            parcLinkedList_Append(result->threads, thread);
-//            parcThread_Start(thread);
-            parcThread_Release(&thread);
+        if (parcObject_Lock(result)) {
+            for (int i = 0; i < poolSize; i++) {
+                PARCThread *thread = parcThread_Create(_workingThread, result);
+                parcLinkedList_Append(result->threads, thread);
+                parcThread_Start(thread);
+                parcThread_Release(&thread);
+            }
+            parcObject_Unlock(result);
         }
     }
-
+    
     return result;
 }
 
@@ -282,13 +291,26 @@ parcScheduledThreadPool_Shutdown(PARCScheduledThreadPool *pool)
 PARCList *
 parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
 {
-    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
-
-    while (parcIterator_HasNext(iterator)) {
-        PARCThread *thread = parcIterator_Next(iterator);
-        bool success = parcThread_Cancel(thread);
+    if (parcObject_Lock(pool)) {
+        PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
+        
+        while (parcIterator_HasNext(iterator)) {
+            PARCThread *thread = parcIterator_Next(iterator);
+            if (parcObject_Lock(thread)) {
+                parcThread_Cancel(thread);
+                parcObject_Notify(thread);
+                { char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow %s cancelled\n", string);                   parcMemory_Deallocate(&string); fflush(stdout); }
+                parcObject_Unlock(thread);
+            }
+        }
+        parcIterator_Release(&iterator);
+        
+        printf("parcScheduledThreadPool_ShutdownNow lock\n");
+        printf("parcScheduledThreadPool_ShutdownNow notify\n");
+        parcObject_Notify(pool);
+        printf("parcScheduledThreadPool_ShutdownNow unlock\n");
+        parcObject_Unlock(pool);
     }
-    parcIterator_Release(&iterator);
     
     return NULL;
 }
