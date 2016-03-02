@@ -866,3 +866,17 @@ parcObject_Notify(const PARCObject *object)
     header->locking.notified = true;
     pthread_cond_signal(&header->locking.notification);
 }
+
+void
+parcObject_NotifyAll(const PARCObject *object)
+{
+    parcObject_OptionalAssertValid(object);
+    
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
+                          "You must Lock the object %p before calling parcObject_Notify", (void *) object);
+    
+    header->locking.notified = true;
+    pthread_cond_broadcast(&header->locking.notification);
+}

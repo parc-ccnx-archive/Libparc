@@ -1100,8 +1100,10 @@ bool parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds);
  * Example:
  * @code
  * {
- *
- *     parcObject_Notify(object);
+ *     if (parcObject_Lock(object)) {
+ *         parcObject_Notify(object);
+ *         parcObject_Unlock(object);
+ *     }
  * }
  * @endcode
  */
@@ -1119,6 +1121,46 @@ void parcObject_Notify(const PARCObject *object);
     static inline void _namespace##_Notify(const _type *pObject) { \
         parcObject_Notify((const PARCObject *) pObject);           \
     } typedef void parcCMacro_Cat(_type, _Notify_NOOP)
+
+
+/**
+ * Wakes up all threads that are waiting on the given object's lock.
+ *
+ * A thread waits on an object by calling one of the wait methods, `parcObject_Wait`, `parcObject_WaitFor`, `parcObject_WaitUntil`.
+ * The awakened threads will proceed after the current thread relinquishes the lock on the given object.
+ * The awakened threads will compete in the usual manner with any other threads that might be actively competing
+ * to synchronize on this object.
+ * Awakened threads have no priority between them in being the next thread to lock this object.
+ *
+ * This method can only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid `PARCObject` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcObject_Lock(object)) {
+ *         parcObject_NotifyAll(object);
+ *         parcObject_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+void parcObject_NotifyAll(const PARCObject *object);
+
+/**
+ * @def parcObject_ImplementNotifyAll
+ *
+ * parcObject_ImplementNotifyAll is a helper C-macro that defines a static, inline facade for the `parcObject_NotifyAll` function.
+ *
+ * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
+ * @param [in] _type A subtype's type  (e.g. PARCBuffer)
+ */
+#define parcObject_ImplementNotifyAll(_namespace, _type)       \
+    static inline void _namespace##_NotifyAll(const _type *pObject) { \
+    parcObject_NotifyAll((const PARCObject *) pObject);               \
+} typedef void parcCMacro_Cat(_type, _Notify_NOOP)
+
 
 /**
  * Determine if a given `PARCObject` is and instance of the specified `PARCObjectDescriptor`.
