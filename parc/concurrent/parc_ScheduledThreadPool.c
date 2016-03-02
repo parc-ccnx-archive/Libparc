@@ -17,6 +17,7 @@
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_SortedList.h>
 #include <parc/algol/parc_LinkedList.h>
+#include <parc/algol/parc_Memory.h>
 
 #include <parc/concurrent/parc_ScheduledThreadPool.h>
 #include <parc/concurrent/parc_Thread.h>
@@ -283,6 +284,8 @@ parcScheduledThreadPool_Shutdown(PARCScheduledThreadPool *pool)
 PARCList *
 parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
 {
+    // Cause all of the worker threads to exit.
+    
     if (parcObject_Lock(pool)) {
         PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
         
@@ -293,7 +296,6 @@ parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
         }
         parcIterator_Release(&iterator);
         
-        printf("parcScheduledThreadPool_ShutdownNow lock\n");
         printf("parcScheduledThreadPool_ShutdownNow notify\n");
         parcObject_Notify(pool);
         printf("parcScheduledThreadPool_ShutdownNow unlock\n");

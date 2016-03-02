@@ -51,7 +51,8 @@ _parcThread_Destructor(PARCThread **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
-    dprintf(1, "_parcThread_Destructor\n");
+    
+    dprintf(1, "_parcThread_Destructor %p\n", thread->thread);
     parcThread_Join(thread);
     
     return true;
@@ -87,8 +88,8 @@ parcThread_Create(void *(*runFunction)(PARCThread *, PARCObject *), PARCObject *
     
     if (result) {
         result->run = runFunction;
-//        result->argument = parcObject_Acquire(parameter);
-        result->argument = parameter;
+        result->argument = parcObject_Acquire(parameter);
+//        result->argument = parameter;
         result->isCancelled = false;
         result->isRunning = false;
     }
@@ -179,6 +180,11 @@ _parcThread_Run(PARCThread *thread)
     thread->isRunning = true;
     thread->run(thread, thread->argument);
     thread->isRunning = false;
+    
+    if (thread->argument != NULL) {
+        parcObject_Release(&thread->argument);
+    }
+    //  Release the thread reference that was acquired *before* this thread was started.
     parcThread_Release(&thread);
 
     return NULL;
@@ -227,7 +233,10 @@ parcThread_IsCancelled(const PARCThread *thread)
 }
 
 void
-parcThread_Join(const PARCThread *thread)
+parcThread_Join(PARCThread *thread)
 {
+//    if (thread->argument != NULL) {
+//        parcObject_Release(&thread->argument);
+//    }
     pthread_join(thread->thread, NULL);
 }

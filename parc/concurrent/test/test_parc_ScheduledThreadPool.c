@@ -74,7 +74,9 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     
     parcScheduledThreadPool_ShutdownNow(instance);
     
-    assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %ulld", parcObject_GetReferenceCount(instance) );
+    assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %lu", parcObject_GetReferenceCount(instance) );
+
+    printf("------------\n");
     parcScheduledThreadPool_Release(&instance);
     assertNull(instance, "Expected null result from parcScheduledThreadPool_Release();");
 }
