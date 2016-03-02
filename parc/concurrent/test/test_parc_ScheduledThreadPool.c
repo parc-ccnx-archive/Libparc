@@ -233,5 +233,3 @@ main(int argc, char *argv[argc])
     longBowTestRunner_Destroy(&testRunner);
     exit(exitStatus);
 }
-
-

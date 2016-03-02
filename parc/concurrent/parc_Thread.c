@@ -181,6 +181,8 @@ _parcThread_Run(PARCThread *thread)
     thread->run(thread, thread->argument);
     thread->isRunning = false;
     
+    // The thread is done, release the reference to the argument acquired when this PARCThread was created.
+    // This prevents the reference from lingering leading to memory leaks.
     if (thread->argument != NULL) {
         parcObject_Release(&thread->argument);
     }
@@ -235,8 +237,5 @@ parcThread_IsCancelled(const PARCThread *thread)
 void
 parcThread_Join(PARCThread *thread)
 {
-//    if (thread->argument != NULL) {
-//        parcObject_Release(&thread->argument);
-//    }
     pthread_join(thread->thread, NULL);
 }
