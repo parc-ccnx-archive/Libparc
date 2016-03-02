@@ -238,6 +238,10 @@ LONGBOW_TEST_FIXTURE(Specialization)
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Add);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Remove);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetAtIndex);
+    
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst_SingleElement);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveLast);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -370,6 +374,81 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_GetAtIndex)
     parcBuffer_Release(&element7);
     parcBuffer_Release(&element8);
     parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveFirst)
+{
+    PARCSortedList *deque = parcSortedList_Create();
+    
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    
+    parcSortedList_Add(deque, object1);
+    parcSortedList_Add(deque, object2);
+    parcSortedList_Add(deque, object3);
+    
+    PARCBuffer *peek = parcSortedList_RemoveFirst(deque);
+    assertTrue(parcBuffer_Equals(object1, peek), "Objects out of order");
+    
+    parcBuffer_Release(&peek);
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcSortedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveFirst_SingleElement)
+{
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCSortedList *deque = parcSortedList_Create();
+    parcSortedList_Add(deque, object1);
+    
+    PARCBuffer *peek = parcSortedList_RemoveFirst(deque);
+    assertTrue(parcBuffer_Equals(object1, peek),
+               "Objects out of order.");
+    
+    parcBuffer_Release(&peek);
+    parcBuffer_Release(&object1);
+    parcSortedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveLast)
+{
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    
+    PARCSortedList *deque = parcSortedList_Create();
+    parcSortedList_Add(deque, object1);
+    parcSortedList_Add(deque, object2);
+    parcSortedList_Add(deque, object3);
+    
+    PARCBuffer *peek = parcSortedList_RemoveLast(deque);
+    assertTrue(parcBuffer_Equals(object3, peek),
+               "Objects out of order.");
+    
+    parcBuffer_Release(&peek);
+    
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcSortedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveLast_SingleElement)
+{
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    
+    PARCSortedList *deque = parcSortedList_Create();
+    parcSortedList_Add(deque, object1);
+    
+    PARCBuffer *peek = parcSortedList_RemoveLast(deque);
+    assertTrue(parcBuffer_Equals(object1, peek),
+               "Objects out of order.");
+    
+    parcBuffer_Release(&object1);
+    parcSortedList_Release(&deque);
 }
 
 int

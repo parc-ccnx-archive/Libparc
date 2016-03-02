@@ -479,4 +479,40 @@ size_t parcSortedList_Size(const PARCSortedList *list);
 PARCObject *parcSortedList_GetAtIndex(const PARCSortedList *list, const size_t index);
 
 bool parcSortedList_Remove(PARCSortedList *list, const PARCObject *object);
+
+
+/**
+ * Return the first element of the specified list and remove it from the list.
+ * The element's reference count is not modified,
+ * the caller must release the returned element when it is finished with it.
+ *
+ * @param [in] list A pointer to the instance of `PARCSortedList` from which the first element will be returned and removed
+ *
+ * @return  non NULL A pointer to the element removed
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ *
+ */
+PARCObject *parcSortedList_RemoveFirst(PARCSortedList *list);
+
+/**
+ * Return the last element of the specified list and remove it from the list.
+ * The element's reference count is not modified,
+ * the caller must release the returned element when it is finished with it.
+ *
+ * @param [in] list A pointer to the instance of `PARCSortedList` from which the last element will be removed and returned.
+ *
+ * @return non-NULL A pointer to the element removed
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ *
+ */
+PARCObject *parcSortedList_RemoveLast(PARCSortedList *list);
+
 #endif
