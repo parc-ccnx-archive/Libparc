@@ -1074,7 +1074,7 @@ LONGBOW_TEST_CASE(Local, _parcLinkedListNode_Create)
 
     struct parc_linkedlist_node *actual = _parcLinkedListNode_Create(object, previous, next);
     parcBuffer_Release(&object);
-    _parcLinkedListNode_Destroy(NULL, &actual, true);
+    _parcLinkedListNode_DestroyAndRelease(NULL, &actual);
 }
 
 LONGBOW_TEST_FIXTURE_OPTIONS(Performance, .enabled = false)
