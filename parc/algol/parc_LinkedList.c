@@ -57,7 +57,7 @@ PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
     .IndexOf                = (size_t    (*)(const void *, void *element))          NULL,
     .IsEmpty                = (bool      (*)(const void *))                         parcLinkedList_IsEmpty,
     .LastIndexOf            = (size_t    (*)(void *, void *element))                NULL,
-    .Remove                 = (bool      (*)(void *, void *element))                NULL,
+    .Remove                 = (bool      (*)(void *, void *element))                parcLinkedList_Remove,
     .RemoveAtIndex          = (void *    (*)(PARCList *, size_t))                   NULL,
     .RemoveCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
     .RetainCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
@@ -140,6 +140,14 @@ _parcLinkedListNode_Destroy(PARCLinkedList *list __attribute__((unused)), _PARCL
 {
     _PARCLinkedListNode *node = *nodePtr;
 
+    parcMemory_Deallocate((void **) nodePtr);
+}
+
+static void
+_parcLinkedListNode_DestroyAndRelease(PARCLinkedList *list __attribute__((unused)), _PARCLinkedListNode **nodePtr)
+{
+    _PARCLinkedListNode *node = *nodePtr;
+
     parcObject_Release(&node->object);
     parcMemory_Deallocate((void **) nodePtr);
 }
@@ -153,7 +161,7 @@ _parcLinkedList_Destroy(PARCLinkedList **listPtr)
 
     for (_PARCLinkedListNode *node = list->head; node != NULL; node = next) {
         next = node->next;
-        _parcLinkedListNode_Destroy(list, &node);
+        _parcLinkedListNode_DestroyAndRelease(list, &node);
     }
 }
 
@@ -189,6 +197,25 @@ _parcLinkedListNode_Next(PARCLinkedList *list __attribute__((unused)), const _PA
 }
 
 static void
+_parcLinkedListNode_RemoveNoChecks(PARCLinkedList *list __attribute__((unused)), _PARCLinkedListNode *node) 
+{
+    list->size--;
+
+    if (node == list->head) {
+        list->head = node->next;
+    }
+    if (node == list->tail) {
+        list->tail = node->previous;
+    }
+    if (node->previous) {
+        node->previous->next = node->next;
+    }
+    if (node->next) {
+        node->next->previous = node->previous;
+    }
+}
+
+static void
 _parcLinkedListNode_Remove(PARCLinkedList *list __attribute__((unused)), _PARCLinkedListNode **nodePtr)
 {
     assertTrue(parcLinkedList_IsValid(list), "PARCLinkedList is invalid.");
@@ -196,23 +223,11 @@ _parcLinkedListNode_Remove(PARCLinkedList *list __attribute__((unused)), _PARCLi
     _PARCLinkedListNode *node = *nodePtr;
 
     if (node != NULL) {
-        list->size--;
 
         *nodePtr = node->previous;
 
-        if (node == list->head) {
-            list->head = node->next;
-        }
-        if (node == list->tail) {
-            list->tail = node->previous;
-        }
-        if (node->previous) {
-            node->previous->next = node->next;
-        }
-        if (node->next) {
-            node->next->previous = node->previous;
-        }
-        _parcLinkedListNode_Destroy(list, &node);
+        _parcLinkedListNode_RemoveNoChecks(list, node);
+        _parcLinkedListNode_DestroyAndRelease(list, &node);
 
         assertTrue(parcLinkedList_IsValid(list), "PARCLinkedList is invalid.");
     }
@@ -406,6 +421,31 @@ parcLinkedList_Prepend(PARCLinkedList *list, const PARCObject *element)
     return list;
 }
 
+bool
+parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element) 
+{
+    assertTrue(element != NULL, "Element should not be NULL");
+    bool result = false;
+
+    _PARCLinkedListNode *node = list->head;
+    if (node != NULL) {
+        while (node != NULL) {
+            if (parcObject_Equals(node->object, element)) {
+                _parcLinkedListNode_RemoveNoChecks(list, node);
+                _parcLinkedListNode_DestroyAndRelease(list, &node);
+                result = true;
+                break;
+            }
+            node = node->next;
+        }
+    }
+
+    assertTrue(parcLinkedList_IsValid(list), "PARCLinkedList is invalid.");
+    parcLinkedList_OptionalAssertValid(list);
+
+    return result;
+}
+
 PARCObject *
 parcLinkedList_RemoveFirst(PARCLinkedList *list)
 {
@@ -413,17 +453,10 @@ parcLinkedList_RemoveFirst(PARCLinkedList *list)
 
     if (list->head != NULL) {
         _PARCLinkedListNode *node = list->head;
-        result = node->object;
 
-        if (list->head == list->tail) {
-            list->head = NULL;
-            list->tail = NULL;
-        } else {
-            list->head = node->next;
-            list->head->previous = NULL;
-        }
-        parcMemory_Deallocate((void **) &node);
-        list->size--;
+        result = node->object;
+        _parcLinkedListNode_RemoveNoChecks(list, node);
+        _parcLinkedListNode_Destroy(list, &node);
     }
 
     assertTrue(parcLinkedList_IsValid(list), "PARCLinkedList is invalid.");
@@ -440,12 +473,10 @@ parcLinkedList_RemoveLast(PARCLinkedList *list)
 
     if (list->tail != NULL) {
         _PARCLinkedListNode *node = list->tail;
-        list->tail = node->previous;
-        list->tail->next = NULL;
 
         result = node->object;
-        parcMemory_Deallocate((void **) &node);
-        list->size--;
+        _parcLinkedListNode_RemoveNoChecks(list, node);
+        _parcLinkedListNode_Destroy(list, &node);
     }
 
     assertTrue(parcLinkedList_IsValid(list), "PARCLinkedList is invalid.");
