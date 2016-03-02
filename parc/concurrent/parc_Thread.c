@@ -52,7 +52,6 @@ _parcThread_Destructor(PARCThread **instancePtr)
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
     dprintf(1, "_parcThread_Destructor\n");
-//    parcThread_Cancel(thread);
     parcThread_Join(thread);
     
     return true;
@@ -174,20 +173,13 @@ parcThread_ToString(const PARCThread *thread)
     return result;
 }
 
-//static void
-//_parcThread_SetIsNotRunning(PARCThread *thread)
-//{
-//    thread->isRunning = false;
-//}
-
 static void *
 _parcThread_Run(PARCThread *thread)
 {
-    dprintf(1, "_parcThread_Run %p cancelled=%d\n", thread->thread, thread->isCancelled);
     thread->isRunning = true;
     thread->run(thread, thread->argument);
+    thread->isRunning = false;
     parcThread_Release(&thread);
-    dprintf(1, "_parcThread_Run done\n");
 
     return NULL;
 }
