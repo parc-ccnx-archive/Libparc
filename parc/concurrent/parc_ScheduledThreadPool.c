@@ -298,6 +298,15 @@ parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
         parcObject_Notify(pool);
         printf("parcScheduledThreadPool_ShutdownNow unlock\n");
         parcObject_Unlock(pool);
+        
+        iterator = parcLinkedList_CreateIterator(pool->threads);
+        
+        while (parcIterator_HasNext(iterator)) {
+            PARCThread *thread = parcIterator_Next(iterator);
+            { char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow join %s\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+            parcThread_Join(thread);
+        }
+        parcIterator_Release(&iterator);
     }
     
     return NULL;

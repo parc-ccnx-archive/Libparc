@@ -185,11 +185,7 @@ _parcThread_Run(PARCThread *thread)
 {
     dprintf(1, "_parcThread_Run %p cancelled=%d\n", thread->thread, thread->isCancelled);
     thread->isRunning = true;
-//    pthread_cleanup_push((void (*)(void *)) _parcThread_SetIsNotRunning, thread);
-//    pthread_cleanup_push((void (*)(void *)) parcThread_Release, &thread);
     thread->run(thread, thread->argument);
-//    pthread_cleanup_pop(1);
-//    pthread_cleanup_pop(1);
     parcThread_Release(&thread);
     dprintf(1, "_parcThread_Run done\n");
 

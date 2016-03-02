@@ -67,13 +67,12 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(1);
+    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(3);
     assertNotNull(instance, "Expected non-null result from parcScheduledThreadPool_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcScheduledThreadPool_Acquire, instance);
     
     parcScheduledThreadPool_ShutdownNow(instance);
-    sleep(3);
     
     assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %ulld", parcObject_GetReferenceCount(instance) );
     parcScheduledThreadPool_Release(&instance);
