@@ -30,6 +30,7 @@
  */
 #include <config.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -38,7 +39,7 @@
 #include <parc/concurrent/parc_Thread.h>
 
 struct PARCThread {
-    void *(*run)(PARCThread *);
+    void *(*run)(PARCThread *, PARCObject *param);
     PARCObject *argument;
     bool isCancelled;
     bool isRunning;
@@ -50,8 +51,8 @@ _parcThread_Destructor(PARCThread **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
-    
-    parcThread_Cancel(thread);
+    dprintf(1, "_parcThread_Destructor\n");
+//    parcThread_Cancel(thread);
     parcThread_Join(thread);
     
     return true;
@@ -68,7 +69,8 @@ parcObject_Override(PARCThread, PARCObject,
                     .equals = (PARCObjectEquals *) parcThread_Equals,
                     .compare = (PARCObjectCompare *) parcThread_Compare,
                     .hashCode = (PARCObjectHashCode *) parcThread_HashCode,
-                    .display = (PARCObjectDisplay *) parcThread_Display);
+                    //.display = (PARCObjectDisplay *) parcThread_Display
+                    );
 
 void
 parcThread_AssertValid(const PARCThread *instance)
@@ -78,7 +80,7 @@ parcThread_AssertValid(const PARCThread *instance)
 }
 
 PARCThread *
-parcThread_Create(void *(*runFunction)(PARCThread *), PARCObject *restrict parameter)
+parcThread_Create(void *(*runFunction)(PARCThread *, PARCObject *), PARCObject *restrict parameter)
 {
     assertNotNull(parameter, "Parameter cannot be NULL.");
     
@@ -86,7 +88,8 @@ parcThread_Create(void *(*runFunction)(PARCThread *), PARCObject *restrict param
     
     if (result) {
         result->run = runFunction;
-        result->argument = parcObject_Acquire(parameter);
+//        result->argument = parcObject_Acquire(parameter);
+        result->argument = parameter;
         result->isCancelled = false;
         result->isRunning = false;
     }
@@ -166,16 +169,38 @@ parcThread_ToJSON(const PARCThread *thread)
 char *
 parcThread_ToString(const PARCThread *thread)
 {
-    char *result = parcMemory_Format("PARCThread@%p{.id=%d, .isCancelled=%s}", thread, thread->thread, thread->isCancelled ? "true" : "false");
+    char *result = parcMemory_Format("PARCThread@%p{.id=%p, .isCancelled=%s}", thread, thread->thread, thread->isCancelled ? "true" : "false");
 
     return result;
+}
+
+//static void
+//_parcThread_SetIsNotRunning(PARCThread *thread)
+//{
+//    thread->isRunning = false;
+//}
+
+static void *
+_parcThread_Run(PARCThread *thread)
+{
+    dprintf(1, "_parcThread_Run %p cancelled=%d\n", thread->thread, thread->isCancelled);
+    thread->isRunning = true;
+//    pthread_cleanup_push((void (*)(void *)) _parcThread_SetIsNotRunning, thread);
+//    pthread_cleanup_push((void (*)(void *)) parcThread_Release, &thread);
+    thread->run(thread, thread->argument);
+//    pthread_cleanup_pop(1);
+//    pthread_cleanup_pop(1);
+    parcThread_Release(&thread);
+    dprintf(1, "_parcThread_Run done\n");
+
+    return NULL;
 }
 
 void
 parcThread_Start(PARCThread *thread)
 {
-    thread->isRunning = true;
-    pthread_create(&thread->thread, NULL, (void *(*)(void *)) thread->run, thread);
+    PARCThread *parameter = parcThread_Acquire(thread);
+    pthread_create(&thread->thread, NULL, (void *(*)(void *)) _parcThread_Run, parameter);
 }
 
 PARCObject *
@@ -187,13 +212,12 @@ parcThread_GetParameter(const PARCThread *thread)
 bool
 parcThread_Cancel(PARCThread *thread)
 {
-    int returnValue = pthread_cancel(thread->thread);
-    
-    if (thread->argument != NULL) {
-        parcObject_Release(&thread->argument);
+    if (parcThread_Lock(thread)) {
+        thread->isCancelled = true;
+        parcThread_Notify(thread);
+        parcThread_Unlock(thread);
     }
-    thread->isCancelled = true;
-    return returnValue == 0;
+    return true;
 }
 
 int

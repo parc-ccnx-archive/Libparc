@@ -1,13 +1,13 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- * Copyright 2015 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
+ * Copyright 2016 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
  * The content of this file, whole or in part, is subject to licensing terms.
  * If distributing this software, include this License Header Notice in each
  * file and provide the accompanying LICENSE file.
  */
 /**
- * @author <#gscott#>, Computing Science Laboratory, PARC
- * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
+ * @author Glenn Scott, Computing Science Laboratory, PARC
+ * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include "../parc_ScheduledThreadPool.c"
 
@@ -27,7 +27,7 @@ LONGBOW_TEST_RUNNER(parc_ScheduledThreadPool)
     // Never rely on the execution order of tests or share state between them.
     LONGBOW_RUN_TEST_FIXTURE(CreateAcquireRelease);
     LONGBOW_RUN_TEST_FIXTURE(Object);
-    LONGBOW_RUN_TEST_FIXTURE(Specialization);
+//    LONGBOW_RUN_TEST_FIXTURE(Specialization);
 }
 
 // The Test Runner calls this function once before any Test Fixtures are run.
@@ -67,13 +67,15 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(2);
+    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(1);
     assertNotNull(instance, "Expected non-null result from parcScheduledThreadPool_Create();");
 
-    //parcObjectTesting_AssertAcquireReleaseContract(parcScheduledThreadPool_Acquire, instance);
+    parcObjectTesting_AssertAcquireReleaseContract(parcScheduledThreadPool_Acquire, instance);
     
     parcScheduledThreadPool_ShutdownNow(instance);
+    sleep(3);
     
+    assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %ulld", parcObject_GetReferenceCount(instance) );
     parcScheduledThreadPool_Release(&instance);
     assertNull(instance, "Expected null result from parcScheduledThreadPool_Release();");
 }
@@ -92,12 +94,15 @@ LONGBOW_TEST_FIXTURE(Object)
 
 LONGBOW_TEST_FIXTURE_SETUP(Object)
 {
+    longBowTestCase_SetInt(testCase, "initalAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initalAllocations");
+    if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
+        parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
@@ -112,15 +117,15 @@ LONGBOW_TEST_CASE(Object,  parcScheduledThreadPool_Compare)
 
 LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_Copy)
 {
-//    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(2);
-//    PARCScheduledThreadPool *copy = parcScheduledThreadPool_Copy(instance);
-//    assertTrue(parcScheduledThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
-//
-//    parcScheduledThreadPool_ShutdownNow(instance);
-//    parcScheduledThreadPool_ShutdownNow(copy);
-//    
-//    parcScheduledThreadPool_Release(&instance);
-//    parcScheduledThreadPool_Release(&copy);
+    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(2);
+    PARCScheduledThreadPool *copy = parcScheduledThreadPool_Copy(instance);
+    assertTrue(parcScheduledThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
+
+    parcScheduledThreadPool_ShutdownNow(instance);
+    parcScheduledThreadPool_ShutdownNow(copy);
+    
+    parcScheduledThreadPool_Release(&instance);
+    parcScheduledThreadPool_Release(&copy);
 }
 
 LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_Display)
@@ -204,12 +209,15 @@ LONGBOW_TEST_FIXTURE(Specialization)
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
 {
+    longBowTestCase_SetInt(testCase, "initalAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initalAllocations");
+    if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
+        parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     

@@ -477,5 +477,5 @@ size_t parcMemory_RoundUpToMultiple(size_t size, size_t multiple);
  * }
  * @endcode
  */
-char *parcMemory_Format(const char *format, ...);
+char *parcMemory_Format(const char *format, ...) __printflike(1, 2);
 #endif // libparc_parc_Memory_h

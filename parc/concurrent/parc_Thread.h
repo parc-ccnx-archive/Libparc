@@ -115,7 +115,7 @@ void parcThread_AssertValid(const PARCThread *instance);
  */
 //#define parcThread_Create(_runFunction_, _argument_) parcThread_CreateImpl((void (*)(PARCObject *)) _runFunction_, (PARCObject *) _argument_)
 
-PARCThread *parcThread_Create(void *(*run)(PARCThread *), PARCObject *restrict argument);
+PARCThread *parcThread_Create(void *(*run)(PARCThread *, PARCObject *), PARCObject *restrict argument);
 
 /**
  * Compares @p instance with @p other for order.
@@ -368,6 +368,122 @@ PARCJSON *parcThread_ToJSON(const PARCThread *instance);
  * @see parcThread_Display
  */
 char *parcThread_ToString(const PARCThread *instance);
+
+/**
+ * Wakes up a single thread that is waiting on this object (see `parcLinkedList_Wait)`.
+ * If any threads are waiting on this object, one of them is chosen to be awakened.
+ * The choice is arbitrary and occurs at the discretion of the underlying implementation.
+ *
+ * The awakened thread will not be able to proceed until the current thread relinquishes the lock on this object.
+ * The awakened thread will compete in the usual manner with any other threads that might be actively
+ * competing to synchronize on this object;
+ * for example, the awakened thread enjoys no reliable privilege or disadvantage in being the next thread to lock this object.
+ *
+ * @param [in] object A pointer to a valid PARCThread instance.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ *     parcThread_Notify(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotify(parcThread, PARCThread);
+
+/**
+ * Causes the calling thread to wait until either another thread invokes the parcHashMap_Notify() function on the same object.
+ *  *
+ * @param [in] object A pointer to a valid `PARCThread` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ *     parcThread_Wait(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementWait(parcThread, PARCThread);
+
+/**
+ * Obtain the lock on the given `PARCThread` instance.
+ *
+ * If the lock is already held by another thread, this function will block.
+ * If the lock is aleady held by the current thread, this function will return `false`.
+ *
+ * Implementors must avoid deadlock by attempting to lock the object a second time within the same calling thread.
+ *
+ * @param [in] object A pointer to a valid `PARCThread` instance.
+ *
+ * @return true The lock was obtained successfully.
+ * @return false The lock is already held by the current thread, or the `PARCThread` is invalid.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcThread_Lock(object)) {
+ *
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementLock(parcThread, PARCThread);
+
+/**
+ * Try to obtain the advisory lock on the given PARCThread instance.
+ *
+ * Once the lock is obtained, the caller must release the lock as soon as possible.
+ *
+ * @param [in] object A pointer to a valid PARCThread instance.
+ *
+ * @return true The PARCThread is locked.
+ * @return false The PARCThread is unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcThread_TryLock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementTryLock(parcThread, PARCThread);
+
+/**
+ * Try to unlock the advisory lock on the given `PARCHashMap` instance.
+ *
+ * @param [in] object A pointer to a valid `PARCThread` instance.
+ *
+ * @return true The `PARCThread` was locked and now is unlocked.
+ * @return false The `PARCThread` was not locked and remains unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcThread_Unlock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementUnlock(parcThread, PARCThread);
+
+/**
+ * Determine if the advisory lock on the given `PARCThread` instance is locked.
+ *
+ * @param [in] object A pointer to a valid `PARCThread` instance.
+ *
+ * @return true The `PARCThread` is locked.
+ * @return false The `PARCThread` is unlocked.
+ * Example:
+ * @code
+ * {
+ *     if (parcThread_IsLocked(object)) {
+ *         ...
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementIsLocked(parcThread, PARCThread);
+
 
 /**
  * <#One Line Description#>

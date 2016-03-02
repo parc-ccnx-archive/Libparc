@@ -39,16 +39,14 @@ parcSortedlist_Pop(PARCSortedList *list)
 }
 
 static void *
-_workingThread(PARCThread *thread)
+_workingThread(PARCThread *thread, PARCObject *pool)
 {
-//    PARCScheduledThreadPool *pool = parcThread_GetParameter(thread);
-
-    { char *string = parcThread_ToString(thread); printf("%s lock pool\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
     
     if (parcObject_Lock(thread)) {
-        { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
 
         while (parcThread_IsCancelled(thread) == false) {
+            { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
             parcObject_Wait(thread);
         }
 
@@ -68,9 +66,11 @@ _parcScheduledThreadPool_Destructor(PARCScheduledThreadPool **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCScheduledThreadPool pointer.");
     PARCScheduledThreadPool *pool = *instancePtr;
-    
-    parcSortedList_Release(&pool->workQueue);
     parcLinkedList_Release(&pool->threads);
+    
+    if (parcObject_Lock(pool->workQueue)) {
+        parcSortedList_Release(&pool->workQueue);
+    }
     
     return true;
 }
@@ -78,14 +78,6 @@ _parcScheduledThreadPool_Destructor(PARCScheduledThreadPool **instancePtr)
 parcObject_ImplementAcquire(parcScheduledThreadPool, PARCScheduledThreadPool);
 
 parcObject_ImplementRelease(parcScheduledThreadPool, PARCScheduledThreadPool);
-
-//inline void
-//parcScheduledThreadPool_Release(PARCScheduledThreadPool **pObject) {
-//    PARCScheduledThreadPool *pool = *pObject;
-//    if (parcObject_Lock(pool)) {
-//        parcObject_Release((PARCObject **) pObject);
-//    }
-//}
 
 parcObject_Override(PARCScheduledThreadPool, PARCObject,
                     .destructor = (PARCObjectDestructor *) _parcScheduledThreadPool_Destructor,
@@ -120,7 +112,7 @@ parcScheduledThreadPool_Create(int poolSize)
         
         if (parcObject_Lock(result)) {
             for (int i = 0; i < poolSize; i++) {
-                PARCThread *thread = parcThread_Create(_workingThread, result);
+                PARCThread *thread = parcThread_Create(_workingThread, (PARCObject *) result);
                 parcLinkedList_Append(result->threads, thread);
                 parcThread_Start(thread);
                 parcThread_Release(&thread);
@@ -296,12 +288,8 @@ parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
         
         while (parcIterator_HasNext(iterator)) {
             PARCThread *thread = parcIterator_Next(iterator);
-            if (parcObject_Lock(thread)) {
-                parcThread_Cancel(thread);
-                parcObject_Notify(thread);
-                { char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow %s cancelled\n", string);                   parcMemory_Deallocate(&string); fflush(stdout); }
-                parcObject_Unlock(thread);
-            }
+            parcThread_Cancel(thread);
+            { char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow %s\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
         }
         parcIterator_Release(&iterator);
         
