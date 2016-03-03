@@ -71,7 +71,6 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNotNull(instance, "Expected non-null result from parcScheduledThreadPool_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcScheduledThreadPool_Acquire, instance);
-    
     parcScheduledThreadPool_ShutdownNow(instance);
     
     assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %lu", parcObject_GetReferenceCount(instance) );
@@ -118,7 +117,7 @@ LONGBOW_TEST_CASE(Object,  parcScheduledThreadPool_Compare)
 
 LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_Copy)
 {
-    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(2);
+    PARCScheduledThreadPool *instance = parcScheduledThreadPool_Create(3);
     PARCScheduledThreadPool *copy = parcScheduledThreadPool_Copy(instance);
     assertTrue(parcScheduledThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
 

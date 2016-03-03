@@ -32,16 +32,75 @@ struct PARCScheduledThreadPool {
 };
 
 static void *
-_workingThread(PARCThread *thread, PARCObject *pool)
+_superVisorThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 {
-    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+    if (parcObject_Lock(pool)) {
+        while (parcThread_IsCancelled(thread) == false) {
+            /*
+             supervisor:
+                repeat:
+                    Pick the top of the queue.
+                    If the delay is <= 0, then wakeup the workers.
+                    If the delay is > 0, then wait on the pool for that amount of time.
+                    Otherwise, wait on the pool for a new task to be enqueued.
+             
+             worker:
+                repeat:
+                    Pick the top of the queue.
+                    If the delay is <= 0, then take the task and execute it.
+                    Otherwise, wait on the workQueue for the supervisor
+             
+             */
+            
+            { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
+            
+            if (parcSortedList_Size(pool->workQueue) > 0) {
+                PARCScheduledTask *task = parcSortedList_GetFirst(pool->workQueue);
+                if (parcScheduledTask_GetDelay(task) <= 0) {
+                    parcObject_Notify(pool);
+                    
+                    task = parcSortedList_RemoveFirst(pool->workQueue);
+                    parcObject_Unlock(pool);
+                    parcScheduledTask_Get(task, PARCTimeout_Never);
+                    parcScheduledTask_Release(&task);
+                    parcObject_Lock(pool);
+                }
+            }
+            parcObject_WaitFor(pool, parcTimeout_MilliSeconds(500));
+        }
+        
+        { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+        parcObject_Unlock(pool);
+    } else {
+        { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+    }
+    
+    { char *string = parcThread_ToString(thread); printf("%s done\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+    
+    return NULL;
+}
+
+static void *
+_workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
+{
+//    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
     
     if (parcObject_Lock(pool)) {
 
         while (parcThread_IsCancelled(thread) == false) {
             { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-             
-            parcObject_Wait(pool);
+
+            if (parcSortedList_Size(pool->workQueue) > 0) {
+                PARCScheduledTask *task = parcSortedList_GetAtIndex(pool->workQueue, 0);
+                if (parcScheduledTask_GetDelay(task) <= 0) {
+                    task = parcSortedList_RemoveFirst(pool->workQueue);
+                    parcObject_Unlock(pool);
+                    parcScheduledTask_Get(task, PARCTimeout_Never);
+                    parcScheduledTask_Release(&task);
+                    parcObject_Lock(pool);
+                }
+            }
+            parcObject_WaitFor(pool, parcTimeout_MilliSeconds(500));
         }
 
         { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
@@ -106,7 +165,7 @@ parcScheduledThreadPool_Create(int poolSize)
         
         if (parcObject_Lock(result)) {
             for (int i = 0; i < poolSize; i++) {
-                PARCThread *thread = parcThread_Create(_workingThread, (PARCObject *) result);
+                PARCThread *thread = parcThread_Create((void *(*)(PARCThread *, PARCObject *)) _workerThread, (PARCObject *) result);
                 parcLinkedList_Append(result->threads, thread);
                 parcThread_Start(thread);
                 parcThread_Release(&thread);
