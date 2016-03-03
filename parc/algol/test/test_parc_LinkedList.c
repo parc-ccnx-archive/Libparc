@@ -222,14 +222,12 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_Append_Two)
 LONGBOW_TEST_CASE(Global, parcLinkedList_AppendAll)
 {
     PARCLinkedList *other = parcLinkedList_Create();
-
-    PARCBuffer *object1 = parcBuffer_WrapCString("1");
-    PARCBuffer *object2 = parcBuffer_WrapCString("2");
-
-    parcLinkedList_Append(other, object1);
-    parcLinkedList_Append(other, object2);
-    parcBuffer_Release(&object1);
-    parcBuffer_Release(&object2);
+    
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i);
+        parcLinkedList_Append(other, buffer);
+        parcBuffer_Release(&buffer);
+    }
 
     PARCLinkedList *list = parcLinkedList_Create();
 

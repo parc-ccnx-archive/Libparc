@@ -727,6 +727,8 @@ parcObject_Unlock(const PARCObject *object)
             _PARCObjectLocking *locking = &header->locking;
             locking->locker = (pthread_t) NULL;
             result = (pthread_mutex_unlock(&locking->lock) == 0);
+            
+            assertTrue(result, "Attempted to unlock a unowned lock.");
         }
     }
     return result;

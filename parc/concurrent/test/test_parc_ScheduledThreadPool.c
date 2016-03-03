@@ -73,7 +73,7 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     parcObjectTesting_AssertAcquireReleaseContract(parcScheduledThreadPool_Acquire, instance);
     parcScheduledThreadPool_ShutdownNow(instance);
     
-    assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %lu", parcObject_GetReferenceCount(instance) );
+    assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %llu", parcObject_GetReferenceCount(instance) );
 
     parcScheduledThreadPool_Release(&instance);
     assertNull(instance, "Expected null result from parcScheduledThreadPool_Release();");
@@ -140,16 +140,19 @@ LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_Equals)
     PARCScheduledThreadPool *x = parcScheduledThreadPool_Create(2);
     PARCScheduledThreadPool *y = parcScheduledThreadPool_Create(2);
     PARCScheduledThreadPool *z = parcScheduledThreadPool_Create(2);
+    PARCScheduledThreadPool *u1 = parcScheduledThreadPool_Create(3);
 
-    parcObjectTesting_AssertEquals(x, y, z, NULL);
+    parcObjectTesting_AssertEquals(x, y, z, u1, NULL);
 
     parcScheduledThreadPool_ShutdownNow(x);
     parcScheduledThreadPool_ShutdownNow(y);
     parcScheduledThreadPool_ShutdownNow(z);
+    parcScheduledThreadPool_ShutdownNow(u1);
     
     parcScheduledThreadPool_Release(&x);
     parcScheduledThreadPool_Release(&y);
     parcScheduledThreadPool_Release(&z);
+    parcScheduledThreadPool_Release(&u1);
 }
 
 LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_HashCode)
@@ -204,6 +207,7 @@ LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+    LONGBOW_RUN_TEST_CASE(Specialization, Idle);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -221,6 +225,17 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     }
     
     return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Specialization, Idle)
+{
+    PARCScheduledThreadPool *pool = parcScheduledThreadPool_Create(3);
+    
+    sleep(2);
+    
+    parcScheduledThreadPool_ShutdownNow(pool);
+    
+    parcScheduledThreadPool_Release(&pool);
 }
 
 int

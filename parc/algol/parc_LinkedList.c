@@ -144,8 +144,8 @@ _parcLinkedListNode_Destroy(PARCLinkedList *list __attribute__((unused)), _PARCL
     parcMemory_Deallocate((void **) nodePtr);
 }
 
-static void
-_parcLinkedList_Destroy(PARCLinkedList **listPtr)
+static bool
+_parcLinkedList_Destructor(PARCLinkedList **listPtr)
 {
     PARCLinkedList *list = *listPtr;
 
@@ -155,6 +155,7 @@ _parcLinkedList_Destroy(PARCLinkedList **listPtr)
         next = node->next;
         _parcLinkedListNode_Destroy(list, &node);
     }
+    return true;
 }
 
 static _PARCLinkedListNode *
@@ -245,7 +246,12 @@ _parcLinkedListNode_Element(PARCLinkedList *list __attribute__((unused)), const 
     return node->object;
 }
 
-parcObject_ExtendPARCObject(PARCLinkedList, _parcLinkedList_Destroy, parcLinkedList_Copy, NULL, parcLinkedList_Equals, NULL, NULL, NULL);
+parcObject_Override(PARCLinkedList, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcLinkedList_Destructor,
+                    .copy = (PARCObjectCopy *) parcLinkedList_Copy,
+                    .equals = (PARCObjectEquals *) parcLinkedList_Equals,
+                    .hashCode = (PARCObjectHashCode *) parcLinkedList_HashCode,
+                    .display = (PARCObjectDisplay *) parcLinkedList_Display);
 
 PARCIterator *
 parcLinkedList_CreateIterator(PARCLinkedList *list)
@@ -376,10 +382,13 @@ parcLinkedList_Append(PARCLinkedList *list, const PARCObject *element)
 PARCLinkedList *
 parcLinkedList_AppendAll(PARCLinkedList *list, const PARCLinkedList *other)
 {
-    size_t length = parcLinkedList_Size(other);
-    for (size_t index = 0; index < length; index++) {
-        parcLinkedList_Append(list, parcLinkedList_GetAtIndex(other, index));
+    PARCIterator *iterator = parcLinkedList_CreateIterator((PARCLinkedList *) other);
+    while (parcIterator_HasNext(iterator)) {
+        PARCObject *object = parcIterator_Next(iterator);
+        parcLinkedList_Append(list, object);
     }
+    parcIterator_Release(&iterator);
+
     return list;
 }
 
@@ -600,7 +609,6 @@ parcLinkedList_Display(const PARCLinkedList *list, const int indentation)
         _PARCLinkedListNode *node = list->head;
 
         while (node != NULL) {
-
             parcDisplayIndented_PrintLine(indentation + 1,
                                           "%4s %11p { .previous=%11p, %11p=%11p, .next=%11p } %4s",
                                           (list->head == node) ? "head" : "    ",

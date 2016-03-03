@@ -146,6 +146,7 @@ typedef struct PARCObjectDescriptor {
     PARCObjectToJSON *toJSON;
     PARCObjectDisplay *display;
     struct PARCObjectDescriptor *super;
+    bool isLockable;
 } PARCObjectDescriptor;
 
 /*!
@@ -637,6 +638,7 @@ void parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         .hashCode = NULL,   \
         .toJSON   = NULL,   \
         .display  = NULL,   \
+        .isLockable = true, \
         .super = &parcObject_DescriptorName(_superType),    \
         .name = #_subtype,     \
         __VA_ARGS__         \
