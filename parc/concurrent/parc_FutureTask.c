@@ -39,7 +39,7 @@
 #include <parc/concurrent/parc_FutureTask.h>
 
 struct PARCFutureTask {
-    void *(*function)(void *parameter);
+    void *(*function)(PARCFutureTask *task, void *parameter);
     void *parameter;
     void *result;
     bool isRunning;
@@ -90,7 +90,7 @@ parcFutureTask_AssertValid(const PARCFutureTask *task)
 }
 
 PARCFutureTask *
-parcFutureTask_Create(void *(*function)(void *parameter), void *parameter)
+parcFutureTask_Create(void *(*function)(PARCFutureTask *task, void *parameter), void *parameter)
 {
     PARCFutureTask *result = parcObject_CreateInstance(PARCFutureTask);
 
@@ -191,7 +191,6 @@ parcFutureTask_ToString(const PARCFutureTask *instance)
     return result;
 }
 
-// Attempts to cancel execution of this task.
 bool
 parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
 {
@@ -227,7 +226,6 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout)
     PARCFutureTaskResult result;
     
     if (timeout == PARCTimeout_Immediate) {
-        parcObject_Lock(futureTask);
         if (futureTask->isDone) {
             result.execution = PARCExecution_OK;
             result.value = futureTask->result;
@@ -235,7 +233,6 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout)
             result.execution = PARCExecution_Timeout;
             result.value = 0;
         }
-        parcObject_Unlock(futureTask);
     } else {
         result.execution = PARCExecution_Interrupted;
         result.value = 0;
@@ -270,34 +267,52 @@ static void *
 _parcFutureTask_Execute(PARCFutureTask *task)
 {
     task->isRunning = true;
-    void *result = task->function(task->parameter);
+    void *result = task->function(task, task->parameter);
     task->isRunning = false;
     
     return result;
 }
 
-void
+void *
 parcFutureTask_Run(PARCFutureTask *task)
 {
-    parcObject_Lock(task);
-    if (!task->isDone) {
-        if (!task->isCancelled) {
-            task->result = _parcFutureTask_Execute(task);
-            task->isDone = true;
-            parcObject_Notify(task);
+    if (parcObject_Lock(task)) {
+        if (!task->isDone) {
+            if (!task->isCancelled) {
+                task->result = _parcFutureTask_Execute(task);
+                task->isDone = true;
+                parcObject_Notify(task);
+            }
         }
+        parcObject_Unlock(task);
+    } else {
+        trapCannotObtainLock("Cannot lock PARCFutureTask");
     }
-    parcObject_Unlock(task);
+    return task->result;
 }
 
 bool
 parcFutureTask_RunAndReset(PARCFutureTask *task)
 {
     bool result = false;
-    if (!task->isCancelled) {
-        _parcFutureTask_Execute(task);
-        _parcFutureTask_Initialise(task);
-        result = true;
+    
+    if (parcObject_Lock(task)) {
+        if (!task->isDone) {
+            if (!task->isCancelled) {
+                _parcFutureTask_Execute(task);
+                parcFutureTask_Reset(task);
+                result = true;
+            }
+        }
+    } else {
+        trapCannotObtainLock("Cannot lock PARCFutureTask");
     }
+    
     return result;
+}
+
+void
+parcFutureTask_Reset(PARCFutureTask *task)
+{
+    _parcFutureTask_Initialise(task);
 }

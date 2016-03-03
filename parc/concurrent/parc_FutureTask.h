@@ -128,7 +128,7 @@ void parcFutureTask_AssertValid(const PARCFutureTask *instance);
  * }
  * @endcode
  */
-PARCFutureTask *parcFutureTask_Create(void *(*runnable)(void *parameter), void *parameter);
+PARCFutureTask *parcFutureTask_Create(void *(*runnable)(PARCFutureTask *task, void *parameter), void *parameter);
 
 /**
  * Compares @p instance with @p other for order.
@@ -474,7 +474,7 @@ bool parcFutureTask_IsDone(const PARCFutureTask *futureTask);
  *
  * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
  *
- * @return <#value#> <#explanation#>
+ * @return The result returned by the task function.
  *
  * Example:
  * @code
@@ -483,10 +483,29 @@ bool parcFutureTask_IsDone(const PARCFutureTask *futureTask);
  * }
  * @endcode
  */
-void parcFutureTask_Run(PARCFutureTask *futureTask);
+void *parcFutureTask_Run(PARCFutureTask *futureTask);
 
 /**
  * Executes the computation without setting its result, and then resets this future to initial state, failing to do so if the computation encounters an exception or is cancelled.
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return true The task was executed.
+ * @retval false The task was not executed because it was previously completed, or it was cancelled.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+bool parcFutureTask_RunAndReset(PARCFutureTask *futureTask);
+
+/**
+ * Reset the given PARCFutureTask to the intial state, a subsequent ecutes the computation without setting its result, and then resets this future to initial state, failing to do so if the computation encounters an exception or is cancelled.
  *
  * <#Paragraphs Of Explanation#>
  *
@@ -501,6 +520,6 @@ void parcFutureTask_Run(PARCFutureTask *futureTask);
  * }
  * @endcode
  */
-bool parcFutureTask_RunAndReset(PARCFutureTask *futureTask);
+void parcFutureTask_Reset(PARCFutureTask *task);
 
 #endif
