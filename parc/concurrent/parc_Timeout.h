@@ -52,19 +52,19 @@ typedef uint64_t PARCTimeout;
  * @def PARCTimeout_NanoSeconds
  * This represents a timeout that will occur in the specified number of nanoseconds.
  */
-#define PARCTimeout_NanoSeconds(_nsec_) ((PARCTimeout) _nsec_ * 1000)
+#define parcTimeout_NanoSeconds(_nsec_) ((PARCTimeout) _nsec_ * 1000)
 
 /*
  * @def PARCTimeout_MicroSeconds
  * This represents a timeout that will occur in the specified number of microseconds.
  */
-#define PARCTimeout_MicroSeconds(_usec_) ((PARCTimeout) _usec_ * 1000)
+#define parcTimeout_MicroSeconds(_usec_) ((PARCTimeout) _usec_ * 1000)
 
 /*
  * @def PARCTimeout_MilliSeconds
  * This represents a timeout that will occur in the specified number of microseconds.
  */
-#define PARCTimeout_MilliSeconds(_msec_) ((PARCTimeout) _msec_ * 1000000)
+#define parcTimeout_MilliSeconds(_msec_) ((PARCTimeout) _msec_ * 1000000)
 
 /**
  * Determine if two `PARCTimeout` instances are equal.
