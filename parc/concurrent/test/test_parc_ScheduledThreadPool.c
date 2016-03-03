@@ -27,7 +27,7 @@ LONGBOW_TEST_RUNNER(parc_ScheduledThreadPool)
     // Never rely on the execution order of tests or share state between them.
     LONGBOW_RUN_TEST_FIXTURE(CreateAcquireRelease);
     LONGBOW_RUN_TEST_FIXTURE(Object);
-//    LONGBOW_RUN_TEST_FIXTURE(Specialization);
+    LONGBOW_RUN_TEST_FIXTURE(Specialization);
 }
 
 // The Test Runner calls this function once before any Test Fixtures are run.
@@ -75,7 +75,6 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     
     assertTrue(parcObject_GetReferenceCount(instance) == 1, "Expected 1 reference count. Actual %lu", parcObject_GetReferenceCount(instance) );
 
-    printf("------------\n");
     parcScheduledThreadPool_Release(&instance);
     assertNull(instance, "Expected null result from parcScheduledThreadPool_Release();");
 }

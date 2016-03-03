@@ -340,7 +340,6 @@ _parcScheduledThreadPool_CancelAll(const PARCScheduledThreadPool *pool)
     while (parcIterator_HasNext(iterator)) {
         PARCThread *thread = parcIterator_Next(iterator);
         parcThread_Cancel(thread);
-        //{ char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow %s\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
     }
     parcIterator_Release(&iterator);
 }
@@ -352,7 +351,6 @@ _parcScheduledThreadPool_JoinAll(const PARCScheduledThreadPool *pool)
     
     while (parcIterator_HasNext(iterator)) {
         PARCThread *thread = parcIterator_Next(iterator);
-        //{ char *string = parcThread_ToString(thread); printf("parcScheduledThreadPool_ShutdownNow join %s\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
         parcThread_Join(thread);
     }
     parcIterator_Release(&iterator);
@@ -361,17 +359,21 @@ _parcScheduledThreadPool_JoinAll(const PARCScheduledThreadPool *pool)
 PARCList *
 parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
 {
+    // Cause all of the worker threads to exit.
+    _parcScheduledThreadPool_CancelAll(pool);
+    
+    // Wake them all up so they detect that they are cancelled.
     if (parcObject_Lock(pool)) {
-        // Cause all of the worker threads to exit.
-        _parcScheduledThreadPool_CancelAll(pool);
-        
-        // Wake them all up so they detect that they are cancelled.
         parcObject_NotifyAll(pool);
         parcObject_Unlock(pool);
-        
-        // Join with all of them, thereby cleaning up all of them.
-        _parcScheduledThreadPool_JoinAll(pool);
     }
+    if (parcObject_Lock(pool->workQueue)) {
+        parcObject_NotifyAll(pool->workQueue);
+        parcObject_Unlock(pool->workQueue);
+    }
+    // Join with all of them, thereby cleaning up all of them.
+    _parcScheduledThreadPool_JoinAll(pool);
+    
     
     return NULL;
 }
