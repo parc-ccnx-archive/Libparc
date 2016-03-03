@@ -83,9 +83,16 @@ _superVisorThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 static void *
 _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 {
+    /*
+     * worker:
+     *  repeat:
+     *      Pick the top of the queue.
+     *      If the delay is <= 0, then take the task and execute it.
+     *      Otherwise, wait on the workQueue for the supervisor
+     */
 //    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
     
-    if (parcObject_Lock(pool)) {
+    if (parcSortedList_Lock(pool->workQueue)) {
 
         while (parcThread_IsCancelled(thread) == false) {
             { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
@@ -94,17 +101,17 @@ _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
                 PARCScheduledTask *task = parcSortedList_GetAtIndex(pool->workQueue, 0);
                 if (parcScheduledTask_GetDelay(task) <= 0) {
                     task = parcSortedList_RemoveFirst(pool->workQueue);
-                    parcObject_Unlock(pool);
+                    parcSortedList_Unlock(pool->workQueue);
                     parcScheduledTask_Get(task, PARCTimeout_Never);
                     parcScheduledTask_Release(&task);
-                    parcObject_Lock(pool);
+                    parcSortedList_Lock(pool->workQueue);
                 }
             }
-            parcObject_WaitFor(pool, parcTimeout_MilliSeconds(500));
+            parcSortedList_Wait(pool->workQueue);
         }
 
         { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-        parcObject_Unlock(pool);
+        parcSortedList_Unlock(pool->workQueue);
     } else {
         { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
     }
