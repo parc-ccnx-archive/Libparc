@@ -52,7 +52,7 @@ _parcThread_Destructor(PARCThread **instancePtr)
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
     
-    dprintf(1, "_parcThread_Destructor %p\n", thread->thread);
+    thread->isCancelled = true;
     parcThread_Join(thread);
     
     return true;
@@ -89,7 +89,6 @@ parcThread_Create(void *(*runFunction)(PARCThread *, PARCObject *), PARCObject *
     if (result) {
         result->run = runFunction;
         result->argument = parcObject_Acquire(parameter);
-//        result->argument = parameter;
         result->isCancelled = false;
         result->isRunning = false;
     }
