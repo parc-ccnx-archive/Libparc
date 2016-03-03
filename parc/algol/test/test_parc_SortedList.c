@@ -238,6 +238,8 @@ LONGBOW_TEST_FIXTURE(Specialization)
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Add);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_Remove);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetAtIndex);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetFirst);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetLast);
     
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst_SingleElement);
@@ -365,6 +367,66 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_GetAtIndex)
     PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetAtIndex(instance, 1);
     assertTrue(parcBuffer_Equals(element2, actual), "Got the wrong value at index 1");
 
+    parcBuffer_Release(&element1);
+    parcBuffer_Release(&element2);
+    parcBuffer_Release(&element3);
+    parcBuffer_Release(&element4);
+    parcBuffer_Release(&element5);
+    parcBuffer_Release(&element6);
+    parcBuffer_Release(&element7);
+    parcBuffer_Release(&element8);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_GetFirst)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCBuffer *element1 = parcBuffer_WrapCString("1");
+    PARCBuffer *element2 = parcBuffer_WrapCString("2");
+    PARCBuffer *element3 = parcBuffer_WrapCString("3");
+    PARCBuffer *element4 = parcBuffer_WrapCString("4");
+    PARCBuffer *element7 = parcBuffer_WrapCString("7");
+    PARCBuffer *element6 = parcBuffer_WrapCString("6");
+    PARCBuffer *element5 = parcBuffer_WrapCString("5");
+    PARCBuffer *element8 = parcBuffer_WrapCString("8");
+    
+    parcSortedList_Add(instance, element1);
+    parcSortedList_Add(instance, element2);
+    parcSortedList_Add(instance, element3);
+    
+    PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetFirst(instance);
+    assertTrue(parcBuffer_Equals(element1, actual), "Got the wrong value.");
+    
+    parcBuffer_Release(&element1);
+    parcBuffer_Release(&element2);
+    parcBuffer_Release(&element3);
+    parcBuffer_Release(&element4);
+    parcBuffer_Release(&element5);
+    parcBuffer_Release(&element6);
+    parcBuffer_Release(&element7);
+    parcBuffer_Release(&element8);
+    parcSortedList_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcSortedList_GetLast)
+{
+    PARCSortedList *instance = parcSortedList_Create();
+    PARCBuffer *element1 = parcBuffer_WrapCString("1");
+    PARCBuffer *element2 = parcBuffer_WrapCString("2");
+    PARCBuffer *element3 = parcBuffer_WrapCString("3");
+    PARCBuffer *element4 = parcBuffer_WrapCString("4");
+    PARCBuffer *element7 = parcBuffer_WrapCString("7");
+    PARCBuffer *element6 = parcBuffer_WrapCString("6");
+    PARCBuffer *element5 = parcBuffer_WrapCString("5");
+    PARCBuffer *element8 = parcBuffer_WrapCString("8");
+    
+    parcSortedList_Add(instance, element1);
+    parcSortedList_Add(instance, element2);
+    parcSortedList_Add(instance, element3);
+    
+    PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetLast(instance);
+    assertTrue(parcBuffer_Equals(element3, actual), "Got the wrong value at index 1");
+    
     parcBuffer_Release(&element1);
     parcBuffer_Release(&element2);
     parcBuffer_Release(&element3);

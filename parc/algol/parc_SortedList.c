@@ -164,6 +164,18 @@ parcSortedList_GetAtIndex(const PARCSortedList *list, const size_t index)
 }
 
 PARCObject *
+parcSortedList_GetFirst(const PARCSortedList *list)
+{
+    return parcLinkedList_GetAtIndex(list->list, 0);
+}
+
+PARCObject *
+parcSortedList_GetLast(const PARCSortedList *list)
+{
+    return parcLinkedList_GetAtIndex(list->list, parcLinkedList_Size(list->list) - 1);
+}
+
+PARCObject *
 parcSortedList_RemoveFirst(PARCSortedList *list)
 {
     PARCObject *result = parcLinkedList_RemoveFirst(list->list);
