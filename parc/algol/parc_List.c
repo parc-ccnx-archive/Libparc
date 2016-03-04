@@ -36,6 +36,7 @@
 #include <stdarg.h>
 
 #include <parc/algol/parc_Object.h>
+
 #include <parc/algol/parc_List.h>
 #include <parc/algol/parc_Memory.h>
 
@@ -97,7 +98,13 @@ parcList_Copy(const PARCList *list)
 bool
 parcList_IsEmpty(const PARCList *list)
 {
-    return (list->interface->IsEmpty)(list->instance);
+    bool result = false;
+    if (list->interface->IsEmpty) {
+        result = (list->interface->IsEmpty)(list->instance);
+    } else {
+        result = (parcList_Size(list) == 0);
+    }
+    return result;
 }
 
 bool
@@ -137,9 +144,12 @@ void
 parcList_Clear(PARCList *list)
 {
     if (!list->interface->Clear) {
-        trapNotImplemented("Clear");
+        for (size_t i = 0; i < parcList_Size(list); i++) {
+            parcList_RemoveAtIndex(list, i);
+        }
+    } else {
+        (list->interface->Clear)(list->instance);
     }
-    (list->interface->Clear)(list->instance);
 }
 
 bool
@@ -172,14 +182,28 @@ parcList_HashCode(const PARCList *list)
     return (list->interface->HashCode)(list->instance);
 }
 
-size_t
-parcList_IndexOf(const PARCList *list, void *element)
+ssize_t
+parcList_IndexOf(const PARCList *list, PARCObject *element)
 {
-    return (list->interface->IndexOf)(list->instance, element);
+    ssize_t result = -1;
+    
+    if (list->interface->IndexOf) {
+        result = (list->interface->IndexOf)(list->instance, element);
+    } else {
+        for (size_t i = 0; i < parcList_Size(list); i++) {
+            PARCObject *e = parcList_GetAtIndex(list, i);
+            if (parcObject_Equals(e, element)) {
+                result = i;
+                break;
+            }
+        }
+    }
+    
+    return result;
 }
 
 size_t
-parcList_LastIndexOf(PARCList *list, void *element)
+parcList_LastIndexOf(const PARCList *list, void *element)
 {
     return (list->interface->LastIndexOf)(list->instance, element);
 }
@@ -187,7 +211,11 @@ parcList_LastIndexOf(PARCList *list, void *element)
 void *
 parcList_RemoveAtIndex(PARCList *list, size_t index)
 {
-    return (list->interface->RemoveAtIndex)(list->instance, index);
+    if (list->interface->RemoveAtIndex) {
+        return (list->interface->RemoveAtIndex)(list->instance, index);
+    } else {
+        return NULL;        
+    }
 }
 
 bool

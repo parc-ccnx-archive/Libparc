@@ -590,4 +590,22 @@ bool parcLinkedList_SetEquals(const PARCLinkedList *x, const PARCLinkedList *y);
  * Insert the given element into the list such that it is the index'th element in the list.
  */
 PARCLinkedList *parcLinkedList_InsertAtIndex(PARCLinkedList *list, size_t index, const PARCObject *element);
+
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+PARCList *parcLinkedList_AsPARCList(PARCLinkedList *list);
 #endif // libparc_parc_Deque_h

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,19 +40,16 @@
  * by throwing runtime exceptions when the user attempts to insert them, but we expect this usage to be rare.
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_List_h
 #define libparc_parc_List_h
 
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <parc/algol/parc_Collection.h>
+
 
 struct parc_list;
 /**
@@ -690,7 +687,8 @@ int parcList_HashCode(const PARCList *list);
  * <#example#>
  * @endcode
  */
-size_t parcList_IndexOf(const PARCList *list, void *element);
+
+//ssize_t parcList_IndexOf(const PARCList *list, PARCObject *element);
 
 /**
  * Returns the index of the last occurrence of the specified element in this list, or -1 if this list does not contain the element.
@@ -704,7 +702,7 @@ size_t parcList_IndexOf(const PARCList *list, void *element);
  * <#example#>
  * @endcode
  */
-size_t parcList_LastIndexOf(PARCList *list, void *element);
+size_t parcList_LastIndexOf(const PARCList *list, void *element);
 
 /**
  * Removes the element at the specified position in this list (optional operation).
