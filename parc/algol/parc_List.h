@@ -46,10 +46,6 @@
 #define libparc_parc_List_h
 
 #include <stdbool.h>
-#include <stdlib.h>
-
-#include <parc/algol/parc_Collection.h>
-
 
 struct parc_list;
 /**
@@ -57,6 +53,9 @@ struct parc_list;
  * @brief  An ordered collection (also known as a sequence).
  */
 typedef struct parc_list PARCList;
+
+#include <parc/algol/parc_Collection.h>
+#include <parc/algol/parc_Object.h>
 
 /**
  * @typedef PARCListInterface
@@ -112,7 +111,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    bool (*Add)(void *instance, void *element);
+    bool (*Add)(void *instance, PARCObject *element);
 
     /**
      * Inserts the specified element at the specified position in this list (optional operation).
@@ -126,7 +125,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    void (*AddAtIndex)(void *instance, int index, void *element);
+    void (*AddAtIndex)(void *instance, int index, PARCObject *element);
 
     /**
      * Append elements of @p collection to @p instance
@@ -184,7 +183,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    bool (*Contains)(const void *instance, void *element);
+    bool (*Contains)(const void *instance, PARCObject *element);
 
     /**
      * Returns true if this list contains all of the elements of the specified collection.
@@ -226,7 +225,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    void *(*GetAtIndex)(const void *instance, size_t index);
+    PARCObject *(*GetAtIndex)(const void *instance, size_t index);
 
     /**
      * Returns the hash code value for this list.
@@ -253,7 +252,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    size_t (*IndexOf)(const void *instance, void *element);
+    size_t (*IndexOf)(const void *instance, PARCObject *element);
 
     /**
      * Returns the index of the last occurrence of the specified element in this list, or -1 if this list does not contain the element.
@@ -267,7 +266,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    size_t (*LastIndexOf)(void *instance, void *element);
+    size_t (*LastIndexOf)(void *instance, PARCObject *element);
 
     /**
      * Removes the element at the specified position in this list (optional operation).
@@ -281,7 +280,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    void *(*RemoveAtIndex)(PARCList * list, size_t index);
+    PARCObject *(*RemoveAtIndex)(PARCList *list, size_t index);
 
     /**
      * Removes the first occurrence of the specified element from this list, if it is present (optional operation).
@@ -295,7 +294,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    bool (*Remove)(void *instance, void *element);
+    bool (*Remove)(void *instance, const PARCObject *element);
 
     /**
      * Removes from this list all of its elements that are contained in the specified collection (optional operation).
@@ -687,8 +686,7 @@ int parcList_HashCode(const PARCList *list);
  * <#example#>
  * @endcode
  */
-
-//ssize_t parcList_IndexOf(const PARCList *list, PARCObject *element);
+ssize_t parcList_IndexOf(const PARCList *list, PARCObject *element);
 
 /**
  * Returns the index of the last occurrence of the specified element in this list, or -1 if this list does not contain the element.
@@ -702,7 +700,7 @@ int parcList_HashCode(const PARCList *list);
  * <#example#>
  * @endcode
  */
-size_t parcList_LastIndexOf(const PARCList *list, void *element);
+ssize_t parcList_LastIndexOf(const PARCList *list, PARCObject *element);
 
 /**
  * Removes the element at the specified position in this list (optional operation).
@@ -730,7 +728,7 @@ void *parcList_RemoveAtIndex(PARCList *list, size_t index);
  * <#example#>
  * @endcode
  */
-bool parcList_Remove(PARCList *list, void *element);
+bool parcList_Remove(PARCList *list, PARCObject *element);
 
 /**
  * Removes from this list all of its elements that are contained in the specified collection (optional operation).
@@ -773,7 +771,7 @@ bool parcList_RetainCollection(PARCList *list, PARCCollection *collection);
  * <#example#>
  * @endcode
  */
-void *parcList_SetAtIndex(PARCList *list, size_t index, void *element);
+PARCObject *parcList_SetAtIndex(PARCList *list, size_t index, PARCObject *element);
 
 /**
  * Returns the number of elements in this list.

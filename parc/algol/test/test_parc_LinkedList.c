@@ -126,8 +126,8 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_AppendAll);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_AppendAll_None);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_CreateDestroy);
-    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_PeekFirst);
-    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_PeekLast);
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_GetFirst);
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_GetLast);
 
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Prepend_One);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Prepend_Two);
@@ -145,6 +145,7 @@ LONGBOW_TEST_FIXTURE(Global)
     
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Remove);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveNotFound);
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveAtIndex);
     
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Size);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Equals);
@@ -285,7 +286,7 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_HashCode)
     parcLinkedList_Release(&deque);
 }
 
-LONGBOW_TEST_CASE(Global, parcLinkedList_PeekFirst)
+LONGBOW_TEST_CASE(Global, parcLinkedList_GetFirst)
 {
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
     PARCBuffer *object2 = parcBuffer_WrapCString("2");
@@ -296,7 +297,7 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_PeekFirst)
     parcLinkedList_Append(deque, object2);
     parcLinkedList_Append(deque, object3);
 
-    PARCBuffer *actual = parcLinkedList_PeekFirst(deque);
+    PARCBuffer *actual = parcLinkedList_GetFirst(deque);
     assertTrue(parcBuffer_Equals(object1, actual), "Order of objects in the list is wrong.");
 
     parcBuffer_Release(&object1);
@@ -305,7 +306,7 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_PeekFirst)
     parcLinkedList_Release(&deque);
 }
 
-LONGBOW_TEST_CASE(Global, parcLinkedList_PeekLast)
+LONGBOW_TEST_CASE(Global, parcLinkedList_GetLast)
 {
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
     PARCBuffer *object2 = parcBuffer_WrapCString("2");
@@ -316,7 +317,7 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_PeekLast)
     parcLinkedList_Append(deque, object2);
     parcLinkedList_Append(deque, object3);
 
-    PARCBuffer *actual = parcLinkedList_PeekLast(deque);
+    PARCBuffer *actual = parcLinkedList_GetLast(deque);
     assertTrue(parcBuffer_Equals(object3, actual), "Order of objects in the list is wrong.");
 
     parcBuffer_Release(&object1);
@@ -369,10 +370,10 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_Prepend_Three)
     assertTrue(deque == actual, "Expected parcLinkedList_Prepend to return its argument.");
     assertTrue(parcLinkedList_Size(deque) == 3, "Expected size of 3, actual %zd", parcLinkedList_Size(deque));
 
-    PARCBuffer *peek = parcLinkedList_PeekFirst(deque);
+    PARCBuffer *peek = parcLinkedList_GetFirst(deque);
     assertTrue(parcBuffer_Equals(object3, peek), "Order of objects failed");
 
-    peek = parcLinkedList_PeekLast(deque);
+    peek = parcLinkedList_GetLast(deque);
     assertTrue(parcBuffer_Equals(object1, peek), "Order of objects failed");
 
     parcBuffer_Release(&object1);
@@ -477,6 +478,29 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_Remove)
     parcBuffer_Release(&object2);
     parcBuffer_Release(&object3);
     parcLinkedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveAtIndex)
+{
+    PARCLinkedList *list = parcLinkedList_Create();
+    
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    
+    parcLinkedList_Prepend(list, object3);
+    parcLinkedList_Prepend(list, object2);
+    parcLinkedList_Prepend(list, object1);
+    
+    PARCBuffer *actual = parcLinkedList_RemoveAtIndex(list, 1);
+    
+    assertTrue(parcBuffer_Equals(object2, actual), "Wrong object returned from parcLinkedList_RemoveAtIndex");
+    
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcBuffer_Release(&actual);
+    parcLinkedList_Release(&list);
 }
 
 LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveNotFound)

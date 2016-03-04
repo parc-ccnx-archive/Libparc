@@ -40,7 +40,7 @@
 LONGBOW_TEST_RUNNER(PARCList)
 {
     LONGBOW_RUN_TEST_FIXTURE(Global);
-    LONGBOW_RUN_TEST_FIXTURE(PARCLinkedList);
+    LONGBOW_RUN_TEST_FIXTURE(PARCList);
     LONGBOW_RUN_TEST_FIXTURE(Local);
 //    LONGBOW_RUN_TEST_FIXTURE(Errors);
 }
@@ -607,33 +607,33 @@ LONGBOW_TEST_CASE_EXPECTS(Errors, PARCList_InsertAtIndex_OutOfCapacity, .event =
 }
 
 
-LONGBOW_TEST_FIXTURE(PARCLinkedList)
+LONGBOW_TEST_FIXTURE(PARCList)
 {
-    LONGBOW_RUN_TEST_CASE(List, parcList_Add);
-    LONGBOW_RUN_TEST_CASE(List, parcList_AddCollection);
-    LONGBOW_RUN_TEST_CASE(List, parcList_AddCollectionAtIndex);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Contains);
-    LONGBOW_RUN_TEST_CASE(List, parcList_ContainsCollection);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Equals);
-    LONGBOW_RUN_TEST_CASE(List, parcList_IsEmpty);
-    LONGBOW_RUN_TEST_CASE(List, parcList_GetAtIndex);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Remove);
-    LONGBOW_RUN_TEST_CASE(List, parcList_RemoveCollection);
-    LONGBOW_RUN_TEST_CASE(List, parcList_RetainCollection);
-    LONGBOW_RUN_TEST_CASE(List, parcList_HashCode);
-    LONGBOW_RUN_TEST_CASE(List, parcList_IndexOf);
-    LONGBOW_RUN_TEST_CASE(List, parcList_LastIndexOf);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Copy);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Clear);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Destroy);
-    LONGBOW_RUN_TEST_CASE(List, parcList_RemoveAtIndex);
-    LONGBOW_RUN_TEST_CASE(List, parcList_SetAtIndex);
-    LONGBOW_RUN_TEST_CASE(List, parcList_Size);
-    LONGBOW_RUN_TEST_CASE(List, parcList_SubList);
-    LONGBOW_RUN_TEST_CASE(List, parcList_ToArray);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Add);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_AddCollection);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_AddCollectionAtIndex);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Contains);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_ContainsCollection);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Equals);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_IsEmpty);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_GetAtIndex);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Remove);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_RemoveCollection);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_RetainCollection);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_HashCode);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_IndexOf);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_LastIndexOf);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Copy);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Clear);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Destroy);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_RemoveAtIndex);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_SetAtIndex);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_Size);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_SubList);
+    LONGBOW_RUN_TEST_CASE(PARCList, parcList_ToArray);
 }
 
-LONGBOW_TEST_FIXTURE_SETUP(PARCLinkedList)
+LONGBOW_TEST_FIXTURE_SETUP(PARCList)
 {
     longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     longBowTestCase_Set(testCase, "linkedList", parcLinkedList_Create());
@@ -641,7 +641,7 @@ LONGBOW_TEST_FIXTURE_SETUP(PARCLinkedList)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_FIXTURE_TEARDOWN(PARCLinkedList)
+LONGBOW_TEST_FIXTURE_TEARDOWN(PARCList)
 {
     PARCLinkedList *linkedList = longBowTestCase_Get(testCase, "linkedList");
     parcLinkedList_Release(&linkedList);
@@ -658,7 +658,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(PARCLinkedList)
 
 //#include "test_parc_List_modular.c"
 
-LONGBOW_TEST_CASE(List, parcList_Add)
+LONGBOW_TEST_CASE(PARCList, parcList_Add)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     
@@ -670,27 +670,27 @@ LONGBOW_TEST_CASE(List, parcList_Add)
     assertTrue(1 == actual, "Expected=%d, actual=%zu", 1, actual);
 }
 
-LONGBOW_TEST_CASE(List, parcList_AddCollection)
+LONGBOW_TEST_CASE(PARCList, parcList_AddCollection)
 {
 
 }
 
-LONGBOW_TEST_CASE(List, parcList_AddCollectionAtIndex)
-{
-    
-}
-
-LONGBOW_TEST_CASE(List, parcList_Contains)
+LONGBOW_TEST_CASE(PARCList, parcList_AddCollectionAtIndex)
 {
     
 }
 
-LONGBOW_TEST_CASE(List, parcList_ContainsCollection)
+LONGBOW_TEST_CASE(PARCList, parcList_Contains)
 {
     
 }
 
-LONGBOW_TEST_CASE(List, parcList_Equals)
+LONGBOW_TEST_CASE(PARCList, parcList_ContainsCollection)
+{
+    
+}
+
+LONGBOW_TEST_CASE(PARCList, parcList_Equals)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     PARCList *copy = parcList_Copy(list);
@@ -700,13 +700,13 @@ LONGBOW_TEST_CASE(List, parcList_Equals)
     parcList_Release(&copy);
 }
 
-LONGBOW_TEST_CASE(List, parcList_IsEmpty)
+LONGBOW_TEST_CASE(PARCList, parcList_IsEmpty)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     assertTrue(parcList_IsEmpty(list), "Expected list to be empty.");    
 }
 
-LONGBOW_TEST_CASE(List, parcList_GetAtIndex)
+LONGBOW_TEST_CASE(PARCList, parcList_GetAtIndex)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     
@@ -721,7 +721,7 @@ LONGBOW_TEST_CASE(List, parcList_GetAtIndex)
     assertTrue(actual == 0, "Expected %u, actual %u\n", 0, actual);
 }
 
-LONGBOW_TEST_CASE(List, parcList_Remove)
+LONGBOW_TEST_CASE(PARCList, parcList_Remove)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     
@@ -744,47 +744,61 @@ LONGBOW_TEST_CASE(List, parcList_Remove)
     parcBuffer_Release(&buffer);
 }
 
-LONGBOW_TEST_CASE(List, parcList_RemoveCollection)
+LONGBOW_TEST_CASE(PARCList, parcList_RemoveCollection)
 {
     
 }
 
-LONGBOW_TEST_CASE(List, parcList_RetainCollection)
+LONGBOW_TEST_CASE(PARCList, parcList_RetainCollection)
 {
     
 }
 
-LONGBOW_TEST_CASE(List, parcList_HashCode)
+LONGBOW_TEST_CASE(PARCList, parcList_HashCode)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    PARCHashCode actual = parcList_HashCode(list);
+    parcList_HashCode(list);
 }
 
-LONGBOW_TEST_CASE(List, parcList_IndexOf)
+LONGBOW_TEST_CASE(PARCList, parcList_IndexOf)
 {
-//    PARCList *list = longBowTestCase_Get(testCase, "list");
-//    
-//    for (int i = 0; i < 1000; i++) {
-//        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
-//        parcList_Add(list, buffer);
-//        parcBuffer_Release(&buffer);
-//    }
-//    
-//    uint32_t expected = 10;
-//    PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 10));
-//    size_t actual = parcList_IndexOf(list, buffer);
-//    
-//    parcBuffer_Release(&buffer);
-//    
-//    assertTrue(expected == actual, "Expected %u, actual %zu", expected, actual);
-}
-
-LONGBOW_TEST_CASE(List, parcList_LastIndexOf)
-{
+    PARCList *list = longBowTestCase_Get(testCase, "list");
     
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
+        parcList_Add(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
+    
+    uint32_t expected = 10;
+    PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 10));
+    size_t actual = parcList_IndexOf(list, buffer);
+    
+    parcBuffer_Release(&buffer);
+    
+    assertTrue(expected == actual, "Expected %u, actual %zu", expected, actual);
 }
 
-LONGBOW_TEST_CASE(List, parcList_Copy)
+LONGBOW_TEST_CASE(PARCList, parcList_LastIndexOf)
+{
+    PARCList *list = longBowTestCase_Get(testCase, "list");
+    
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
+        parcList_Add(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
+    
+    uint32_t expected = 999;
+    PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
+    size_t actual = parcList_LastIndexOf(list, buffer);
+    
+    parcBuffer_Release(&buffer);
+    
+    assertTrue(expected == actual, "Expected %u, actual %zu", expected, actual);
+}
+
+LONGBOW_TEST_CASE(PARCList, parcList_Copy)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     PARCList *copy = parcList_Copy(list);
@@ -794,7 +808,7 @@ LONGBOW_TEST_CASE(List, parcList_Copy)
     parcList_Release(&copy);
 }
 
-LONGBOW_TEST_CASE(List, parcList_Clear)
+LONGBOW_TEST_CASE(PARCList, parcList_Clear)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     parcList_Clear(list);
@@ -802,32 +816,51 @@ LONGBOW_TEST_CASE(List, parcList_Clear)
     assertTrue(parcList_IsEmpty(list), "Expected list to be empty.");
 }
 
-LONGBOW_TEST_CASE(List, parcList_Destroy)
+LONGBOW_TEST_CASE(PARCList, parcList_Destroy)
 {
+    PARCList *list = longBowTestCase_Get(testCase, "list");
+    PARCList *copy = parcList_Copy(list);
     
+    parcList_Release(&copy);
 }
 
-LONGBOW_TEST_CASE(List, parcList_RemoveAtIndex)
+LONGBOW_TEST_CASE(PARCList, parcList_RemoveAtIndex)
 {
-//    PARCList *list = longBowTestCase_Get(testCase, "list");
-//    
-//    for (int i = 0; i < 1000; i++) {
-//        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
-//        parcList_Add(list, buffer);
-//        parcBuffer_Release(&buffer);
-//    }
-//    
-//    uint32_t actual = parcBuffer_GetUint32(parcList_RemoveAtIndex(list, 0));
-//    
-//    assertTrue(actual == 0, "Expected %u, actual %u\n", 0, actual);    
-}
-
-LONGBOW_TEST_CASE(List, parcList_SetAtIndex)
-{
+    PARCList *list = longBowTestCase_Get(testCase, "list");
     
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
+        parcList_Add(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
+    
+    PARCBuffer *buffer = parcList_RemoveAtIndex(list, 0);
+    uint32_t actual = parcBuffer_GetUint32(buffer);
+    assertTrue(actual == 0, "Expected buffer 0.");
+    
+    parcBuffer_Release(&buffer);
 }
 
-LONGBOW_TEST_CASE(List, parcList_Size)
+LONGBOW_TEST_CASE(PARCList, parcList_SetAtIndex)
+{
+    PARCList *list = longBowTestCase_Get(testCase, "list");
+    
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
+        parcList_Add(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
+    
+    PARCBuffer *buffer = parcBuffer_WrapCString("1");
+    
+    parcList_SetAtIndex(list, 50, buffer);
+    
+    PARCBuffer *actual = parcList_GetAtIndex(list, 50);
+    assertTrue(parcBuffer_Equals(buffer, actual), "parcList_SetAtIndex set the wrong location.");
+    parcBuffer_Release(&buffer);
+}
+
+LONGBOW_TEST_CASE(PARCList, parcList_Size)
 {
     PARCArrayList *array = parcArrayList_Create(NULL);
     parcArrayList_Add(array, 0);
@@ -837,256 +870,15 @@ LONGBOW_TEST_CASE(List, parcList_Size)
     parcArrayList_Destroy(&array);
 }
 
-LONGBOW_TEST_CASE(List, parcList_SubList)
+LONGBOW_TEST_CASE(PARCList, parcList_SubList)
 {
     
 }
 
-LONGBOW_TEST_CASE(List, parcList_ToArray)
+LONGBOW_TEST_CASE(PARCList, parcList_ToArray)
 {
     
 }
-
-#if 0
-LONGBOW_TEST_CASE(List, PARCList_IsEmpty)
-{
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    assertTrue(parcArrayList_IsEmpty(array), "Expected a new array to be empty.");
-    
-    parcArrayList_Add(array, 0);
-    assertFalse(parcArrayList_IsEmpty(array), "Expected an array with more than zero elements to be empty.");
-    
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_InsertAtIndex)
-{
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    
-    parcArrayList_Add(array, (void *) 1);
-    parcArrayList_Add(array, (void *) 2);
-    size_t actual = parcArrayList_Size(array);
-    
-    assertTrue(2 == actual, "Expected=%d, actual=%zu", 2, actual);
-    
-    parcArrayList_InsertAtIndex(array, 1, (void *) 3);
-    
-    actual = parcArrayList_Size(array);
-    assertTrue(3 == actual, "Expected=%d, actual=%zu", 3, actual);
-    
-    void *element0 = parcArrayList_Get(array, 0);
-    assertTrue(element0 == (void *) 1, "Element 1 moved?");
-    
-    void *element1 = parcArrayList_Get(array, 1);
-    assertTrue(element1 == (void *) 3, "Element 1 moved?");
-    
-    void *element2 = parcArrayList_Get(array, 2);
-    assertTrue(element2 == (void *) 2, "Element 1 moved?");
-    
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_InsertAtIndex_Empty)
-{
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    
-    parcArrayList_InsertAtIndex(array, 0, (void *) 3);
-    
-    size_t actual = parcArrayList_Size(array);
-    
-    assertTrue(1 == actual, "Expected=%d, actual=%zu", 1, actual);
-    
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_InsertAtIndex_First)
-{
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    
-    parcArrayList_Add(array, (void *) 1);
-    parcArrayList_InsertAtIndex(array, 0, (void *) 2);
-    size_t actual = parcArrayList_Size(array);
-    
-    assertTrue(2 == actual, "Expected=%d, actual=%zu", 2, actual);
-    
-    void *element0 = parcArrayList_Get(array, 0);
-    assertTrue(element0 == (void *) 2, "Element 1 moved?");
-    
-    void *element1 = parcArrayList_Get(array, 1);
-    assertTrue(element1 == (void *) 1, "Element 1 moved?");
-    
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_InsertAtIndex_Last)
-{
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    
-    parcArrayList_Add(array, (void *) 1);
-    parcArrayList_Add(array, (void *) 2);
-    size_t actual = parcArrayList_Size(array);
-    
-    assertTrue(2 == actual, "Expected=%d, actual=%zu", 2, actual);
-    
-    parcArrayList_InsertAtIndex(array, 2, (void *) 3);
-    
-    actual = parcArrayList_Size(array);
-    assertTrue(3 == actual, "Expected=%d, actual=%zu", 3, actual);
-    
-    void *element0 = parcArrayList_Get(array, 0);
-    assertTrue(element0 == (void *) 1, "Element 1 moved?");
-    
-    void *element1 = parcArrayList_Get(array, 1);
-    assertTrue(element1 == (void *) 2, "Element 1 moved?");
-    
-    void *element2 = parcArrayList_Get(array, 2);
-    assertTrue(element2 == (void *) 3, "Element 1 moved?");
-    
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_Remove_AtIndex_First)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, b);
-    parcArrayList_Add(expected, c);
-    
-    void *removedElement = parcArrayList_RemoveAtIndex(array, 0);
-    
-    assertTrue(removedElement == a, "Expected ");
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_Remove_AtIndex)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, a);
-    parcArrayList_Add(expected, c);
-    
-    void *removedElement = parcArrayList_RemoveAtIndex(array, 1);
-    
-    assertTrue(removedElement == b, "Expected ");
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-
-
-LONGBOW_TEST_CASE(List, PARCList_Remove_AtIndex_Last)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, a);
-    parcArrayList_Add(expected, b);
-    
-    void *removedElement = parcArrayList_RemoveAtIndex(array, 2);
-    
-    assertTrue(removedElement == c, "Expected ");
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_RemoveAndDestroy_AtIndex_First)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, b);
-    parcArrayList_Add(expected, c);
-    
-    parcArrayList_RemoveAndDestroyAtIndex(array, 0);
-    
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_RemoveAndDestroy_AtIndex)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, a);
-    parcArrayList_Add(expected, c);
-    
-    parcArrayList_RemoveAndDestroyAtIndex(array, 1);
-    
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-
-LONGBOW_TEST_CASE(List, PARCList_RemoveAndDestroy_AtIndex_Last)
-{
-    char a[] = "apple";
-    char b[] = "bananna";
-    char c[] = "cherry";
-    
-    PARCArrayList *array = parcArrayList_Create(NULL);
-    parcArrayList_Add(array, a);
-    parcArrayList_Add(array, b);
-    parcArrayList_Add(array, c);
-    
-    PARCArrayList *expected = parcArrayList_Create(NULL);
-    parcArrayList_Add(expected, a);
-    parcArrayList_Add(expected, b);
-    
-    parcArrayList_RemoveAndDestroyAtIndex(array, 2);
-    
-    assertTrue(parcArrayList_Equals(expected, array), "Expected ");
-    
-    parcArrayList_Destroy(&expected);
-    parcArrayList_Destroy(&array);
-}
-#endif
 
 int
 main(int argc, char *argv[])

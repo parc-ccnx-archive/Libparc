@@ -49,12 +49,12 @@
 
 #include <parc/algol/parc_Buffer.h>
 #include <parc/algol/parc_BufferComposer.h>
-#include <parc/algol/parc_List.h>
 #include <parc/algol/parc_PathName.h>
 
 struct parc_json;
 typedef struct parc_json PARCJSON;
 
+#include <parc/algol/parc_List.h>
 #include <parc/algol/parc_JSONPair.h>
 #include <parc/algol/parc_JSONValue.h>
 

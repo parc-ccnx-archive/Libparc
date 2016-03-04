@@ -190,7 +190,7 @@ parcList_IndexOf(const PARCList *list, PARCObject *element)
     if (list->interface->IndexOf) {
         result = (list->interface->IndexOf)(list->instance, element);
     } else {
-        for (size_t i = 0; i < parcList_Size(list); i++) {
+        for (ssize_t i = 0; i < parcList_Size(list); i++) {
             PARCObject *e = parcList_GetAtIndex(list, i);
             if (parcObject_Equals(e, element)) {
                 result = i;
@@ -202,13 +202,27 @@ parcList_IndexOf(const PARCList *list, PARCObject *element)
     return result;
 }
 
-size_t
-parcList_LastIndexOf(const PARCList *list, void *element)
+ssize_t
+parcList_LastIndexOf(const PARCList *list, PARCObject *element)
 {
-    return (list->interface->LastIndexOf)(list->instance, element);
+    ssize_t result = -1;
+    
+    if (list->interface->LastIndexOf) {
+        result = (list->interface->LastIndexOf)(list->instance, element);
+    } else {
+        for (ssize_t i = parcList_Size(list) - 1; i >= 0; i--) {
+            PARCObject *e = parcList_GetAtIndex(list, i);
+            if (parcObject_Equals(e, element)) {
+                result = i;
+                break;
+            }
+        }
+    }
+    
+    return result;
 }
 
-void *
+PARCObject *
 parcList_RemoveAtIndex(PARCList *list, size_t index)
 {
     if (list->interface->RemoveAtIndex) {
@@ -219,20 +233,24 @@ parcList_RemoveAtIndex(PARCList *list, size_t index)
 }
 
 bool
-parcList_Remove(PARCList *list, void *element)
+parcList_Remove(PARCList *list, PARCObject *element)
 {
+    bool result = false;
+    
     if (list->interface->Remove != NULL) {
-        return (list->interface->Remove)(list->instance, element);
-    }
-
-    for (size_t i = 0; i < parcList_Size(list); i++) {
-        void *e = parcList_GetAtIndex(list, i);
-        if (e == element) {
-            parcList_RemoveAtIndex(list, i);
-            return true;
+        result = (list->interface->Remove)(list->instance, element);
+    } else {
+        for (size_t i = 0; i < parcList_Size(list); i++) {
+            void *e = parcList_GetAtIndex(list, i);
+            if (parcObject_Equals(e, element)) {
+                parcList_RemoveAtIndex(list, i);
+                result = true;
+                break;
+            }
         }
     }
-    return false;
+    
+    return result;
 }
 
 bool
@@ -247,7 +265,7 @@ parcList_RetainCollection(PARCList *list, PARCCollection *collection)
     return (list->interface->RetainCollection)(list->instance, collection);
 }
 
-void *
+PARCObject *
 parcList_SetAtIndex(PARCList *list, size_t index, void *element)
 {
     return (list->interface->SetAtIndex)(list->instance, index, element);

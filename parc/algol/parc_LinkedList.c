@@ -52,19 +52,19 @@ static PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
     .Copy                   = (void *    (*)(const PARCList *))                     parcLinkedList_Copy,
     .Destroy                = (void      (*)(void **))                              parcLinkedList_Release,
     .Equals                 = (bool      (*)(const void *, const void *))           parcLinkedList_Equals,
-    .GetAtIndex             = (void *    (*)(const void *, size_t))                 parcLinkedList_GetAtIndex,
-    .HashCode               = (int       (*)(void *))                               parcLinkedList_HashCode,
-    .IndexOf                = (size_t    (*)(const void *, void *element))          NULL,
-    .IsEmpty                = (bool      (*)(const void *))                         parcLinkedList_IsEmpty,
-    .LastIndexOf            = (size_t    (*)(void *, void *element))                NULL,
-    .Remove                 = (bool      (*)(void *, void *element))                parcLinkedList_Remove,
-    .RemoveAtIndex          = (void *    (*)(PARCList *, size_t))                   NULL,
-    .RemoveCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
-    .RetainCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
-    .SetAtIndex             = (void *    (*)(void *, size_t index, void *))         NULL,
-    .Size                   = (size_t    (*)(const void *))                         parcLinkedList_Size,
-    .SubList                = (PARCList *(*)(void *, size_t, size_t))               NULL,
-    .ToArray                = (void**    (*)(void *))                               NULL,
+    .GetAtIndex             = (PARCObject *(*)(const void *, size_t))               parcLinkedList_GetAtIndex,
+    .HashCode               = (int         (*)(void *))                             parcLinkedList_HashCode,
+    .IndexOf                = (size_t      (*)(const void *, void *element))        NULL,
+    .IsEmpty                = (bool        (*)(const void *))                       parcLinkedList_IsEmpty,
+    .LastIndexOf            = (size_t      (*)(void *, PARCObject *element))        NULL,
+    .Remove                 = (bool        (*)(void *, const PARCObject *element))  parcLinkedList_Remove,
+    .RemoveAtIndex          = (PARCObject *(*)(PARCList *, size_t))                 parcLinkedList_RemoveAtIndex,
+    .RemoveCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
+    .RetainCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
+    .SetAtIndex             = (PARCObject *(*)(void *, size_t index, PARCObject *)) parcLinkedList_InsertAtIndex,
+    .Size                   = (size_t      (*)(const void *))                       parcLinkedList_Size,
+    .SubList                = (PARCList *  (*)(void *, size_t, size_t))             NULL,
+    .ToArray                = (void**      (*)(void *))                             NULL,
 };
 
 typedef struct parc_linkedlist_node {
@@ -78,6 +78,26 @@ struct parc_linkedlist {
     _PARCLinkedListNode *tail;
     size_t size;
 };
+
+static inline _PARCLinkedListNode *
+_parcLinkedListNode_getByIndex(const PARCLinkedList *list, size_t index)
+{
+    _PARCLinkedListNode *node = list->head;
+    while (index-- && node != NULL) {
+        node = node->next;
+    }
+    return node;
+}
+
+static inline _PARCLinkedListNode *
+_parcLinkedListNode_getByValue(const PARCLinkedList *list, const PARCObject *value)
+{
+    _PARCLinkedListNode *node = list->head;
+    while (node != NULL && parcObject_Equals(node->object, value) == false) {
+        node = node->next;
+    }
+    return node;
+}
 
 static bool
 _parcLinkedListNode_IsValid(const _PARCLinkedListNode *node)
@@ -189,9 +209,11 @@ _parcLinkedListNode_Next(PARCLinkedList *list __attribute__((unused)), const _PA
     return result;
 }
 
-static void
-_parcLinkedListNode_RemoveNoChecks(PARCLinkedList *list, _PARCLinkedListNode *node)
+static PARCObject *
+_parcLinkedListNode_Delete(PARCLinkedList *list, _PARCLinkedListNode *node)
 {
+    PARCObject *result = node->object;
+    
     list->size--;
     
     if (node == list->head) {
@@ -206,6 +228,33 @@ _parcLinkedListNode_RemoveNoChecks(PARCLinkedList *list, _PARCLinkedListNode *no
     if (node->next) {
         node->next->previous = node->previous;
     }
+    
+    parcMemory_Deallocate((void **) &node);
+    
+    return result;
+}
+
+static PARCObject *
+_parcLinkedListNode_RemoveNoChecks(PARCLinkedList *list, _PARCLinkedListNode *node)
+{
+    PARCObject *result = node->object;
+    
+    list->size--;
+    
+    if (node == list->head) {
+        list->head = node->next;
+    }
+    if (node == list->tail) {
+        list->tail = node->previous;
+    }
+    if (node->previous) {
+        node->previous->next = node->next;
+    }
+    if (node->next) {
+        node->next->previous = node->previous;
+    }
+
+    return result;
 }
 
 static void
@@ -472,19 +521,7 @@ parcLinkedList_RemoveLast(PARCLinkedList *list)
 
     if (list->tail != NULL) {
         _PARCLinkedListNode *node = list->tail;
-#if 0
-        list->tail = node->previous;
-        list->tail->next = NULL;
-
-        result = node->object;
-        parcMemory_Deallocate((void **) &node);
-        list->size--;
-#else
-        result = node->object;
-        _parcLinkedListNode_RemoveNoChecks(list, node);
-        
-        parcMemory_Deallocate(&node);
-#endif
+        result = _parcLinkedListNode_Delete(list, node);
     }
 
     parcLinkedList_OptionalAssertValid(list);
@@ -497,18 +534,11 @@ parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element)
     assertTrue(element != NULL, "Element must not be NULL");
     bool result = false;
     
-    _PARCLinkedListNode *node = list->head;
+    _PARCLinkedListNode *node = _parcLinkedListNode_getByValue(list, element);
     if (node != NULL) {
-        while (node != NULL) {
-            if (parcObject_Equals(node->object, element)) {
-                _parcLinkedListNode_RemoveNoChecks(list, node);
-                parcObject_Release(&node->object);
-                parcMemory_Deallocate(&node);
-                result = true;
-                break;
-            }
-            node = node->next;
-        }
+        PARCObject *e = _parcLinkedListNode_Delete(list, node);
+        parcObject_Release(&e);
+        result = true;
     }
     
     parcLinkedList_OptionalAssertValid(list);
@@ -517,7 +547,20 @@ parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element)
 }
 
 PARCObject *
-parcLinkedList_PeekFirst(const PARCLinkedList *list)
+parcLinkedList_RemoveAtIndex(PARCLinkedList *list, size_t index)
+{
+    PARCObject *result = NULL;
+    
+    _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
+    if (node != NULL) {
+        result = _parcLinkedListNode_Delete(list, node);
+    }
+    
+    return result;
+}
+
+PARCObject *
+parcLinkedList_GetFirst(const PARCLinkedList *list)
 {
     PARCObject *result = NULL;
 
@@ -529,7 +572,7 @@ parcLinkedList_PeekFirst(const PARCLinkedList *list)
 }
 
 PARCObject *
-parcLinkedList_PeekLast(const PARCLinkedList *list)
+parcLinkedList_GetLast(const PARCLinkedList *list)
 {
     PARCObject *result = NULL;
 
@@ -618,12 +661,9 @@ parcLinkedList_GetAtIndex(const PARCLinkedList *list, size_t index)
     if (index > (parcLinkedList_Size(list) - 1)) {
         trapOutOfBounds(index, "[0, %zd]", parcLinkedList_Size(list) - 1);
     }
-    _PARCLinkedListNode *node = list->head;
-    while (index--) {
-        node = node->next;
-    }
-
-    return node->object;
+    
+    _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
+    return (node == NULL) ? NULL : node->object;
 }
 
 bool

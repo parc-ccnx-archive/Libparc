@@ -322,10 +322,51 @@ PARCObject *parcLinkedList_RemoveLast(PARCLinkedList *list);
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCLinkedList *list = parcLinkedList_Create();
+ *
+ *     PARCBuffer *buffer = parcBuffer_WrapCString("1");
+ *     parcLinkedList_Append(list, buffer);
+ *     parcBuffer_Release(&buffer);
+ *     // ...
+ *     PARCBuffer *actual = parcLinkedList_Remove(list, buffer);
+ *     parcBuffer_Release(&actual);
+ *
+ *     // ...
+ *
+ *     parcLinkedList_Release(&list);
+ * }
  * @endcode
  */
 bool parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element);
+
+/**
+ * Removes the element at the specified position in this list.
+ *
+ * Shifts all subsequent elements to the left (subtracts one from their indices).
+ * Return the element that was removed from the list without modifying the reference count.
+ * The caller must eventually release the returned value.
+ *
+ * @param [in] list A pointer to the instance of `PARCLinkedList` from which the element will be removed.
+ * @param [in] index The index (origin 0) of the element to remove.
+ *
+ * @return The element that was removed from the list.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCLinkedList *list = parcLinkedList_Create();
+ *     // add elements to the list.
+ *
+ *     parcLinkedList_RemoveAtIndex(list, 2); // remove the 3rd element in the list.
+ *
+ *     // ...
+ *
+ *     parcLinkedList_Release(&list);
+ * }
+ * @endcode
+ */
+PARCObject *parcLinkedList_RemoveAtIndex(PARCLinkedList *list, size_t index);
 
 /**
  * Return the first element of the specified `PARCLinkedList` but do NOT remove it from the queue
@@ -340,7 +381,7 @@ bool parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element);
  * @endcode
  *
  */
-PARCObject *parcLinkedList_PeekFirst(const PARCLinkedList *list);
+PARCObject *parcLinkedList_GetFirst(const PARCLinkedList *list);
 
 /**
  * Return the last element of the specified `PARCLinkedList` but do NOT remove it from the queue
@@ -355,7 +396,7 @@ PARCObject *parcLinkedList_PeekFirst(const PARCLinkedList *list);
  * @endcode
  *
  */
-PARCObject *parcLinkedList_PeekLast(const PARCLinkedList *list);
+PARCObject *parcLinkedList_GetLast(const PARCLinkedList *list);
 
 /**
  * Return the size of the specified queue

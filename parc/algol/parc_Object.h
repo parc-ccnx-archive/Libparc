@@ -58,9 +58,6 @@
 #include <LongBow/runtime.h>
 #include <LongBow/longBow_Compiler.h>
 
-#include <parc/algol/parc_CMacro.h>
-#include <parc/algol/parc_JSON.h>
-#include <parc/algol/parc_HashCode.h>
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
 #  define parcObject_OptionalAssertValid(_instance_)
@@ -73,6 +70,10 @@ typedef uint64_t PARCReferenceCount;
 //Switch to strong type after subclasses are converted
 //typedef struct {int unused;} PARCObject;
 typedef void PARCObject;
+
+#include <parc/algol/parc_CMacro.h>
+#include <parc/algol/parc_JSON.h>
+#include <parc/algol/parc_HashCode.h>
 
 /**
  * A Function that performs the final cleanup and resource deallocation when
