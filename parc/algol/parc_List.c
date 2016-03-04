@@ -66,11 +66,16 @@ parcList(void *instance, PARCListInterface *interface)
     return result;
 }
 
-
 PARCList *
-parcList_Create(void *instance, PARCListInterface *interface)
+parcList_Create(PARCObject *instance, PARCListInterface *interface)
 {
-    return parcList(instance, interface);
+    PARCList *result = parcObject_CreateInstance(PARCList);
+    if (result != NULL) {
+        result->instance = parcObject_Acquire(instance);
+        result->interface = interface;
+    }
+    
+    return result;
 }
 
 parcObject_ImplementAcquire(parcList, PARCList);

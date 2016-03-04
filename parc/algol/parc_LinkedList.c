@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
@@ -41,23 +41,23 @@
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_Memory.h>
 
-PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
+static PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
     .Add                    = (bool      (*)(void *, void *))                       parcLinkedList_Append,
-    .AddAtIndex             = (void      (*)(void *, int index, void *))            NULL,
+    .AddAtIndex             = (void      (*)(void *, int index, void *))            parcLinkedList_InsertAtIndex,
     .AddCollection          = (bool      (*)(void *, PARCCollection *))             NULL,
     .AddCollectionAtIndex   = (bool      (*)(void *, int index, PARCCollection *))  NULL,
     .Clear                  = (void      (*)(void *))                               NULL,
-    .Contains               = (bool      (*)(const void *, void *))                 NULL,
+    .Contains               = (bool      (*)(const void *, void *))                 parcLinkedList_Contains,
     .ContainsCollection     = (bool      (*)(void *, PARCCollection *))             NULL,
     .Copy                   = (void *    (*)(const PARCList *))                     parcLinkedList_Copy,
     .Destroy                = (void      (*)(void **))                              parcLinkedList_Release,
     .Equals                 = (bool      (*)(const void *, const void *))           parcLinkedList_Equals,
     .GetAtIndex             = (void *    (*)(const void *, size_t))                 parcLinkedList_GetAtIndex,
-    .HashCode               = (int       (*)(void *))                               NULL,
+    .HashCode               = (int       (*)(void *))                               parcLinkedList_HashCode,
     .IndexOf                = (size_t    (*)(const void *, void *element))          NULL,
     .IsEmpty                = (bool      (*)(const void *))                         parcLinkedList_IsEmpty,
     .LastIndexOf            = (size_t    (*)(void *, void *element))                NULL,
-    .Remove                 = (bool      (*)(void *, void *element))                NULL,
+    .Remove                 = (bool      (*)(void *, void *element))                parcLinkedList_Remove,
     .RemoveAtIndex          = (void *    (*)(PARCList *, size_t))                   NULL,
     .RemoveCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
     .RetainCollection       = (bool      (*)(void *, PARCCollection *))             NULL,
@@ -492,7 +492,7 @@ parcLinkedList_RemoveLast(PARCLinkedList *list)
 }
 
 bool
-parcLinkedList_Remove(PARCLinkedList *list, PARCObject *element)
+parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element)
 {
     assertTrue(element != NULL, "Element must not be NULL");
     bool result = false;
@@ -693,5 +693,12 @@ parcLinkedList_SetEquals(const PARCLinkedList *x, const PARCLinkedList *y)
         result = true;
     }
 
+    return result;
+}
+
+PARCList *
+parcLinkedList_AsPARCList(PARCLinkedList *list)
+{
+    PARCList *result = parcList_Create(list, PARCLinkedListAsPARCList);
     return result;
 }

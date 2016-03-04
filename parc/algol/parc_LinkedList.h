@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * @brief PARC Double-ended Queue (Deque)
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_LinkedList_h
 #define libparc_parc_LinkedList_h
@@ -49,12 +49,6 @@ struct parc_linkedlist;
  * @see {@link parcLinkedList_Create}
  */
 typedef struct parc_linkedlist PARCLinkedList;
-
-/**
- * The mapping of a `PARCArrayList` to the generic `PARCList`.
- */
-extern PARCListInterface *PARCLinkedListAsPARCList;
-
 
 /**
  * Create a `PARCLinkedList` instance with the default element equality and copy functions.
@@ -318,6 +312,20 @@ PARCObject *parcLinkedList_RemoveFirst(PARCLinkedList *list);
  *
  */
 PARCObject *parcLinkedList_RemoveLast(PARCLinkedList *list);
+
+/**
+ * Remove the first occurrence of the given element from the specified 'PARCLinkedList'.
+ * The element's reference count is decremented.
+ *
+ * @param [in] element the element to remove
+ * @return true if the element was found in the list and successfully removed
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ */
+bool parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element);
 
 /**
  * Return the first element of the specified `PARCLinkedList` but do NOT remove it from the queue
