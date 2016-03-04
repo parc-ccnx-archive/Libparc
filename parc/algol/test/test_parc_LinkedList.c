@@ -142,6 +142,10 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveFirst);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveFirst_SingleElement);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveLast);
+    
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Remove);
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_RemoveNotFound);
+    
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Size);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Equals);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Copy);
@@ -242,14 +246,6 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_AppendAll)
 LONGBOW_TEST_CASE(Global, parcLinkedList_AppendAll_None)
 {
     PARCLinkedList *other = parcLinkedList_Create();
-
-//    PARCBuffer *object1 = parcBuffer_WrapCString("1");
-//    PARCBuffer *object2 = parcBuffer_WrapCString("2");
-//
-//    parcLinkedList_Append(other, object1);
-//    parcLinkedList_Append(other, object2);
-//    parcBuffer_Release(&object1);
-//    parcBuffer_Release(&object2);
 
     PARCLinkedList *list = parcLinkedList_Create();
 
@@ -388,24 +384,20 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_Prepend_Three)
 
 LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveFirst)
 {
-    PARCLinkedList *deque = parcLinkedList_Create();
+    PARCLinkedList *list = parcLinkedList_Create();
+    
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
+        parcLinkedList_Append(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
 
-    PARCBuffer *object1 = parcBuffer_WrapCString("1");
-    PARCBuffer *object2 = parcBuffer_WrapCString("2");
-    PARCBuffer *object3 = parcBuffer_WrapCString("3");
-
-    parcLinkedList_Prepend(deque, object1);
-    parcLinkedList_Prepend(deque, object2);
-    parcLinkedList_Prepend(deque, object3);
-
-    PARCBuffer *peek = parcLinkedList_RemoveFirst(deque);
-    assertTrue(parcBuffer_Equals(object3, peek), "Objects out of order");
+    PARCBuffer *peek = parcLinkedList_RemoveFirst(list);
+    assertTrue(parcObject_GetReferenceCount(peek) == 1, "Expected reference count to be 1.");
+    assertTrue(parcBuffer_GetUint32(peek) == 0, "Objects out of order.");
 
     parcBuffer_Release(&peek);
-    parcBuffer_Release(&object1);
-    parcBuffer_Release(&object2);
-    parcBuffer_Release(&object3);
-    parcLinkedList_Release(&deque);
+    parcLinkedList_Release(&list);
 }
 
 LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveFirst_SingleElement)
@@ -425,25 +417,20 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveFirst_SingleElement)
 
 LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveLast)
 {
-    PARCBuffer *object1 = parcBuffer_WrapCString("1");
-    PARCBuffer *object2 = parcBuffer_WrapCString("2");
-    PARCBuffer *object3 = parcBuffer_WrapCString("3");
-
-    PARCLinkedList *deque = parcLinkedList_Create();
-    parcLinkedList_Prepend(deque, object1);
-    parcLinkedList_Prepend(deque, object2);
-    parcLinkedList_Prepend(deque, object3);
-
-    PARCBuffer *peek = parcLinkedList_RemoveLast(deque);
-    assertTrue(parcBuffer_Equals(object1, peek),
-               "Objects out of order.");
-
+    PARCLinkedList *list = parcLinkedList_Create();
+    
+    for (int i = 0; i < 1000; i++) {
+        PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
+        parcLinkedList_Append(list, buffer);
+        parcBuffer_Release(&buffer);
+    }
+    
+    PARCBuffer *peek = parcLinkedList_RemoveLast(list);
+    assertTrue(parcObject_GetReferenceCount(peek) == 1, "Expected reference count to be 1.");
+    assertTrue(parcBuffer_GetUint32(peek) == 999, "Objects out of order.");
+    
     parcBuffer_Release(&peek);
-
-    parcBuffer_Release(&object1);
-    parcBuffer_Release(&object2);
-    parcBuffer_Release(&object3);
-    parcLinkedList_Release(&deque);
+    parcLinkedList_Release(&list);
 }
 
 LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveLast_SingleElement)
@@ -458,6 +445,61 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveLast_SingleElement)
                "Objects out of order.");
 
     parcBuffer_Release(&object1);
+    parcLinkedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Global, parcLinkedList_Remove)
+{
+    PARCLinkedList *deque = parcLinkedList_Create();
+    
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    
+    parcLinkedList_Prepend(deque, object3);
+    parcLinkedList_Prepend(deque, object2);
+    parcLinkedList_Prepend(deque, object1);
+    
+    bool found = parcLinkedList_Remove(deque, object2);
+    assertTrue(found, "Expected item to be found");
+    assertTrue(parcLinkedList_Size(deque) == 2, "Expected size of 2, actual %zd", parcLinkedList_Size(deque));
+    
+    PARCBuffer *peek;
+    peek = parcLinkedList_RemoveFirst(deque);
+    assertTrue(parcBuffer_Equals(object1, peek), "Object1 was not first in list");
+    parcBuffer_Release(&peek);
+    
+    peek = parcLinkedList_RemoveFirst(deque);
+    assertTrue(parcBuffer_Equals(object3, peek), "Object3 was not second in list");
+    parcBuffer_Release(&peek);
+    
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcLinkedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Global, parcLinkedList_RemoveNotFound)
+{
+    PARCLinkedList *deque = parcLinkedList_Create();
+    
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    PARCBuffer *object4 = parcBuffer_WrapCString("4");
+    
+    parcLinkedList_Prepend(deque, object3);
+    parcLinkedList_Prepend(deque, object2);
+    parcLinkedList_Prepend(deque, object1);
+    
+    bool found = parcLinkedList_Remove(deque, object4);
+    assertFalse(found, "Expected item to be not found");
+    assertTrue(parcLinkedList_Size(deque) == 3, "Expected size of 3, actual %zd", parcLinkedList_Size(deque));
+    
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcBuffer_Release(&object4);
     parcLinkedList_Release(&deque);
 }
 
