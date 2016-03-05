@@ -128,6 +128,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_CreateDestroy);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_GetFirst);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_GetLast);
+    LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_SetAtIndex);
 
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Prepend_One);
     LONGBOW_RUN_TEST_CASE(Global, parcLinkedList_Prepend_Two);
@@ -581,6 +582,33 @@ LONGBOW_TEST_CASE(Global, parcLinkedList_GetAtIndex)
     actual = parcLinkedList_GetAtIndex(deque, 2);
     assertTrue(parcBuffer_Equals(actual, object3), "parcLinkedList_GetAtIndex failed");
 
+    parcBuffer_Release(&object1);
+    parcBuffer_Release(&object2);
+    parcBuffer_Release(&object3);
+    parcLinkedList_Release(&deque);
+}
+
+LONGBOW_TEST_CASE(Global, parcLinkedList_SetAtIndex)
+{
+    PARCBuffer *object1 = parcBuffer_WrapCString("1");
+    PARCBuffer *object2 = parcBuffer_WrapCString("2");
+    PARCBuffer *object3 = parcBuffer_WrapCString("3");
+    
+    PARCLinkedList *deque = parcLinkedList_Create();
+    parcLinkedList_Append(deque, object1);
+    parcLinkedList_Append(deque, object2);
+    parcLinkedList_Append(deque, object3);
+    
+    PARCBuffer *newObject = parcBuffer_WrapCString("Hello");
+
+    PARCBuffer *actual = parcLinkedList_SetAtIndex(deque, 0, newObject);
+    assertTrue(parcBuffer_Equals(actual, object1), "parcLinkedList_SetAtIndex failed to return the old value.");
+    parcBuffer_Release(&actual);
+    
+    actual = parcLinkedList_GetAtIndex(deque, 0);
+    assertTrue(parcBuffer_Equals(actual, newObject), "parcLinkedList_SetAtIndex failed to set the new value.");
+    
+    parcBuffer_Release(&newObject);
     parcBuffer_Release(&object1);
     parcBuffer_Release(&object2);
     parcBuffer_Release(&object3);

@@ -444,6 +444,22 @@ bool parcLinkedList_IsEmpty(const PARCLinkedList *list);
 PARCObject *parcLinkedList_GetAtIndex(const PARCLinkedList *list, size_t index);
 
 /**
+ * Replace the element at the specified position in this list with the given element.
+ *
+ * @param [in] list A pointer to a `PARCLinkedList` instance.
+ * @param [in] index The index of the element to be replaced.
+ * @param [in] element A pointer to a valid PARCObject instance that will replace the current element at @p index.
+ *
+ * @throws `trapOutOfBounds`
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ */
+PARCObject *parcLinkedList_SetAtIndex(PARCLinkedList *list, size_t index, PARCObject *element);
+
+/**
  * Determine if two `PARCLinkedList` instances are equal.
  *
  * This function implements the following equivalence relations on non-null `PARCLinkedList` instances:

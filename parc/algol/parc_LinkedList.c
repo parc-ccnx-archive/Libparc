@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <sys/queue.h>
 
-#include "parc_LinkedList.h"
+#include <parc/algol/parc_LinkedList.h>
 
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Object.h>
@@ -43,11 +43,11 @@
 
 static PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
     .Add                    = (bool      (*)(void *, void *))                       parcLinkedList_Append,
-    .AddAtIndex             = (void      (*)(void *, int index, void *))            parcLinkedList_InsertAtIndex,
+    .AddAtIndex             = (void      (*)(void *, int index, PARCObject *))      parcLinkedList_InsertAtIndex,
     .AddCollection          = (bool      (*)(void *, PARCCollection *))             NULL,
     .AddCollectionAtIndex   = (bool      (*)(void *, int index, PARCCollection *))  NULL,
     .Clear                  = (void      (*)(void *))                               NULL,
-    .Contains               = (bool      (*)(const void *, void *))                 parcLinkedList_Contains,
+    .Contains               = (bool      (*)(const void *, PARCObject *))           parcLinkedList_Contains,
     .ContainsCollection     = (bool      (*)(void *, PARCCollection *))             NULL,
     .Copy                   = (void *    (*)(const PARCList *))                     parcLinkedList_Copy,
     .Destroy                = (void      (*)(void **))                              parcLinkedList_Release,
@@ -61,7 +61,7 @@ static PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
     .RemoveAtIndex          = (PARCObject *(*)(PARCList *, size_t))                 parcLinkedList_RemoveAtIndex,
     .RemoveCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
     .RetainCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
-    .SetAtIndex             = (PARCObject *(*)(void *, size_t index, PARCObject *)) parcLinkedList_InsertAtIndex,
+    .SetAtIndex             = (PARCObject *(*)(void *, size_t index, PARCObject *)) parcLinkedList_SetAtIndex,
     .Size                   = (size_t      (*)(const void *))                       parcLinkedList_Size,
     .SubList                = (PARCList *  (*)(void *, size_t, size_t))             NULL,
     .ToArray                = (void**      (*)(void *))                             NULL,
@@ -653,6 +653,23 @@ parcLinkedList_InsertAtIndex(PARCLinkedList *list, size_t index, const PARCObjec
 
     parcLinkedList_OptionalAssertValid(list);
     return list;
+}
+
+PARCObject *
+parcLinkedList_SetAtIndex(PARCLinkedList *list, size_t index, PARCObject *element)
+{
+    PARCObject *result = NULL;
+    
+    if (index > (parcLinkedList_Size(list) - 1)) {
+        trapOutOfBounds(index, "[0, %zd]", parcLinkedList_Size(list) - 1);
+    }
+    
+    _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
+    if (node != NULL) {
+        result = node->object;
+        node->object = parcObject_Acquire(element);
+    }
+    return result;
 }
 
 PARCObject *

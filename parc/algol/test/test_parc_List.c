@@ -853,11 +853,12 @@ LONGBOW_TEST_CASE(PARCList, parcList_SetAtIndex)
     
     PARCBuffer *buffer = parcBuffer_WrapCString("1");
     
-    parcList_SetAtIndex(list, 50, buffer);
+    PARCBuffer *oldValue = parcList_SetAtIndex(list, 50, buffer);
     
     PARCBuffer *actual = parcList_GetAtIndex(list, 50);
     assertTrue(parcBuffer_Equals(buffer, actual), "parcList_SetAtIndex set the wrong location.");
     parcBuffer_Release(&buffer);
+    parcBuffer_Release(&oldValue);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_Size)
