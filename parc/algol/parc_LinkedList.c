@@ -42,29 +42,29 @@
 #include <parc/algol/parc_Memory.h>
 
 static PARCListInterface *PARCLinkedListAsPARCList = &(PARCListInterface) {
-    .Add                    = (bool      (*)(void *, void *))                       parcLinkedList_Append,
-    .AddAtIndex             = (void      (*)(void *, int index, PARCObject *))      parcLinkedList_InsertAtIndex,
-    .AddCollection          = (bool      (*)(void *, PARCCollection *))             NULL,
-    .AddCollectionAtIndex   = (bool      (*)(void *, int index, PARCCollection *))  NULL,
-    .Clear                  = (void      (*)(void *))                               NULL,
-    .Contains               = (bool      (*)(const void *, PARCObject *))           parcLinkedList_Contains,
-    .ContainsCollection     = (bool      (*)(void *, PARCCollection *))             NULL,
-    .Copy                   = (void *    (*)(const PARCList *))                     parcLinkedList_Copy,
-    .Destroy                = (void      (*)(void **))                              parcLinkedList_Release,
-    .Equals                 = (bool      (*)(const void *, const void *))           parcLinkedList_Equals,
-    .GetAtIndex             = (PARCObject *(*)(const void *, size_t))               parcLinkedList_GetAtIndex,
-    .HashCode               = (int         (*)(void *))                             parcLinkedList_HashCode,
-    .IndexOf                = (size_t      (*)(const void *, void *element))        NULL,
-    .IsEmpty                = (bool        (*)(const void *))                       parcLinkedList_IsEmpty,
-    .LastIndexOf            = (size_t      (*)(void *, PARCObject *element))        NULL,
-    .Remove                 = (bool        (*)(void *, const PARCObject *element))  parcLinkedList_Remove,
-    .RemoveAtIndex          = (PARCObject *(*)(PARCList *, size_t))                 parcLinkedList_RemoveAtIndex,
-    .RemoveCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
-    .RetainCollection       = (bool        (*)(void *, PARCCollection *))           NULL,
-    .SetAtIndex             = (PARCObject *(*)(void *, size_t index, PARCObject *)) parcLinkedList_SetAtIndex,
-    .Size                   = (size_t      (*)(const void *))                       parcLinkedList_Size,
-    .SubList                = (PARCList *  (*)(void *, size_t, size_t))             NULL,
-    .ToArray                = (void**      (*)(void *))                             NULL,
+    .Add                    = (bool      (*)(void *, void *))                            parcLinkedList_Append,
+    .AddAtIndex             = (void      (*)(void *, int index, PARCObject *))           parcLinkedList_InsertAtIndex,
+    .AddCollection          = (bool      (*)(void *, PARCCollection *))                  NULL,
+    .AddCollectionAtIndex   = (bool      (*)(void *, int index, PARCCollection *))       NULL,
+    .Clear                  = (void      (*)(void *))                                    NULL,
+    .Contains               = (bool      (*)(const void *, const PARCObject *))          parcLinkedList_Contains,
+    .ContainsCollection     = (bool      (*)(const void *, const PARCCollection *))      NULL,
+    .Copy                   = (void *    (*)(const PARCList *))                          parcLinkedList_Copy,
+    .Destroy                = (void      (*)(void **))                                   parcLinkedList_Release,
+    .Equals                 = (bool      (*)(const void *, const void *))                parcLinkedList_Equals,
+    .GetAtIndex             = (PARCObject *(*)(const void *, size_t))                    parcLinkedList_GetAtIndex,
+    .HashCode               = (PARCHashCode (*)(const void *))                           parcLinkedList_HashCode,
+    .IndexOf                = (size_t      (*)(const void *, const PARCObject *element)) NULL,
+    .IsEmpty                = (bool        (*)(const void *))                            parcLinkedList_IsEmpty,
+    .LastIndexOf            = (size_t      (*)(void *, const PARCObject *element))       NULL,
+    .Remove                 = (bool        (*)(void *, const PARCObject *element))       parcLinkedList_Remove,
+    .RemoveAtIndex          = (PARCObject *(*)(PARCList *, size_t))                      parcLinkedList_RemoveAtIndex,
+    .RemoveCollection       = (bool        (*)(void *, const PARCCollection *))          NULL,
+    .RetainCollection       = (bool        (*)(void *, const PARCCollection *))          NULL,
+    .SetAtIndex             = (PARCObject *(*)(void *, size_t index, PARCObject *))      parcLinkedList_SetAtIndex,
+    .Size                   = (size_t      (*)(const void *))                            parcLinkedList_Size,
+    .SubList                = (PARCList *  (*)(const void *, size_t, size_t))            NULL,
+    .ToArray                = (void**      (*)(const void *))                            NULL,
 };
 
 typedef struct parc_linkedlist_node {
@@ -252,7 +252,7 @@ _parcLinkedListNode_Remove(PARCLinkedList *list, _PARCLinkedListNode **nodePtr)
 }
 
 static bool
-_parcLinkedListNode_HasNext(PARCLinkedList *list __attribute__((unused)), const _PARCLinkedListNode *node)
+_parcLinkedListNode_HasNext(PARCLinkedList *list, const _PARCLinkedListNode *node)
 {
     bool result = false;
 

@@ -67,14 +67,7 @@ typedef struct parc_list_interface {
      *
      * @param [in] original An instance of `PARCList` to copy
      *
-     * @return  A pointer to the new list
-     *
-     * Example:
-     * @code
-     * {
-     *     <#example#>
-     * }
-     * @endcode
+     * @return  A pointer to the new list.
      */
     void *(*Copy)(const PARCList * original);
 
@@ -82,12 +75,7 @@ typedef struct parc_list_interface {
      * Destroy the List
      *
      * @param [in,out] instancePtr
-     * @return a pointer to the destroyed List
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
+     * @return a pointer to the destroyed List.
      */
     void (*Destroy)(void **instancePtr);
 
@@ -105,11 +93,6 @@ typedef struct parc_list_interface {
      * @param [in,out] The instance of `PARCList` to append the element to
      * @param [in] element The pointer to the element to be added to the `PARCList`
      * @return true if the element was added successfully.
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
     bool (*Add)(void *instance, PARCObject *element);
 
@@ -118,12 +101,7 @@ typedef struct parc_list_interface {
      *
      * @param [in,out] instance The instance of `PARCList` to modify
      * @param [in] index The index in `PARCList` at which to insert the @p element
-     * @param [in] element The element to insert in `PARCList` at @p index
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
+     * @param [in] element The element to insert in `PARCList` at @p index.
      */
     void (*AddAtIndex)(void *instance, int index, PARCObject *element);
 
@@ -135,12 +113,7 @@ typedef struct parc_list_interface {
      *
      * @param [in,out] instance The `PARCList` to be modified
      * @param [in] collection The collection to be added
-     * @return true if add is successful
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
+     * @return true if add is successful.
      */
     bool (*AddCollection)(void *instance, PARCCollection *collection);
 
@@ -150,11 +123,7 @@ typedef struct parc_list_interface {
      * @param [in,out] instance The `PARCList` to be modified
      * @param [in] index The position at which to insert the @p collection
      * @param [in] collection The collection to be added
-     * @return true if add is successful
-     *
-     * Example:
-     * @code
-     * <#example#>
+     * @return true if add is successful.
      * @endcode
      */
     bool (*AddCollectionAtIndex)(void *instance, int index, PARCCollection *collection);
@@ -162,12 +131,7 @@ typedef struct parc_list_interface {
     /**
      * Removes all of the elements from this list (optional operation).
      *
-     * @param [in,out] instance The instance of `PARCList` to empty
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
+     * @param [in,out] instance The instance of `PARCList` to empty.
      */
     void (*Clear)(void *instance);
 
@@ -176,14 +140,9 @@ typedef struct parc_list_interface {
      *
      * @param [in] instance The instance of `PARCList` to inspect
      * @param [in] element The element to search for in @p instance
-     * @return true if the @p element is found in @p instance
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
+     * @return true if the @p element is found in @p instance.
      */
-    bool (*Contains)(const void *instance, PARCObject *element);
+    bool (*Contains)(const void *instance, const PARCObject *element);
 
     /**
      * Returns true if this list contains all of the elements of the specified collection.
@@ -191,13 +150,8 @@ typedef struct parc_list_interface {
      * @param [in] instance The instance of `PARCList` to inspect
      * @param [in] collection The instance of {@link PARCCollection} whose elements are sought in @p instance
      * @return true if all of the elements in @p collection is found in @p instance
-    *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
-    bool (*ContainsCollection)(void *instance, PARCCollection *collection);
+    bool (*ContainsCollection)(const void *instance, const PARCCollection *collection);
 
     /**
      * Compares the specified object with this list for equality.
@@ -205,11 +159,6 @@ typedef struct parc_list_interface {
      * @param [in] xInstance The first `PARCList` instance to compare
      * @param [in] yInstance The second `PARCList` instance to compare
      * @return true if the two instances are equal
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
     bool (*Equals)(const void *xInstance, const void *yInstance);
 
@@ -219,11 +168,6 @@ typedef struct parc_list_interface {
      * @param [in] instance A pointer to the instance of `PARCList`
      * @param index The index of the element to be returned
      * @return A pointer to the element at @p index
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
     PARCObject *(*GetAtIndex)(const void *instance, size_t index);
 
@@ -232,13 +176,8 @@ typedef struct parc_list_interface {
      *
      * @param [in] instance A pointer to the instance of `PARCList`
      * @return int The hash code value
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
-    int (*HashCode)(void *instance);
+    PARCHashCode (*HashCode)(const void *instance);
 
     /**
      * Returns the index of the first occurrence of the specified element in this list, or -1 if this list does not contain the element.
@@ -246,13 +185,8 @@ typedef struct parc_list_interface {
      * @param [in] instance A pointer to the instance of `PARCList`
      * @param [in] element A pointer to the element to locate in @p instance
      * @return size_t the index of the first located @p element or -1 if not found
-     *
-     * Example:
-     * @code
-     * <#example#>
-     * @endcode
      */
-    size_t (*IndexOf)(const void *instance, PARCObject *element);
+    size_t (*IndexOf)(const void *instance, const PARCObject *element);
 
     /**
      * Returns the index of the last occurrence of the specified element in this list, or -1 if this list does not contain the element.
@@ -266,7 +200,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    size_t (*LastIndexOf)(void *instance, PARCObject *element);
+    size_t (*LastIndexOf)(void *instance, const PARCObject *element);
 
     /**
      * Removes the element at the specified position in this list (optional operation).
@@ -308,7 +242,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    bool (*RemoveCollection)(void *instance, PARCCollection *collection);
+    bool (*RemoveCollection)(void *instance, const PARCCollection *collection);
 
     /**
      * Retains only the elements in this list that are contained in the specified collection (optional operation).
@@ -323,7 +257,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    bool (*RetainCollection)(void *instance, PARCCollection *collection);
+    bool (*RetainCollection)(void *instance, const PARCCollection *collection);
 
     /**
      * Replaces the element at the specified position in this list with the specified element (optional operation).
@@ -338,7 +272,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    void *(*SetAtIndex)(void *instance, size_t index, void *element);
+    void *(*SetAtIndex)(void *instance, size_t index, PARCObject *element);
 
     /**
      * Returns the number of elements in this list.
@@ -366,7 +300,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    PARCList *(*SubList)(void *instance, size_t fromIndex, size_t toIndex);
+    PARCList *(*SubList)(const void *instance, size_t fromIndex, size_t toIndex);
 
     /**
      * Returns an array containing all of the elements in this list in proper sequence (from first to last element).
@@ -379,7 +313,7 @@ typedef struct parc_list_interface {
      * <#example#>
      * @endcode
      */
-    void** (*ToArray)(void *instance);
+    void** (*ToArray)(const void *instance);
  } PARCListInterface;
 
 /**
