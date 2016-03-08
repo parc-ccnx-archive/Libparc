@@ -153,12 +153,10 @@ parcScheduledTask_ToString(const PARCScheduledTask *instance)
     return result;
 }
 
-PARCTimeout
-parcScheduledTask_GetDelay(const PARCScheduledTask *task)
+uint64_t
+parcScheduledTask_GetExecutionTime(const PARCScheduledTask *task)
 {
-    PARCTimeout delay = task->executionTime - parcTime_NowNanoseconds();
-    
-    return delay;
+    return task->executionTime;
 }
 
 bool
@@ -171,6 +169,12 @@ PARCFutureTaskResult
 parcScheduledTask_Get(const PARCScheduledTask *task, const PARCTimeout *timeout)
 {
     return parcFutureTask_Get(task->task, timeout);
+}
+
+PARCFutureTask *
+parcScheduledTask_GetTask(const PARCScheduledTask *task)
+{
+    return task->task;
 }
 
 void *

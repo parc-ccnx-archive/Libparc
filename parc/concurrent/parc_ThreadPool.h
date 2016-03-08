@@ -538,7 +538,7 @@ int parcThreadPool_GetActiveCount(const PARCThreadPool *pool);
 /**
  * Returns the approximate total number of tasks that have completed execution.
  */
-long parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool);
+uint64_t parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool);
 
 /**
  * Returns the core number of threads.

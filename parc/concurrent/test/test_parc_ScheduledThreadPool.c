@@ -207,8 +207,9 @@ LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
-//    LONGBOW_RUN_TEST_CASE(Specialization, OneJob);
+    LONGBOW_RUN_TEST_CASE(Specialization, OneJob);
     LONGBOW_RUN_TEST_CASE(Specialization, Idle);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcScheduledThreadPool_Schedule);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -253,12 +254,33 @@ LONGBOW_TEST_CASE(Specialization, OneJob)
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
     
     parcScheduledThreadPool_Schedule(pool, task, parcTimeout_MilliSeconds(2000));
+    printf("references %lld\n", parcObject_GetReferenceCount(task));
+    parcFutureTask_Release(&task);
     
     sleep(5);
     
     parcScheduledThreadPool_ShutdownNow(pool);
     
+    parcScheduledThreadPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcScheduledThreadPool_Schedule)
+{
+    PARCScheduledThreadPool *pool = parcScheduledThreadPool_Create(3);
+    
+    PARCFutureTask *task = parcFutureTask_Create(_function, _function);
+    
+    parcScheduledThreadPool_Schedule(pool, task, parcTimeout_MilliSeconds(2000));
+    
     parcFutureTask_Release(&task);
+    
+    parcScheduledThreadPool_Shutdown(pool);
+//    parcScheduledThreadPool_AwaitTermination(pool, PARCTimeout_Never);
+    
+//    uint64_t count = parcScheduledThreadPool_GetCompletedTaskCount(pool);
+//    assertTrue(count == 5, "Expected 5, actual %lld", count);
+    
+    parcScheduledThreadPool_ShutdownNow(pool);
     
     parcScheduledThreadPool_Release(&pool);
 }

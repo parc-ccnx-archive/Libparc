@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#gscott#>, Computing Science Laboratory, PARC
- * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
+ * @author Glenn Scott, Computing Science Laboratory, PARC
+ * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -38,6 +38,7 @@
 #include <parc/algol/parc_SortedList.h>
 #include <parc/algol/parc_LinkedList.h>
 
+#include <parc/concurrent/parc_AtomicUint64.h>
 #include <parc/concurrent/parc_ThreadPool.h>
 #include <parc/concurrent/parc_Thread.h>
 
@@ -53,19 +54,13 @@ struct PARCThreadPool {
     bool isShutdown;
     bool isTerminated;
     bool isTerminating;
+
+    PARCAtomicUint64 *completedTaskCount;
 };
 
 static void *
 _workerThread(PARCThread *thread, PARCThreadPool *pool)
 {
-    /*
-     * worker:
-     *  repeat:
-     *      Pick the top of the queue.
-     *      If the delay is <= 0, then take the task and execute it.
-     *      Otherwise, wait on the workQueue for the supervisor
-     */
-//#if 1
     while (parcThread_IsCancelled(thread) == false) {
         if (parcLinkedList_Lock(pool->workQueue)) {
             PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
@@ -73,6 +68,7 @@ _workerThread(PARCThread *thread, PARCThreadPool *pool)
                 parcLinkedList_Unlock(pool->workQueue);
                 parcFutureTask_Run(task);
                 parcFutureTask_Release(&task);
+                parcAtomicUint64_Increment(pool->completedTaskCount);
                 parcLinkedList_Lock(pool->workQueue);
 
                 parcLinkedList_Notify(pool->workQueue);
@@ -82,25 +78,6 @@ _workerThread(PARCThread *thread, PARCThreadPool *pool)
         }
         parcLinkedList_Unlock(pool->workQueue);
     }
-//#else
-//    if (parcLinkedList_Lock(pool->workQueue)) {
-//        while (parcThread_IsCancelled(thread) == false) {
-//            if (parcLinkedList_Size(pool->workQueue) > 0) {
-//                PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
-//                printf("Something to do. %p\n", task);
-//                parcLinkedList_Unlock(pool->workQueue);
-//                parcFutureTask_Run(task);
-//                parcFutureTask_Release(&task);
-//                parcLinkedList_Lock(pool->workQueue);
-//            } else {
-//                parcLinkedList_Notify(pool->workQueue);
-//            }
-//            parcLinkedList_Wait(pool->workQueue);
-//        }
-//        
-//        parcLinkedList_Unlock(pool->workQueue);
-//    }
-//#endif
    
     return NULL;
 }
@@ -140,6 +117,7 @@ _parcThreadPool_Destructor(PARCThreadPool **instancePtr)
         _parcThreadPool_JoinAll(pool);
     }
 
+    parcAtomicUint64_Release(&pool->completedTaskCount);
     parcLinkedList_Release(&pool->threads);
     
     if (parcObject_Lock(pool->workQueue)) {
@@ -186,6 +164,8 @@ parcThreadPool_Create(int poolSize)
         result->isTerminating = false;
         result->workQueue = parcLinkedList_Create();
         result->threads = parcLinkedList_Create();
+        
+        result->completedTaskCount = parcAtomicUint64_Create(0);
         
         result->continueExistingPeriodicTasksAfterShutdown = false;
         result->executeExistingDelayedTasksAfterShutdown = false;
@@ -370,11 +350,10 @@ parcThreadPool_GetActiveCount(const PARCThreadPool *pool)
 /**
  * Returns the approximate total number of tasks that have completed execution.
  */
-long
+uint64_t
 parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool)
 {
-    return 0;
-
+    return parcAtomicUint64_GetValue(pool->completedTaskCount);
 }
 
 /**

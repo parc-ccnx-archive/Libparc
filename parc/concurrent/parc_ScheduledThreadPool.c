@@ -37,60 +37,51 @@
 #include <parc/algol/parc_SortedList.h>
 #include <parc/algol/parc_LinkedList.h>
 #include <parc/algol/parc_Memory.h>
+#include <parc/algol/parc_Time.h>
 
 #include <parc/concurrent/parc_ScheduledThreadPool.h>
 #include <parc/concurrent/parc_Thread.h>
+#include <parc/concurrent/parc_ThreadPool.h>
 
 struct PARCScheduledThreadPool {
     bool continueExistingPeriodicTasksAfterShutdown;
     bool executeExistingDelayedTasksAfterShutdown;
     bool removeOnCancel;
     PARCSortedList *workQueue;
-    PARCLinkedList *threads;
+    PARCThread *workerThread;
+    PARCThreadPool *threadPool;
     int poolSize;
 };
 
 static void *
 _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 {
-    /*
-     * worker:
-     *  repeat:
-     *      Pick the top of the queue.
-     *      If the delay is <= 0, then take the task and execute it.
-     *      Otherwise, wait on the workQueue for the supervisor
-     */
-//    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-    
-    if (parcSortedList_Lock(pool->workQueue)) {
-        while (parcThread_IsCancelled(thread) == false) {
-            { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-
+    while (parcThread_IsCancelled(thread) == false) {
+        if (parcSortedList_Lock(pool->workQueue)) {
             if (parcSortedList_Size(pool->workQueue) > 0) {
-                printf("Something to do.\n");
-                PARCScheduledTask *task = parcSortedList_GetAtIndex(pool->workQueue, 0);
-                if (parcScheduledTask_GetDelay(task) <= 0) {
-                    task = parcSortedList_RemoveFirst(pool->workQueue);
+                PARCScheduledTask *task = parcSortedList_GetFirst(pool->workQueue);
+                int64_t executionDelay = parcScheduledTask_GetExecutionTime(task) - parcTime_NowNanoseconds();
+                if (task != NULL && executionDelay <= 0) {
+                    parcSortedList_RemoveFirst(pool->workQueue);
                     parcSortedList_Unlock(pool->workQueue);
-                    parcScheduledTask_Run(task);
+                    printf("move to threadpool references=%lld\n", parcObject_GetReferenceCount(task));
+                    parcThreadPool_Execute(pool->threadPool, parcScheduledTask_GetTask(task));
                     parcScheduledTask_Release(&task);
                     parcSortedList_Lock(pool->workQueue);
+                    
+                    parcSortedList_Notify(pool->workQueue);
+                } else {
+                    printf("wait for %lld\n", executionDelay);
+                    parcSortedList_WaitFor(pool->workQueue, executionDelay);
                 }
             } else {
-                printf("Nothing to do.\n");
+                printf("wait until something to do\n");
+                parcSortedList_Wait(pool->workQueue);
             }
-            parcSortedList_Wait(pool->workQueue);
-            { char *string = parcThread_ToString(thread); printf("%s wakeup\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         }
-
-        { char *string = parcThread_ToString(thread); printf("%s cancelled, unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         parcSortedList_Unlock(pool->workQueue);
-    } else {
-        { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
     }
-
-    { char *string = parcThread_ToString(thread); printf("%s done\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-
+    
     return NULL;
 }
 
@@ -99,7 +90,9 @@ _parcScheduledThreadPool_Destructor(PARCScheduledThreadPool **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCScheduledThreadPool pointer.");
     PARCScheduledThreadPool *pool = *instancePtr;
-    parcLinkedList_Release(&pool->threads);
+    parcThreadPool_Release(&pool->threadPool);
+    
+    parcThread_Release(&pool->workerThread);
     
     if (parcObject_Lock(pool->workQueue)) {
         parcSortedList_Release(&pool->workQueue);
@@ -115,6 +108,7 @@ parcObject_ImplementAcquire(parcScheduledThreadPool, PARCScheduledThreadPool);
 parcObject_ImplementRelease(parcScheduledThreadPool, PARCScheduledThreadPool);
 
 parcObject_Override(PARCScheduledThreadPool, PARCObject,
+                    .isLockable = true,
                     .destructor = (PARCObjectDestructor *) _parcScheduledThreadPool_Destructor,
                     .copy = (PARCObjectCopy *) parcScheduledThreadPool_Copy,
                     .toString = (PARCObjectToString *) parcScheduledThreadPool_ToString,
@@ -139,19 +133,15 @@ parcScheduledThreadPool_Create(int poolSize)
     if (result != NULL) {
         result->poolSize = poolSize;
         result->workQueue = parcSortedList_Create();
-        result->threads = parcLinkedList_Create();
+        result->threadPool = parcThreadPool_Create(poolSize);
         
         result->continueExistingPeriodicTasksAfterShutdown = false;
         result->executeExistingDelayedTasksAfterShutdown = false;
         result->removeOnCancel = true;
         
         if (parcObject_Lock(result)) {
-            for (int i = 0; i < poolSize; i++) {
-                PARCThread *thread = parcThread_Create((void *(*)(PARCThread *, PARCObject *)) _workerThread, (PARCObject *) result);
-                parcLinkedList_Append(result->threads, thread);
-                parcThread_Start(thread);
-                parcThread_Release(&thread);
-            }
+            result->workerThread = parcThread_Create((void *(*)(PARCThread *, PARCObject *)) _workerThread, (PARCObject *) result);
+            parcThread_Start(result->workerThread);
             parcObject_Unlock(result);
         }
     }
@@ -260,13 +250,13 @@ parcScheduledThreadPool_GetExecuteExistingDelayedTasksAfterShutdownPolicy(PARCSc
 }
 
 PARCSortedList *
-parcScheduledThreadPool_GetQueue(PARCScheduledThreadPool *pool)
+parcScheduledThreadPool_GetQueue(const PARCScheduledThreadPool *pool)
 {
     return pool->workQueue;
 }
 
 bool
-parcScheduledThreadPool_GetRemoveOnCancelPolicy(PARCScheduledThreadPool *pool)
+parcScheduledThreadPool_GetRemoveOnCancelPolicy(const PARCScheduledThreadPool *pool)
 {
     return pool->removeOnCancel;
 }
@@ -274,11 +264,13 @@ parcScheduledThreadPool_GetRemoveOnCancelPolicy(PARCScheduledThreadPool *pool)
 PARCScheduledTask *
 parcScheduledThreadPool_Schedule(PARCScheduledThreadPool *pool, PARCFutureTask *task, const PARCTimeout *delay)
 {
-    uint64_t absoluteTime = time(0) * 1000000000 + parcTimeout_InNanoSeconds(delay);
-    PARCScheduledTask *scheduledTask = parcScheduledTask_Create(task, absoluteTime);
+    uint64_t executionTime = parcTime_NowNanoseconds() + parcTimeout_InNanoSeconds(delay);
+    
+    PARCScheduledTask *scheduledTask = parcScheduledTask_Create(task, executionTime);
+    
     if (parcSortedList_Lock(pool->workQueue)) {
         parcSortedList_Add(pool->workQueue, scheduledTask);
-        printf("List size %zd\n", parcSortedList_Size(pool->workQueue));
+        parcScheduledTask_Release(&scheduledTask);
         parcSortedList_Notify(pool->workQueue);
         parcSortedList_Unlock(pool->workQueue);
     }
@@ -321,35 +313,36 @@ parcScheduledThreadPool_Shutdown(PARCScheduledThreadPool *pool)
     parcScheduledThreadPool_ShutdownNow(pool);
 }
 
-static void
-_parcScheduledThreadPool_CancelAll(const PARCScheduledThreadPool *pool)
-{
-    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
-    
-    while (parcIterator_HasNext(iterator)) {
-        PARCThread *thread = parcIterator_Next(iterator);
-        parcThread_Cancel(thread);
-    }
-    parcIterator_Release(&iterator);
-}
+//static void
+//_parcScheduledThreadPool_CancelAll(const PARCScheduledThreadPool *pool)
+//{
+//    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
+//    
+//    while (parcIterator_HasNext(iterator)) {
+//        PARCThread *thread = parcIterator_Next(iterator);
+//        parcThread_Cancel(thread);
+//    }
+//    parcIterator_Release(&iterator);
+//}
 
-static void
-_parcScheduledThreadPool_JoinAll(const PARCScheduledThreadPool *pool)
-{
-    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
-    
-    while (parcIterator_HasNext(iterator)) {
-        PARCThread *thread = parcIterator_Next(iterator);
-        parcThread_Join(thread);
-    }
-    parcIterator_Release(&iterator);
-}
+//static void
+//_parcScheduledThreadPool_JoinAll(const PARCScheduledThreadPool *pool)
+//{
+//    PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
+//    
+//    while (parcIterator_HasNext(iterator)) {
+//        PARCThread *thread = parcIterator_Next(iterator);
+//        parcThread_Join(thread);
+//    }
+//    parcIterator_Release(&iterator);
+//}
 
 PARCList *
 parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
 {
-    // Cause all of the worker threads to exit.
-    _parcScheduledThreadPool_CancelAll(pool);
+    parcThread_Cancel(pool->workerThread);
+    
+    parcThreadPool_ShutdownNow(pool->threadPool);
     
     // Wake them all up so they detect that they are cancelled.
     if (parcObject_Lock(pool)) {
@@ -360,9 +353,8 @@ parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool)
         parcObject_NotifyAll(pool->workQueue);
         parcObject_Unlock(pool->workQueue);
     }
-    // Join with all of them, thereby cleaning up all of them.
-    _parcScheduledThreadPool_JoinAll(pool);
     
+    parcThread_Join(pool->workerThread);
     
     return NULL;
 }

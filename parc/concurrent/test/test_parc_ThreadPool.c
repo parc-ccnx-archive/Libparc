@@ -1,13 +1,13 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- * Copyright 2015 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
+ * Copyright 2016 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
  * The content of this file, whole or in part, is subject to licensing terms.
  * If distributing this software, include this License Header Notice in each
  * file and provide the accompanying LICENSE file.
  */
 /**
- * @author <#gscott#>, Computing Science Laboratory, PARC
- * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
+ * @author Glenn Scott, Computing Science Laboratory, PARC
+ * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include "../parc_ThreadPool.c"
 
@@ -239,6 +239,9 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
     
     parcThreadPool_Shutdown(pool);
     parcThreadPool_AwaitTermination(pool, PARCTimeout_Never);
+    
+    uint64_t count = parcThreadPool_GetCompletedTaskCount(pool);
+    assertTrue(count == 5, "Expected 5, actual %lld", count);
     
     parcThreadPool_ShutdownNow(pool);
     

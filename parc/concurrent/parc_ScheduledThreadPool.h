@@ -387,12 +387,12 @@ bool parcScheduledThreadPool_GetExecuteExistingDelayedTasksAfterShutdownPolicy(P
 /**
  * Returns the task queue used by this executor.
  */
-PARCSortedList *parcScheduledThreadPool_GetQueue(PARCScheduledThreadPool *pool);
+PARCSortedList *parcScheduledThreadPool_GetQueue(const PARCScheduledThreadPool *pool);
 
 /**
  * Gets the policy on whether cancelled tasks should be immediately removed from the work queue at time of cancellation.
  */
-bool parcScheduledThreadPool_GetRemoveOnCancelPolicy(PARCScheduledThreadPool *pool);
+bool parcScheduledThreadPool_GetRemoveOnCancelPolicy(const PARCScheduledThreadPool *pool);
 
 /**
  * Creates and executes a one-shot action that becomes enabled after the given delay.

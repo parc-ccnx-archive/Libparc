@@ -363,7 +363,7 @@ char *parcScheduledTask_ToString(const PARCScheduledTask *instance);
  * }
  * @endcode
  */
-PARCTimeout parcScheduledTask_GetDelay(const PARCScheduledTask *task);
+uint64_t parcScheduledTask_GetExecutionTime(const PARCScheduledTask *task);
 
 /**
  * Attempts to cancel execution of this task.
@@ -403,6 +403,23 @@ PARCFutureTaskResult parcScheduledTask_Get(const PARCScheduledTask *task, const 
 
 
 void *parcScheduledTask_Run(const PARCScheduledTask *task);
+
+
+/**
+ * Get the `PARCFutureTask` instance for the given `PARCScheduledTask`
+ *
+ * @param [in] task A pointer to a valid `PARCScheduledTask` instance.
+ *
+ * @return the `PARCFutureTask` instance for the given `PARCScheduledTask`
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+PARCFutureTask *parcScheduledTask_GetTask(const PARCScheduledTask *task);
 
 /**
  * Returns true if this task was cancelled before it completed normally.
