@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.2)
 project(Libparc)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if( UNIX )
   link_libraries(m)
@@ -27,7 +30,6 @@ find_package( LibEvent REQUIRED )
 include_directories(${LIBEVENT_INCLUDE_DIRS})
 
 find_package ( Threads REQUIRED )
-
 find_package ( OpenSSL REQUIRED )
 
 include_directories(${PROJECT_BINARY_DIR}/parc ${PROJECT_SOURCE_DIR})
@@ -46,9 +48,8 @@ macro(AddTest testFile)
   add_executable(${ARGV0} ${ARGV0}.c)
   target_link_libraries(${ARGV0} ${PARC_BIN_LIBRARIES})
   add_test(${ARGV0} ${ARGV0})
+  set_target_properties(${ARGV0} PROPERTIES FOLDER Test)
 endmacro(AddTest)
-
-
 
 add_subdirectory(parc)
 #add_subdirectory(documentation)
