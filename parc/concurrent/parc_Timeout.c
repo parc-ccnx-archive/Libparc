@@ -30,6 +30,7 @@
  */
 #include <parc/concurrent/parc_Timeout.h>
 
+
 bool
 parcTimeout_Equals(PARCTimeout x, PARCTimeout y)
 {

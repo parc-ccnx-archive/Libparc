@@ -30,7 +30,7 @@
  *
  * <#Detailed Description#>
  *
- * @author <#gscott#>, Computing Science Laboratory, PARC
+ * @author Glenn Scott, Computing Science Laboratory, PARC
  * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #ifndef PARCLibrary_parc_ThreadPool
@@ -39,6 +39,9 @@
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
+#include <parc/algol/parc_LinkedList.h>
+#include <parc/concurrent/parc_Timeout.h>
+#include <parc/concurrent/parc_FutureTask.h>
 
 struct PARCThreadPool;
 typedef struct PARCThreadPool PARCThreadPool;
@@ -364,4 +367,273 @@ PARCJSON *parcThreadPool_ToJSON(const PARCThreadPool *instance);
  * @see parcThreadPool_Display
  */
 char *parcThreadPool_ToString(const PARCThreadPool *instance);
+
+/**
+ * Wakes up a single thread that is waiting on this object (see `parcThreadPool_Wait)`.
+ * If any threads are waiting on this object, one of them is chosen to be awakened.
+ * The choice is arbitrary and occurs at the discretion of the underlying implementation.
+ *
+ * The awakened thread will not be able to proceed until the current thread relinquishes the lock on this object.
+ * The awakened thread will compete in the usual manner with any other threads that might be actively
+ * competing to synchronize on this object;
+ * for example, the awakened thread enjoys no reliable privilege or disadvantage in being the next thread to lock this object.
+ *
+ * @param [in] object A pointer to a valid PARCThreadPool instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcThreadPool_Lock(object)) {
+ *         parcThreadPool_Notify(object);
+ *         parcThreadPool_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotify(parcThreadPool, PARCThreadPool);
+
+/**
+ * Wakes up all threads that are waiting on the given object's lock.
+ *
+ * A thread waits on an object by calling one of the wait methods, `parcThreadPool_Wait`, `parcThreadPool_WaitFor`, `parcThreadPool_WaitUntil`.
+ * The awakened threads will proceed after the current thread relinquishes the lock on the given object.
+ * The awakened threads will compete in the usual manner with any other threads that might be actively competing
+ * to synchronize on this object.
+ * Awakened threads have no priority between them in being the next thread to lock this object.
+ *
+ * This method can only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid `PARCThreadPool` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcThreadPool_Lock(object)) {
+ *         parcThreadPool_NotifyAll(object);
+ *         parcThreadPool_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotifyAll(parcThreadPool, PARCThreadPool);
+
+/**
+ * Causes the calling thread to wait until either another thread invokes the parcThreadPool_Notify() function on the same object.
+ *  *
+ * @param [in] object A pointer to a valid `PARCThreadPool` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ *     parcThreadPool_Wait(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementWait(parcThreadPool, PARCThreadPool);
+
+/**
+ * Obtain the lock on the given `PARCThreadPool` instance.
+ *
+ * If the lock is already held by another thread, this function will block.
+ * If the lock is aleady held by the current thread, this function will return `false`.
+ *
+ * Implementors must avoid deadlock by attempting to lock the object a second time within the same calling thread.
+ *
+ * @param [in] object A pointer to a valid `PARCThreadPool` instance.
+ *
+ * @return true The lock was obtained successfully.
+ * @return false The lock is already held by the current thread, or the `PARCThreadPool` is invalid.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcThreadPool_Lock(object)) {
+ *
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementLock(parcThreadPool, PARCThreadPool);
+
+/**
+ * Try to obtain the advisory lock on the given PARCThreadPool instance.
+ *
+ * Once the lock is obtained, the caller must release the lock as soon as possible.
+ *
+ * @param [in] object A pointer to a valid PARCThreadPool instance.
+ *
+ * @return true The PARCThreadPool is locked.
+ * @return false The PARCThreadPool is unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcThreadPool_TryLock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementTryLock(parcThreadPool, PARCThreadPool);
+
+/**
+ * Try to unlock the advisory lock on the given `PARCThreadPool` instance.
+ *
+ * @param [in] object A pointer to a valid `PARCThreadPool` instance.
+ *
+ * @return true The `PARCThreadPool` was locked and now is unlocked.
+ * @return false The `PARCThreadPool` was not locked and remains unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcThreadPool_Unlock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementUnlock(parcThreadPool, PARCThreadPool);
+
+/**
+ * Determine if the advisory lock on the given `PARCThreadPool` instance is locked.
+ *
+ * @param [in] object A pointer to a valid `PARCThreadPool` instance.
+ *
+ * @return true The `PARCThreadPool` is locked.
+ * @return false The `PARCThreadPool` is unlocked.
+ * Example:
+ * @code
+ * {
+ *     if (parcThreadPool_IsLocked(object)) {
+ *         ...
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementIsLocked(parcThreadPool, PARCThreadPool);
+
+/**
+ * Sets the policy governing whether core threads may time out and terminate if no tasks arrive within the keep-alive time, being replaced if needed when new tasks arrive.
+ */
+void parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value);
+
+/**
+ * Returns true if this pool allows core threads to time out and terminate if no tasks arrive within the keepAlive time, being replaced if needed when new tasks arrive.
+ */
+bool parcThreadPool_GetAllowsCoreThreadTimeOut(PARCThreadPool *pool);
+
+/**
+ * Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
+ */
+bool parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout);
+
+/**
+ * Executes the given task sometime in the future.
+ */
+void parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task);
+
+/**
+ * Returns the approximate number of threads that are actively executing tasks.
+ */
+int parcThreadPool_GetActiveCount(PARCThreadPool *pool);
+
+/**
+ * Returns the approximate total number of tasks that have completed execution.
+ */
+long parcThreadPool_GetCompletedTaskCount(PARCThreadPool *pool);
+
+/**
+ * Returns the core number of threads.
+ */
+int parcThreadPool_GetCorePoolSize(PARCThreadPool *pool);
+
+/**
+ * Returns the thread keep-alive time, which is the amount of time that threads in excess of the core pool size may remain idle before being terminated.
+ */
+long parcThreadPool_GetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout);
+
+/**
+ * Returns the largest number of threads that have ever simultaneously been in the pool.
+ */
+int parcThreadPool_GetLargestPoolSize(PARCThreadPool *pool);
+
+/**
+ * Returns the maximum allowed number of threads.
+ */
+int parcThreadPool_GetMaximumPoolSize(PARCThreadPool *pool);
+
+/**
+ * Returns the current number of threads in the pool.
+ */
+int parcThreadPool_GetPoolSize(PARCThreadPool *pool);
+
+/**
+ * Returns the task queue used by this executor.
+ */
+PARCLinkedList *parcThreadPool_GetQueue(PARCThreadPool *pool);
+
+/**
+ * Returns the approximate total number of tasks that have ever been scheduled for execution.
+ */
+long parcThreadPool_GetTaskCount(PARCThreadPool *pool);
+
+/**
+ * Returns true if this executor has been shut down.
+ */
+bool parcThreadPool_IsShutdown(PARCThreadPool *pool);
+
+/**
+ * Returns true if all tasks have completed following shut down.
+ */
+bool parcThreadPool_IsTerminated(PARCThreadPool *pool);
+
+/**
+ * Returns true if this executor is in the process of terminating after shutdown() or shutdownNow() but has not completely terminated.
+ */
+bool parcThreadPool_IsTerminating(PARCThreadPool *pool);
+
+/**
+ * Starts all core threads, causing them to idly wait for work.
+ */
+int parcThreadPool_PrestartAllCoreThreads(PARCThreadPool *pool);
+
+/**
+ * Starts a core thread, causing it to idly wait for work.
+ */
+bool parcThreadPool_PrestartCoreThread(PARCThreadPool *pool);
+
+/**
+ * Tries to remove from the work queue all Future tasks that have been cancelled.
+ */
+void parcThreadPool_Purge(PARCThreadPool *pool);
+
+/**
+ * Removes this task from the executor's internal queue if it is present, thus causing it not to be run if it has not already started.
+ */
+bool parcThreadPool_Remove(PARCThreadPool *pool, PARCFutureTask *task);
+
+/**
+ * Sets the core number of threads.
+ */
+void parcThreadPool_SetCorePoolSize(PARCThreadPool *pool, int corePoolSize);
+
+/**
+ * Sets the time limit for which threads may remain idle before being terminated.
+ */
+void parcThreadPool_SetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout);
+
+/**
+ * Sets the maximum allowed number of threads.
+ */
+void parcThreadPool_SetMaximumPoolSize(PARCThreadPool *pool, int maximumPoolSize);
+
+/**
+ * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be accepted.
+ */
+void parcThreadPool_Shutdown(PARCThreadPool *pool);
+
+/**
+ * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
+ */
+PARCLinkedList *parcThreadPool_ShutdownNow(PARCThreadPool *pool);
+
+
 #endif

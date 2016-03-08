@@ -63,13 +63,15 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCThreadPool *instance = parcThreadPool_Create(6);
-    assertNotNull(instance, "Expected non-null result from parcThreadPool_Create();");
+    PARCThreadPool *pool = parcThreadPool_Create(6);
+    assertNotNull(pool, "Expected non-null result from parcThreadPool_Create();");
 
-    parcObjectTesting_AssertAcquireReleaseContract(parcThreadPool_Acquire, instance);
+    parcObjectTesting_AssertAcquireReleaseContract(parcThreadPool_Acquire, pool);
     
-    parcThreadPool_Release(&instance);
-    assertNull(instance, "Expected null result from parcThreadPool_Release();");
+    parcThreadPool_ShutdownNow(pool);
+    
+    parcThreadPool_Release(&pool);
+    assertNull(pool, "Expected null result from parcThreadPool_Release();");
 }
 
 LONGBOW_TEST_FIXTURE(Object)
@@ -109,7 +111,10 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Copy)
     PARCThreadPool *instance = parcThreadPool_Create(6);
     PARCThreadPool *copy = parcThreadPool_Copy(instance);
     assertTrue(parcThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
-
+    
+    parcThreadPool_ShutdownNow(instance);
+    parcThreadPool_ShutdownNow(copy);
+    
     parcThreadPool_Release(&instance);
     parcThreadPool_Release(&copy);
 }
@@ -118,6 +123,9 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Display)
 {
     PARCThreadPool *instance = parcThreadPool_Create(6);
     parcThreadPool_Display(instance, 0);
+    
+    parcThreadPool_ShutdownNow(instance);
+    
     parcThreadPool_Release(&instance);
 }
 
@@ -128,7 +136,11 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Equals)
     PARCThreadPool *z = parcThreadPool_Create(6);
 
     parcObjectTesting_AssertEquals(x, y, z, NULL);
-
+    
+    parcThreadPool_ShutdownNow(x);
+    parcThreadPool_ShutdownNow(y);
+    parcThreadPool_ShutdownNow(z);
+    
     parcThreadPool_Release(&x);
     parcThreadPool_Release(&y);
     parcThreadPool_Release(&z);
@@ -141,6 +153,9 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_HashCode)
     
     parcObjectTesting_AssertHashCode(x, y);
     
+    parcThreadPool_ShutdownNow(x);
+    parcThreadPool_ShutdownNow(y);
+    
     parcThreadPool_Release(&x);
     parcThreadPool_Release(&y);
 }
@@ -150,6 +165,8 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_IsValid)
     PARCThreadPool *instance = parcThreadPool_Create(6);
     assertTrue(parcThreadPool_IsValid(instance), "Expected parcThreadPool_Create to result in a valid instance.");
     
+    parcThreadPool_ShutdownNow(instance);
+
     parcThreadPool_Release(&instance);
     assertFalse(parcThreadPool_IsValid(instance), "Expected parcThreadPool_Release to result in an invalid instance.");
 }
@@ -161,7 +178,9 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_ToJSON)
     PARCJSON *json = parcThreadPool_ToJSON(instance);
 
     parcJSON_Release(&json);
-
+    
+    parcThreadPool_ShutdownNow(instance);
+    
     parcThreadPool_Release(&instance);
 }
 
@@ -174,11 +193,15 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_ToString)
     assertNotNull(string, "Expected non-NULL result from parcThreadPool_ToString");
     
     parcMemory_Deallocate((void **) &string);
+    
+    parcThreadPool_ShutdownNow(instance);
+    
     parcThreadPool_Release(&instance);
 }
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+//    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Execute);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -193,6 +216,27 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     }
     
     return LONGBOW_STATUS_SUCCEEDED;
+}
+
+void *
+_function(PARCFutureTask *task, void *parameter)
+{
+    printf("Hello World\n");
+    return parameter;
+}
+
+LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
+{
+    PARCThreadPool *pool = parcThreadPool_Create(6);
+
+    PARCFutureTask *task = parcFutureTask_Create(_function, _function);
+    parcThreadPool_Execute(pool, task);
+    
+    sleep(2);
+    
+    parcThreadPool_ShutdownNow(pool);
+    
+    parcThreadPool_Release(&pool);
 }
 
 int

@@ -1,13 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- * Copyright 2015 Palo Alto Research Center, Inc. (PARC), a Xerox company.  All Rights Reserved.
- * The content of this file, whole or in part, is subject to licensing terms.
- * If distributing this software, include this License Header Notice in each
- * file and provide the accompanying LICENSE file.
+ * Copyright (c) 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Patent rights are not granted under this agreement. Patent rights are
+ *       available under FRAND terms.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#gscott#>, Computing Science Laboratory, PARC
- * @copyright 2015 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
+ * @author Glenn Scott, Computing Science Laboratory, PARC
+ * @copyright 2016 Palo Alto Research Center, Inc. (PARC), A Xerox Company.  All Rights Reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -32,55 +51,6 @@ struct PARCScheduledThreadPool {
 };
 
 static void *
-_superVisorThread(PARCThread *thread, PARCScheduledThreadPool *pool)
-{
-    if (parcObject_Lock(pool)) {
-        while (parcThread_IsCancelled(thread) == false) {
-            /*
-             supervisor:
-                repeat:
-                    Pick the top of the queue.
-                    If the delay is <= 0, then wakeup the workers.
-                    If the delay is > 0, then wait on the pool for that amount of time.
-                    Otherwise, wait on the pool for a new task to be enqueued.
-             
-             worker:
-                repeat:
-                    Pick the top of the queue.
-                    If the delay is <= 0, then take the task and execute it.
-                    Otherwise, wait on the workQueue for the supervisor
-             
-             */
-            
-            { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-            
-            if (parcSortedList_Size(pool->workQueue) > 0) {
-                PARCScheduledTask *task = parcSortedList_GetFirst(pool->workQueue);
-                if (parcScheduledTask_GetDelay(task) <= 0) {
-                    parcObject_Notify(pool);
-                    
-                    task = parcSortedList_RemoveFirst(pool->workQueue);
-                    parcObject_Unlock(pool);
-                    parcScheduledTask_Get(task, PARCTimeout_Never);
-                    parcScheduledTask_Release(&task);
-                    parcObject_Lock(pool);
-                }
-            }
-            parcObject_WaitFor(pool, parcTimeout_MilliSeconds(500));
-        }
-        
-        { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-        parcObject_Unlock(pool);
-    } else {
-        { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-    }
-    
-    { char *string = parcThread_ToString(thread); printf("%s done\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-    
-    return NULL;
-}
-
-static void *
 _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 {
     /*
@@ -93,24 +63,27 @@ _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
 //    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
     
     if (parcSortedList_Lock(pool->workQueue)) {
-
         while (parcThread_IsCancelled(thread) == false) {
             { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
 
             if (parcSortedList_Size(pool->workQueue) > 0) {
+                printf("Something to do.\n");
                 PARCScheduledTask *task = parcSortedList_GetAtIndex(pool->workQueue, 0);
                 if (parcScheduledTask_GetDelay(task) <= 0) {
                     task = parcSortedList_RemoveFirst(pool->workQueue);
                     parcSortedList_Unlock(pool->workQueue);
-                    parcScheduledTask_Get(task, PARCTimeout_Never);
+                    parcScheduledTask_Run(task);
                     parcScheduledTask_Release(&task);
                     parcSortedList_Lock(pool->workQueue);
                 }
+            } else {
+                printf("Nothing to do.\n");
             }
             parcSortedList_Wait(pool->workQueue);
+            { char *string = parcThread_ToString(thread); printf("%s wakeup\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         }
 
-        { char *string = parcThread_ToString(thread); printf("%s unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
+        { char *string = parcThread_ToString(thread); printf("%s cancelled, unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         parcSortedList_Unlock(pool->workQueue);
     } else {
         { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
@@ -130,6 +103,8 @@ _parcScheduledThreadPool_Destructor(PARCScheduledThreadPool **instancePtr)
     
     if (parcObject_Lock(pool->workQueue)) {
         parcSortedList_Release(&pool->workQueue);
+    } else {
+        assertTrue(false, "Cannot lock the work queue.");
     }
     
     return true;
@@ -296,23 +271,30 @@ parcScheduledThreadPool_GetRemoveOnCancelPolicy(PARCScheduledThreadPool *pool)
     return pool->removeOnCancel;
 }
 
-PARCFutureTask *
-parcScheduledThreadPool_Schedule(PARCScheduledThreadPool *pool, PARCFutureTask *task, PARCTimeout delay)
+PARCScheduledTask *
+parcScheduledThreadPool_Schedule(PARCScheduledThreadPool *pool, PARCFutureTask *task, const PARCTimeout *delay)
 {
-    return task;
-
+    uint64_t absoluteTime = time(0) * 1000000000 + parcTimeout_InNanoSeconds(delay);
+    PARCScheduledTask *scheduledTask = parcScheduledTask_Create(task, absoluteTime);
+    if (parcSortedList_Lock(pool->workQueue)) {
+        parcSortedList_Add(pool->workQueue, scheduledTask);
+        printf("List size %zd\n", parcSortedList_Size(pool->workQueue));
+        parcSortedList_Notify(pool->workQueue);
+        parcSortedList_Unlock(pool->workQueue);
+    }
+    return scheduledTask;
 }
 
-PARCFutureTask *
+PARCScheduledTask *
 parcScheduledThreadPool_ScheduleAtFixedRate(PARCScheduledThreadPool *pool, PARCFutureTask *task, PARCTimeout initialDelay, PARCTimeout period)
 {
-    return task;
+    return NULL;
 }
 
-PARCFutureTask *
+PARCScheduledTask *
 parcScheduledThreadPool_ScheduleWithFixedDelay(PARCScheduledThreadPool *pool, PARCFutureTask *task, PARCTimeout initialDelay, PARCTimeout delay)
 {
-    return task;
+    return NULL;
 }
 
 void

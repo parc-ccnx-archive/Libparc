@@ -57,7 +57,7 @@ parcScheduledTask_AssertValid(const PARCScheduledTask *instance)
 
 
 PARCScheduledTask *
-parcScheduledTask_Create(PARCFutureTask *task, time_t executionTime)
+parcScheduledTask_Create(PARCFutureTask *task, uint64_t executionTime)
 {
     PARCScheduledTask *result = parcObject_CreateInstance(PARCScheduledTask);
     
@@ -168,9 +168,15 @@ parcScheduledTask_Cancel(PARCScheduledTask *task, bool mayInterruptIfRunning)
 }
 
 PARCFutureTaskResult
-parcScheduledTask_Get(const PARCScheduledTask *task, PARCTimeout timeout)
+parcScheduledTask_Get(const PARCScheduledTask *task, const PARCTimeout *timeout)
 {
     return parcFutureTask_Get(task->task, timeout);
+}
+
+void *
+parcScheduledTask_Run(const PARCScheduledTask *task)
+{
+    return parcFutureTask_Run(task->task);
 }
 
 bool

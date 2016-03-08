@@ -61,7 +61,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-void *_function(void *parameter)
+void *_function(PARCFutureTask *task, void *parameter)
 {
     return parameter;
 }

@@ -207,6 +207,7 @@ LONGBOW_TEST_CASE(Object, parcScheduledThreadPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+//    LONGBOW_RUN_TEST_CASE(Specialization, OneJob);
     LONGBOW_RUN_TEST_CASE(Specialization, Idle);
 }
 
@@ -234,6 +235,30 @@ LONGBOW_TEST_CASE(Specialization, Idle)
     sleep(2);
     
     parcScheduledThreadPool_ShutdownNow(pool);
+    
+    parcScheduledThreadPool_Release(&pool);
+}
+
+static void *
+_function(PARCFutureTask *task, void *parameter)
+{
+    printf("Hello World\n");
+    return parameter;
+}
+
+LONGBOW_TEST_CASE(Specialization, OneJob)
+{
+    PARCScheduledThreadPool *pool = parcScheduledThreadPool_Create(3);
+    
+    PARCFutureTask *task = parcFutureTask_Create(_function, _function);
+    
+    parcScheduledThreadPool_Schedule(pool, task, parcTimeout_MilliSeconds(2000));
+    
+    sleep(5);
+    
+    parcScheduledThreadPool_ShutdownNow(pool);
+    
+    parcFutureTask_Release(&task);
     
     parcScheduledThreadPool_Release(&pool);
 }

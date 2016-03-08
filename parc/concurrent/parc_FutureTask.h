@@ -382,6 +382,148 @@ PARCJSON *parcFutureTask_ToJSON(const PARCFutureTask *instance);
  */
 char *parcFutureTask_ToString(const PARCFutureTask *instance);
 
+/**
+ * Wakes up a single thread that is waiting on this object (see `parcFutureTask_Wait)`.
+ * If any threads are waiting on this object, one of them is chosen to be awakened.
+ * The choice is arbitrary and occurs at the discretion of the underlying implementation.
+ *
+ * The awakened thread will not be able to proceed until the current thread relinquishes the lock on this object.
+ * The awakened thread will compete in the usual manner with any other threads that might be actively
+ * competing to synchronize on this object;
+ * for example, the awakened thread enjoys no reliable privilege or disadvantage in being the next thread to lock this object.
+ *
+ * @param [in] object A pointer to a valid PARCFutureTask instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcFutureTask_Lock(object)) {
+ *         parcFutureTask_Notify(object);
+ *         parcFutureTask_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotify(parcFutureTask, PARCFutureTask);
+
+/**
+ * Wakes up all threads that are waiting on the given object's lock.
+ *
+ * A thread waits on an object by calling one of the wait methods, `parcFutureTask_Wait`, `parcFutureTask_WaitFor`, `parcFutureTask_WaitUntil`.
+ * The awakened threads will proceed after the current thread relinquishes the lock on the given object.
+ * The awakened threads will compete in the usual manner with any other threads that might be actively competing
+ * to synchronize on this object.
+ * Awakened threads have no priority between them in being the next thread to lock this object.
+ *
+ * This method can only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcFutureTask_Lock(object)) {
+ *         parcFutureTask_NotifyAll(object);
+ *         parcFutureTask_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotifyAll(parcFutureTask, PARCFutureTask);
+
+/**
+ * Causes the calling thread to wait until either another thread invokes the parcFutureTask_Notify() function on the same object.
+ *  *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ *     parcFutureTask_Wait(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementWait(parcFutureTask, PARCFutureTask);
+
+/**
+ * Obtain the lock on the given `PARCFutureTask` instance.
+ *
+ * If the lock is already held by another thread, this function will block.
+ * If the lock is aleady held by the current thread, this function will return `false`.
+ *
+ * Implementors must avoid deadlock by attempting to lock the object a second time within the same calling thread.
+ *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * @return true The lock was obtained successfully.
+ * @return false The lock is already held by the current thread, or the `PARCFutureTask` is invalid.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcFutureTask_Lock(object)) {
+ *
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementLock(parcFutureTask, PARCFutureTask);
+
+/**
+ * Try to obtain the advisory lock on the given PARCFutureTask instance.
+ *
+ * Once the lock is obtained, the caller must release the lock as soon as possible.
+ *
+ * @param [in] object A pointer to a valid PARCFutureTask instance.
+ *
+ * @return true The PARCFutureTask is locked.
+ * @return false The PARCFutureTask is unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcFutureTask_TryLock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementTryLock(parcFutureTask, PARCFutureTask);
+
+/**
+ * Try to unlock the advisory lock on the given `PARCFutureTask` instance.
+ *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * @return true The `PARCFutureTask` was locked and now is unlocked.
+ * @return false The `PARCFutureTask` was not locked and remains unlocked.
+ *
+ * Example:
+ * @code
+ * {
+ *     parcFutureTask_Unlock(object);
+ * }
+ * @endcode
+ */
+parcObject_ImplementUnlock(parcFutureTask, PARCFutureTask);
+
+/**
+ * Determine if the advisory lock on the given `PARCFutureTask` instance is locked.
+ *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * @return true The `PARCFutureTask` is locked.
+ * @return false The `PARCFutureTask` is unlocked.
+ * Example:
+ * @code
+ * {
+ *     if (parcFutureTask_IsLocked(object)) {
+ *         ...
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementIsLocked(parcFutureTask, PARCFutureTask);
+
 
 //FutureTask(Callable<V> callable)
 //Creates a FutureTask that will, upon running, execute the given Callable.
@@ -429,7 +571,7 @@ bool parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning);
  * }
  * @endcode
  */
-PARCFutureTaskResult parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout);
+PARCFutureTaskResult parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout);
 
 /**
  * Returns true if this task was cancelled before it completed normally.

@@ -17,6 +17,7 @@
 #ifndef PARCLibrary_parc_ScheduledTask
 #define PARCLibrary_parc_ScheduledTask
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
@@ -94,7 +95,7 @@ void parcScheduledTask_AssertValid(const PARCScheduledTask *instance);
  * }
  * @endcode
  */
-PARCScheduledTask *parcScheduledTask_Create(PARCFutureTask *task, time_t executionTime);
+PARCScheduledTask *parcScheduledTask_Create(PARCFutureTask *task, uint64_t executionTime);
 
 /**
  * Compares @p instance with @p other for order.
@@ -398,7 +399,10 @@ bool parcScheduledTask_Cancel(PARCScheduledTask *task, bool mayInterruptIfRunnin
  * }
  * @endcode
  */
-PARCFutureTaskResult parcScheduledTask_Get(const PARCScheduledTask *task, PARCTimeout timeout);
+PARCFutureTaskResult parcScheduledTask_Get(const PARCScheduledTask *task, const PARCTimeout *timeout);
+
+
+void *parcScheduledTask_Run(const PARCScheduledTask *task);
 
 /**
  * Returns true if this task was cancelled before it completed normally.

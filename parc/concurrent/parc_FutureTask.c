@@ -74,6 +74,7 @@ parcObject_ImplementAcquire(parcFutureTask, PARCFutureTask);
 parcObject_ImplementRelease(parcFutureTask, PARCFutureTask);
 
 parcObject_Override(PARCFutureTask, PARCObject,
+                    .isLockable = true,
                     .destructor = (PARCObjectDestructor *) _parcFutureTask_Destructor,
                     .copy = (PARCObjectCopy *) parcFutureTask_Copy,
                     .toString = (PARCObjectToString *) parcFutureTask_ToString,
@@ -214,18 +215,12 @@ parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
     return result;
 }
 
-////Protected method invoked when this task transitions to state isDone (whether normally or via cancellation).
-//void parcFutureTask_Done(PARCFutureTask *futureTask);
-
-//Waits if necessary for the computation to complete, and then retrieves its result.
-//void *parcFutureTask_Get(PARCFutureTask *futureTask);
-
 PARCFutureTaskResult
-parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout)
+parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
 {
     PARCFutureTaskResult result;
-    
-    if (timeout == PARCTimeout_Immediate) {
+
+    if (parcTimeout_IsImmediate(timeout)) {
         if (futureTask->isDone) {
             result.execution = PARCExecution_OK;
             result.value = futureTask->result;
@@ -239,11 +234,17 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, PARCTimeout timeout)
         
         parcObject_Lock(futureTask);
         while (!futureTask->isDone) {
-            if (parcObject_WaitFor(futureTask, timeout)) {
+            if (parcTimeout_IsNever(timeout)) {
+                parcObject_Wait(futureTask);
                 result.execution = PARCExecution_OK;
                 result.value = futureTask->result;
                 break;
-            }
+            } else
+                if (parcObject_WaitFor(futureTask, parcTimeout_InNanoSeconds(timeout))) {
+                    result.execution = PARCExecution_OK;
+                    result.value = futureTask->result;
+                    break;
+                }
         }
         parcObject_Unlock(futureTask);
     }
