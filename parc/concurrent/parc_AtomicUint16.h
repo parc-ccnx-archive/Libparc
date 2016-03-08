@@ -276,12 +276,12 @@ bool parcAtomicUint16_Equals(const PARCAtomicUint16 *x, const PARCAtomicUint16 *
  * {
  *     PARCAtomicUint16 *a = parcAtomicUint16_Create();
  *
- *     uint32_t hashValue = parcAtomicUint16_HashCode(buffer);
+ *     PARCHashCode hashValue = parcAtomicUint16_HashCode(buffer);
  *     parcAtomicUint16_Release(&a);
  * }
  * @endcode
  */
-uint32_t parcAtomicUint16_HashCode(const PARCAtomicUint16 *instance);
+PARCHashCode parcAtomicUint16_HashCode(const PARCAtomicUint16 *instance);
 
 /**
  * Determine if an instance of `PARCAtomicUint16` is valid.
