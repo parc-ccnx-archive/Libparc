@@ -1162,7 +1162,7 @@ void parcObject_NotifyAll(const PARCObject *object);
 #define parcObject_ImplementNotifyAll(_namespace, _type)       \
     static inline void _namespace##_NotifyAll(const _type *pObject) { \
     parcObject_NotifyAll((const PARCObject *) pObject);               \
-} typedef void parcCMacro_Cat(_type, _Notify_NOOP)
+} typedef void parcCMacro_Cat(_type, _NotifyAll_NOOP)
 
 
 /**

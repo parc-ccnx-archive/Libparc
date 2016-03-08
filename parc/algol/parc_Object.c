@@ -792,9 +792,6 @@ parcObject_Wait(const PARCObject *object)
 
     _PARCObjectLocking *locking = _objectHeader_Locking(object);
 
-    trapUnexpectedStateIf(locking->locker == (pthread_t) NULL,
-                          "You must Lock the object %p before calling parcObject_Wait", (void *) object);
-
     locking->notified = false;
     while (locking->notified == false) {
         pthread_cond_wait(&locking->notification, &locking->lock);
@@ -809,9 +806,6 @@ parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
     parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
-
-    trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
-                          "You must Lock the object %p before calling parcObject_Wait", (void *) object);
 
     header->locking.notified = false;
     int waitResult = pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, time);
@@ -831,9 +825,7 @@ parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
     parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
-
-    trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
-                          "You must Lock the object %p before calling parcObject_Wait", (void *) object);
+    
     struct timeval now;
     gettimeofday(&now, NULL);
 
@@ -877,7 +869,7 @@ parcObject_NotifyAll(const PARCObject *object)
     _PARCObjectHeader *header = _parcObject_Header(object);
     
     trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
-                          "You must Lock the object %p before calling parcObject_Notify", (void *) object);
+                          "You must Lock the object %p before calling parcObject_NotifyAll", (void *) object);
     
     header->locking.notified = true;
     pthread_cond_broadcast(&header->locking.notification);
