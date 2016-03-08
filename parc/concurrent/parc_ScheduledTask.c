@@ -40,6 +40,7 @@ parcObject_ImplementAcquire(parcScheduledTask, PARCScheduledTask);
 parcObject_ImplementRelease(parcScheduledTask, PARCScheduledTask);
 
 parcObject_Override(PARCScheduledTask, PARCObject,
+                    .isLockable = true,
                     .destructor = (PARCObjectDestructor *) _parcScheduledTask_Destructor,
                     .copy = (PARCObjectCopy *) parcScheduledTask_Copy,
                     .toString = (PARCObjectToString *) parcScheduledTask_ToString,

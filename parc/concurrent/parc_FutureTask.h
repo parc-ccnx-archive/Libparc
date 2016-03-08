@@ -31,9 +31,14 @@
  * This type associates a function and a pointer to data and provides the functionality
  * to invoke the function supplying the given pointer to data and returning the result.
  *
+ * The operations of invoking the function and collecting its return value may be asynchronous from each other
+ * in that an attempting to fetch the return value before the function has been invoked
+ * will cause the calling thread to block until the function has been invoked and run to completion.
+ * This enables the use of PARCFutureTask in a work queue, or thread pool where tasks are run asynchronously
+ * from each other and from an originating thread.
+ *
  * Each instance of the type may be cancelled,
- * inhibiting a future invocation of the associated function,
- * queried to determine if the task has already completed or has been cancelled.
+ * inhibiting a future invocation of the associated function.
  *
  * Typical use is a one time invocation of the associated function, induced by the `parcFutureTask_Get`,
  * but invoking `parcFutureTask_GetAndReset` invokes the associated function and resets the task to the initial state,
@@ -112,17 +117,21 @@ PARCFutureTask *parcFutureTask_Acquire(const PARCFutureTask *instance);
 void parcFutureTask_AssertValid(const PARCFutureTask *instance);
 
 /**
- * Create an instance of PARCFutureTask
+ * Create an instance of `PARCFutureTask`
  *
- * <#Paragraphs Of Explanation#>
+ * If the parameter is an instance of `PARCObject` a reference to the object will
+ * be created and ultimately released via `parcFutureTask_Release`
  *
- * @return non-NULL A pointer to a valid PARCFutureTask instance.
+ * @param [in] function A pointer to a function to call.
+ * @param [in] parameter A pointer that will be passed to the function when invoked.
+ 
+ * @return non-NULL A pointer to a valid `PARCFutureTask` instance.
  * @return NULL An error occurred.
  *
  * Example:
  * @code
  * {
- *     PARCFutureTask *a = parcFutureTask_Create();
+ *     PARCFutureTask *a = parcFutureTask_Create(function, parameter);
  *
  *     parcFutureTask_Release(&a);
  * }
@@ -189,7 +198,7 @@ PARCFutureTask *parcFutureTask_Copy(const PARCFutureTask *original);
 /**
  * Print a human readable representation of the given `PARCFutureTask`.
  *
- * @param [in] instance A pointer to a valid PARCFutureTask instance.
+ * @param [in] instance A pointer to a valid `PARCFutureTask` instance.
  * @param [in] indentation The indentation level to use for printing.
  *
  * Example:
@@ -524,21 +533,21 @@ parcObject_ImplementUnlock(parcFutureTask, PARCFutureTask);
  */
 parcObject_ImplementIsLocked(parcFutureTask, PARCFutureTask);
 
-
-//FutureTask(Callable<V> callable)
-//Creates a FutureTask that will, upon running, execute the given Callable.
-//FutureTask(Runnable runnable, V result)
-//Creates a FutureTask that will, upon running, execute the given Runnable, and arrange that get will return the given result on successful completion.
-
-
 /**
- * Attempts to cancel execution of this task.
+ * Attempt to cancel the execution of this task.
  *
- * <#Paragraphs Of Explanation#>
+ * This will return `false` if the task is already done or has already been cancelled.
+ * Otherswise, if this task has not started when `parcFutureTask_Cancel` is called, this task will never run.
  *
- * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ * If the task is already running, the boolean `mayInterruptIfRunning` may cause the task to be interrupted,
+ * otherwise this function will have no effect.
  *
- * @return <#value#> <#explanation#>
+ * After this function returns, subsequent calls to `parcFutureTask_IsDone` will always return true.
+ * Subsequent calls to  `parcFutureTask_isCancelled` will always return true if this function returned true.
+ *
+ * @param [in] object A pointer to a valid `PARCFutureTask` instance.
+ *
+ * @return true The task was cancelled.
  *
  * Example:
  * @code
@@ -548,12 +557,6 @@ parcObject_ImplementIsLocked(parcFutureTask, PARCFutureTask);
  * @endcode
  */
 bool parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning);
-
-////Protected method invoked when this task transitions to state isDone (whether normally or via cancellation).
-//void parcFutureTask_Done(PARCFutureTask *futureTask);
-
-//Waits if necessary for the computation to complete, and then retrieves its result.
-//void *parcFutureTask_Get(PARCFutureTask *futureTask);
 
 /**
  * Waits if necessary for at most the given time for the computation to complete, and then retrieves its result, if available.

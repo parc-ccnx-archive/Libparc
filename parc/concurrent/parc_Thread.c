@@ -63,13 +63,14 @@ parcObject_ImplementAcquire(parcThread, PARCThread);
 parcObject_ImplementRelease(parcThread, PARCThread);
 
 parcObject_Override(PARCThread, PARCObject,
+                    .isLockable = true,
                     .destructor = (PARCObjectDestructor *) _parcThread_Destructor,
                     .copy = (PARCObjectCopy *) parcThread_Copy,
                     .toString = (PARCObjectToString *) parcThread_ToString,
                     .equals = (PARCObjectEquals *) parcThread_Equals,
                     .compare = (PARCObjectCompare *) parcThread_Compare,
                     .hashCode = (PARCObjectHashCode *) parcThread_HashCode,
-                    //.display = (PARCObjectDisplay *) parcThread_Display
+                    .display = (PARCObjectDisplay *) parcThread_Display
                     );
 
 void
@@ -129,9 +130,7 @@ parcThread_Equals(const PARCThread *x, const PARCThread *y)
     } else if (x == NULL || y == NULL) {
         result = false;
     } else {
-        if (x->thread == y->thread) {
-            result = true;
-        }
+        result = pthread_equal(x->thread, y->thread);
     }
     
     return result;
@@ -218,7 +217,7 @@ parcThread_Cancel(PARCThread *thread)
 int
 parcThread_GetId(const PARCThread *thread)
 {
-    return thread->thread;
+    return (int) thread->thread;
 }
 
 bool

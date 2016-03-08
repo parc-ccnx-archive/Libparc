@@ -521,7 +521,7 @@ void parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value);
 bool parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool);
 
 /**
- * Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
+ * Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, whichever happens first.
  */
 bool parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout);
 

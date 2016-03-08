@@ -287,9 +287,6 @@ parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool)
     return false;
 }
 
-/**
- * Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
- */
 bool
 parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
 {
@@ -298,10 +295,15 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
     if (pool->isTerminating) {
         if (parcLinkedList_Lock(pool->workQueue)) {
             while (parcLinkedList_Size(pool->workQueue) > 0) {
-                parcLinkedList_Wait(pool->workQueue);
+                if (parcTimeout_IsNever(timeout)) {
+                    parcLinkedList_Wait(pool->workQueue);
+                } else {
+                    // This is not accurate as this will continue the delay, rather than keep a cumulative amount of delay.
+                    uint64_t delay = parcTimeout_InNanoSeconds(timeout);
+                    parcLinkedList_WaitFor(pool->workQueue, delay);
+                }
             }
             parcLinkedList_Unlock(pool->workQueue);
-            result = true;
         }
     }
     
@@ -313,9 +315,6 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
  */
 //protected void	beforeExecute(Thread t, Runnable r)
 
-/**
- * Executes the given task sometime in the future.
- */
 bool
 parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
 {
@@ -338,72 +337,48 @@ parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
     return result;
 }
 
-/**
- * Returns the approximate number of threads that are actively executing tasks.
- */
 int
 parcThreadPool_GetActiveCount(const PARCThreadPool *pool)
 {
-    return 0;
+    return pool->poolSize;
 }
 
-/**
- * Returns the approximate total number of tasks that have completed execution.
- */
 uint64_t
 parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool)
 {
     return parcAtomicUint64_GetValue(pool->completedTaskCount);
 }
 
-/**
- * Returns the core number of threads.
- */
 int
 parcThreadPool_GetCorePoolSize(const PARCThreadPool *pool)
 {
     return pool->poolSize;
 }
 
-/**
- * Returns the thread keep-alive time, which is the amount of time that threads in excess of the core pool size may remain idle before being terminated.
- */
 PARCTimeout *
 parcThreadPool_GetKeepAliveTime(const PARCThreadPool *pool)
 {
-    return 0;
+    return PARCTimeout_Never;
 }
 
-/**
- * Returns the largest number of threads that have ever simultaneously been in the pool.
- */
 int
 parcThreadPool_GetLargestPoolSize(const PARCThreadPool *pool)
 {
-    return 0;
+    return pool->poolSize;
 }
 
-/**
- * Returns the maximum allowed number of threads.
- */
 int
 parcThreadPool_GetMaximumPoolSize(const PARCThreadPool *pool)
 {
     return pool->maximumPoolSize;
 }
 
-/**
- * Returns the current number of threads in the pool.
- */
 int
 parcThreadPool_GetPoolSize(const PARCThreadPool *pool)
 {
     return pool->poolSize;
 }
 
-/**
- * Returns the task queue used by this executor.
- */
 PARCLinkedList
 *parcThreadPool_GetQueue(const PARCThreadPool *pool)
 {
@@ -415,9 +390,6 @@ PARCLinkedList
 // */
 //RejectedExecutionHandler parcThreadPool_GetRejectedExecutionHandler(PARCThreadPool *pool);
 
-/**
- * Returns the approximate total number of tasks that have ever been scheduled for execution.
- */
 long
 parcThreadPool_GetTaskCount(const PARCThreadPool *pool)
 {
@@ -429,18 +401,12 @@ parcThreadPool_GetTaskCount(const PARCThreadPool *pool)
  */
 //ThreadFactory parcThreadPool_GetThreadFactory(PARCThreadPool *pool, );
 
-/**
- * Returns true if this executor has been shut down.
- */
 bool
 parcThreadPool_IsShutdown(const PARCThreadPool *pool)
 {
     return pool->isShutdown;
 }
 
-/**
- * Returns true if all tasks have completed following shut down.
- */
 bool
 parcThreadPool_IsTerminated(const PARCThreadPool *pool)
 {
@@ -456,9 +422,6 @@ parcThreadPool_IsTerminating(const PARCThreadPool *pool)
     return pool->isTerminating;
 }
 
-/**
- * Starts all core threads, causing them to idly wait for work.
- */
 int
 parcThreadPool_PrestartAllCoreThreads(PARCThreadPool *pool)
 {

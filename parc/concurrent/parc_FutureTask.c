@@ -197,20 +197,21 @@ parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
 {
     bool result = false;
     
-    parcObject_Lock(task);
-    
-    if (task->isRunning) {
-        if (mayInterruptIfRunning) {
-            printf("Interrupting a running task is not implemented yet.\n");
+    if (parcObject_Lock(task)) {
+        if (task->isRunning) {
+            if (mayInterruptIfRunning) {
+                printf("Interrupting a running task is not implemented yet.\n");
+            }
+            result = false;
+        } else {
+            task->isCancelled = true;
+            task->isDone = true;
+            parcObject_Notify(task);
+            result = true;
         }
-        result = false;
-    } else {
-        task->isCancelled = true;
-        task->isDone = true;
-        parcObject_Notify(task);
+        
+        parcObject_Unlock(task);
     }
-    
-    parcObject_Unlock(task);
     
     return result;
 }
@@ -219,14 +220,14 @@ PARCFutureTaskResult
 parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
 {
     PARCFutureTaskResult result;
-
+    
+    result.execution = PARCExecution_Timeout;
+    result.value = 0;
+    
     if (parcTimeout_IsImmediate(timeout)) {
         if (futureTask->isDone) {
             result.execution = PARCExecution_OK;
             result.value = futureTask->result;
-        } else {
-            result.execution = PARCExecution_Timeout;
-            result.value = 0;
         }
     } else {
         result.execution = PARCExecution_Interrupted;
@@ -239,12 +240,13 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
                 result.execution = PARCExecution_OK;
                 result.value = futureTask->result;
                 break;
-            } else
+            } else {
                 if (parcObject_WaitFor(futureTask, parcTimeout_InNanoSeconds(timeout))) {
                     result.execution = PARCExecution_OK;
                     result.value = futureTask->result;
                     break;
                 }
+            }
         }
         parcObject_Unlock(futureTask);
     }
