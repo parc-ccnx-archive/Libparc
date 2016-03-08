@@ -378,6 +378,31 @@ char *parcSortedList_ToString(const PARCSortedList *instance);
 parcObject_ImplementNotify(parcSortedList, PARCSortedList);
 
 /**
+ * Wakes up all threads that are waiting on the given object's lock.
+ *
+ * A thread waits on an object by calling one of the wait methods, `parcSortedList_Wait`, `parcSortedList_WaitFor`, `parcSortedList_WaitUntil`.
+ * The awakened threads will proceed after the current thread relinquishes the lock on the given object.
+ * The awakened threads will compete in the usual manner with any other threads that might be actively competing
+ * to synchronize on this object.
+ * Awakened threads have no priority between them in being the next thread to lock this object.
+ *
+ * This method can only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid `PARCSortedList` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcSortedList_Lock(object)) {
+ *         parcSortedList_NotifyAll(object);
+ *         parcSortedList_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotifyAll(parcSortedList, PARCSortedList);
+
+/**
  * Causes the calling thread to wait until either another thread invokes the parcSortedList_Notify() function on the same object.
  *  *
  * @param [in] object A pointer to a valid `PARCSortedList` instance.
@@ -391,6 +416,41 @@ parcObject_ImplementNotify(parcSortedList, PARCSortedList);
  * @endcode
  */
 parcObject_ImplementWait(parcSortedList, PARCSortedList);
+
+parcObject_ImplementWaitFor(parcSortedList, PARCSortedList);
+
+/**
+ * Causes the calling thread to wait until either another thread invokes the `parcSortedList_Notify()`
+ * function on the same object or the system time equals or exceeds the specified time.
+ *
+ * The calling thread must own the object's lock.
+ * The calling thread will release ownership of this lock and wait until another thread invokes
+ * `parcSortedList_Notify` or the computer's system time equals or exceeds that specified by @p time.
+ * on the same object.
+ * The original calling thread then re-obtains ownership of the lock and resumes execution.
+ *
+ * This function must only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid PARCSortedList instance.
+ 
+ * @returns false if the alloted time was exceeded.
+ * @returns true if another thread invoked the `parcSortedList_Notify()` or `parcSortedList_NotifyAll()` function
+ *
+ * Example:
+ * @code
+ * {
+ *     struct timeval tv;
+ *     gettimeofday(&tv, NULL);
+ *
+ *     struct timespec absoluteTime;
+ *     absoluteTime.tv_sec = tv.tv_sec + 0;
+ *     absoluteTime.tv_nsec = 0;
+ *
+ *     parcSortedList_WaitUntil(object, &absoluteTime);
+ * }
+ * @endcode
+ */
+parcObject_ImplementWaitUntil(parcSortedList, PARCSortedList);
 
 /**
  * Obtain the lock on the given `PARCSortedList` instance.
