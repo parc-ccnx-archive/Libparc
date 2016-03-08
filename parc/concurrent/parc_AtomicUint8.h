@@ -276,12 +276,12 @@ bool parcAtomicUint8_Equals(const PARCAtomicUint8 *x, const PARCAtomicUint8 *y);
  * {
  *     PARCAtomicUint8 *a = parcAtomicUint8_Create();
  *
- *     uint32_t hashValue = parcAtomicUint8_HashCode(buffer);
+ *     PARCHashCode hashValue = parcAtomicUint8_HashCode(buffer);
  *     parcAtomicUint8_Release(&a);
  * }
  * @endcode
  */
-uint32_t parcAtomicUint8_HashCode(const PARCAtomicUint8 *instance);
+PARCHashCode parcAtomicUint8_HashCode(const PARCAtomicUint8 *instance);
 
 /**
  * Determine if an instance of `PARCAtomicUint8` is valid.

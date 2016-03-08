@@ -114,10 +114,10 @@ parcAtomicUint8_Equals(const PARCAtomicUint8 *x, const PARCAtomicUint8 *y)
     return result;
 }
 
-uint32_t
+PARCHashCode
 parcAtomicUint8_HashCode(const PARCAtomicUint8 *instance)
 {
-    uint32_t result = (uint32_t) parcAtomicUint8_GetValue(instance);
+    PARCHashCode result = (uint32_t) parcAtomicUint8_GetValue(instance);
 
     return result;
 }
