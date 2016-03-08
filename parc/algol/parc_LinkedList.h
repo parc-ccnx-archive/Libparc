@@ -576,6 +576,10 @@ parcObject_ImplementNotifyAll(parcLinkedList, PARCLinkedList);
  */
 parcObject_ImplementWait(parcLinkedList, PARCLinkedList);
 
+parcObject_ImplementWaitFor(parcLinkedList, PARCLinkedList);
+
+parcObject_ImplementWaitUntil(parcLinkedList, PARCLinkedList);
+
 /**
  * Obtain the lock on the given `PARCLinkedList` instance.
  *
