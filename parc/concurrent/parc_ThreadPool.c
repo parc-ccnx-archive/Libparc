@@ -80,6 +80,7 @@ _workerThread(PARCThread *thread, PARCThreadPool *pool)
                 parcLinkedList_Lock(pool->workQueue);
             } else {
                 printf("Nothing to do.\n");
+                parcLinkedList_Notify(pool->workQueue);
             }
             parcLinkedList_Wait(pool->workQueue);
             { char *string = parcThread_ToString(thread); printf("%s wakeup\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
@@ -123,7 +124,7 @@ _parcThreadPool_JoinAll(const PARCThreadPool *pool)
 static bool
 _parcThreadPool_Destructor(PARCThreadPool **instancePtr)
 {
-    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCScheduledThreadPool pointer.");
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThreadPool pointer.");
     PARCThreadPool *pool = *instancePtr;
     
     if (pool->isShutdown == false) {
@@ -292,7 +293,7 @@ parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value)
  * Returns true if this pool allows core threads to time out and terminate if no tasks arrive within the keepAlive time, being replaced if needed when new tasks arrive.
  */
 bool
-parcThreadPool_GetAllowsCoreThreadTimeOut(PARCThreadPool *pool)
+parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool)
 {
     
     return false;
@@ -304,7 +305,19 @@ parcThreadPool_GetAllowsCoreThreadTimeOut(PARCThreadPool *pool)
 bool
 parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
 {
-    return false;
+    bool result = false;
+    
+    if (pool->isTerminating) {
+        if (parcLinkedList_Lock(pool->workQueue)) {
+            while (parcLinkedList_Size(pool->workQueue) > 0) {
+                parcLinkedList_Wait(pool->workQueue);
+            }
+            parcLinkedList_Unlock(pool->workQueue);
+            result = true;
+        }
+    }
+    
+    return result;
 }
 
 /**
@@ -315,21 +328,33 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
 /**
  * Executes the given task sometime in the future.
  */
-void
+bool
 parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
 {
-    if (parcLinkedList_Lock(pool->workQueue)) {
-        parcLinkedList_Append(pool->workQueue, task);
-        parcLinkedList_Notify(pool->workQueue);
-        parcLinkedList_Unlock(pool->workQueue);
+    bool result = false;
+    
+    if (parcThreadPool_Lock(pool)) {
+        if (pool->isTerminated == false && pool->isTerminating == false) {
+            parcThreadPool_Unlock(pool);
+            if (parcLinkedList_Lock(pool->workQueue)) {
+                parcLinkedList_Append(pool->workQueue, task);
+                parcLinkedList_Notify(pool->workQueue);
+                parcLinkedList_Unlock(pool->workQueue);
+                result = true;
+            }
+        } else {
+            parcThreadPool_Unlock(pool);
+        }
     }
+    
+    return result;
 }
 
 /**
  * Returns the approximate number of threads that are actively executing tasks.
  */
 int
-parcThreadPool_GetActiveCount(PARCThreadPool *pool)
+parcThreadPool_GetActiveCount(const PARCThreadPool *pool)
 {
     return 0;
 }
@@ -338,7 +363,7 @@ parcThreadPool_GetActiveCount(PARCThreadPool *pool)
  * Returns the approximate total number of tasks that have completed execution.
  */
 long
-parcThreadPool_GetCompletedTaskCount(PARCThreadPool *pool)
+parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool)
 {
     return 0;
 
@@ -348,7 +373,7 @@ parcThreadPool_GetCompletedTaskCount(PARCThreadPool *pool)
  * Returns the core number of threads.
  */
 int
-parcThreadPool_GetCorePoolSize(PARCThreadPool *pool)
+parcThreadPool_GetCorePoolSize(const PARCThreadPool *pool)
 {
     return pool->poolSize;
 }
@@ -356,8 +381,8 @@ parcThreadPool_GetCorePoolSize(PARCThreadPool *pool)
 /**
  * Returns the thread keep-alive time, which is the amount of time that threads in excess of the core pool size may remain idle before being terminated.
  */
-long
-parcThreadPool_GetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout)
+PARCTimeout *
+parcThreadPool_GetKeepAliveTime(const PARCThreadPool *pool)
 {
     return 0;
 }
@@ -366,7 +391,7 @@ parcThreadPool_GetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout)
  * Returns the largest number of threads that have ever simultaneously been in the pool.
  */
 int
-parcThreadPool_GetLargestPoolSize(PARCThreadPool *pool)
+parcThreadPool_GetLargestPoolSize(const PARCThreadPool *pool)
 {
     return 0;
 }
@@ -375,7 +400,7 @@ parcThreadPool_GetLargestPoolSize(PARCThreadPool *pool)
  * Returns the maximum allowed number of threads.
  */
 int
-parcThreadPool_GetMaximumPoolSize(PARCThreadPool *pool)
+parcThreadPool_GetMaximumPoolSize(const PARCThreadPool *pool)
 {
     return pool->maximumPoolSize;
 }
@@ -384,7 +409,7 @@ parcThreadPool_GetMaximumPoolSize(PARCThreadPool *pool)
  * Returns the current number of threads in the pool.
  */
 int
-parcThreadPool_GetPoolSize(PARCThreadPool *pool)
+parcThreadPool_GetPoolSize(const PARCThreadPool *pool)
 {
     return pool->poolSize;
 }
@@ -393,7 +418,7 @@ parcThreadPool_GetPoolSize(PARCThreadPool *pool)
  * Returns the task queue used by this executor.
  */
 PARCLinkedList
-*parcThreadPool_GetQueue(PARCThreadPool *pool)
+*parcThreadPool_GetQueue(const PARCThreadPool *pool)
 {
     return pool->workQueue;
 }
@@ -407,7 +432,7 @@ PARCLinkedList
  * Returns the approximate total number of tasks that have ever been scheduled for execution.
  */
 long
-parcThreadPool_GetTaskCount(PARCThreadPool *pool)
+parcThreadPool_GetTaskCount(const PARCThreadPool *pool)
 {
     return pool->taskCount;
 }
@@ -421,7 +446,7 @@ parcThreadPool_GetTaskCount(PARCThreadPool *pool)
  * Returns true if this executor has been shut down.
  */
 bool
-parcThreadPool_IsShutdown(PARCThreadPool *pool)
+parcThreadPool_IsShutdown(const PARCThreadPool *pool)
 {
     return pool->isShutdown;
 }
@@ -430,7 +455,7 @@ parcThreadPool_IsShutdown(PARCThreadPool *pool)
  * Returns true if all tasks have completed following shut down.
  */
 bool
-parcThreadPool_IsTerminated(PARCThreadPool *pool)
+parcThreadPool_IsTerminated(const PARCThreadPool *pool)
 {
     return pool->isTerminated;
 }
@@ -439,7 +464,7 @@ parcThreadPool_IsTerminated(PARCThreadPool *pool)
  * Returns true if this executor is in the process of terminating after shutdown() or shutdownNow() but has not completely terminated.
  */
 bool
-parcThreadPool_IsTerminating(PARCThreadPool *pool)
+parcThreadPool_IsTerminating(const PARCThreadPool *pool)
 {
     return pool->isTerminating;
 }
@@ -525,6 +550,17 @@ parcThreadPool_SetMaximumPoolSize(PARCThreadPool *pool, int maximumPoolSize)
 void
 parcThreadPool_Shutdown(PARCThreadPool *pool)
 {
+    pool->isTerminating = true;
+}
+
+/**
+ * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
+ */
+PARCLinkedList *
+parcThreadPool_ShutdownNow(PARCThreadPool *pool)
+{
+    parcThreadPool_Shutdown(pool);
+    
     // Cause all of the worker threads to exit.
     _parcThreadPool_CancelAll(pool);
     
@@ -540,15 +576,8 @@ parcThreadPool_Shutdown(PARCThreadPool *pool)
         parcLinkedList_Unlock(pool->workQueue);
     }
     // Join with all of them, thereby cleaning up all of them.
-    _parcThreadPool_JoinAll(pool);    
-}
-
-/**
- * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
- */
-PARCLinkedList *
-parcThreadPool_ShutdownNow(PARCThreadPool *pool)
-{
-    parcThreadPool_Shutdown(pool);
+    _parcThreadPool_JoinAll(pool);
+    
+    pool->isTerminated = true;
     return NULL;
 }

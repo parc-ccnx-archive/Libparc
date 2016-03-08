@@ -201,7 +201,7 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
-//    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Execute);
+    LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Execute);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -231,8 +231,10 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
 
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
     parcThreadPool_Execute(pool, task);
+    parcFutureTask_Release(&task);
     
-    sleep(2);
+    parcThreadPool_Shutdown(pool);
+    parcThreadPool_AwaitTermination(pool, PARCTimeout_Never);
     
     parcThreadPool_ShutdownNow(pool);
     

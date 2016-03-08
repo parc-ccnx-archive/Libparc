@@ -518,7 +518,7 @@ void parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value);
 /**
  * Returns true if this pool allows core threads to time out and terminate if no tasks arrive within the keepAlive time, being replaced if needed when new tasks arrive.
  */
-bool parcThreadPool_GetAllowsCoreThreadTimeOut(PARCThreadPool *pool);
+bool parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool);
 
 /**
  * Blocks until all tasks have completed execution after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
@@ -528,67 +528,67 @@ bool parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
 /**
  * Executes the given task sometime in the future.
  */
-void parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task);
+bool parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task);
 
 /**
  * Returns the approximate number of threads that are actively executing tasks.
  */
-int parcThreadPool_GetActiveCount(PARCThreadPool *pool);
+int parcThreadPool_GetActiveCount(const PARCThreadPool *pool);
 
 /**
  * Returns the approximate total number of tasks that have completed execution.
  */
-long parcThreadPool_GetCompletedTaskCount(PARCThreadPool *pool);
+long parcThreadPool_GetCompletedTaskCount(const PARCThreadPool *pool);
 
 /**
  * Returns the core number of threads.
  */
-int parcThreadPool_GetCorePoolSize(PARCThreadPool *pool);
+int parcThreadPool_GetCorePoolSize(const PARCThreadPool *pool);
 
 /**
  * Returns the thread keep-alive time, which is the amount of time that threads in excess of the core pool size may remain idle before being terminated.
  */
-long parcThreadPool_GetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout);
+PARCTimeout *parcThreadPool_GetKeepAliveTime(const PARCThreadPool *pool);
 
 /**
  * Returns the largest number of threads that have ever simultaneously been in the pool.
  */
-int parcThreadPool_GetLargestPoolSize(PARCThreadPool *pool);
+int parcThreadPool_GetLargestPoolSize(const PARCThreadPool *pool);
 
 /**
  * Returns the maximum allowed number of threads.
  */
-int parcThreadPool_GetMaximumPoolSize(PARCThreadPool *pool);
+int parcThreadPool_GetMaximumPoolSize(const PARCThreadPool *pool);
 
 /**
  * Returns the current number of threads in the pool.
  */
-int parcThreadPool_GetPoolSize(PARCThreadPool *pool);
+int parcThreadPool_GetPoolSize(const PARCThreadPool *pool);
 
 /**
  * Returns the task queue used by this executor.
  */
-PARCLinkedList *parcThreadPool_GetQueue(PARCThreadPool *pool);
+PARCLinkedList *parcThreadPool_GetQueue(const PARCThreadPool *pool);
 
 /**
  * Returns the approximate total number of tasks that have ever been scheduled for execution.
  */
-long parcThreadPool_GetTaskCount(PARCThreadPool *pool);
+long parcThreadPool_GetTaskCount(const PARCThreadPool *pool);
 
 /**
  * Returns true if this executor has been shut down.
  */
-bool parcThreadPool_IsShutdown(PARCThreadPool *pool);
+bool parcThreadPool_IsShutdown(const PARCThreadPool *pool);
 
 /**
  * Returns true if all tasks have completed following shut down.
  */
-bool parcThreadPool_IsTerminated(PARCThreadPool *pool);
+bool parcThreadPool_IsTerminated(const PARCThreadPool *pool);
 
 /**
  * Returns true if this executor is in the process of terminating after shutdown() or shutdownNow() but has not completely terminated.
  */
-bool parcThreadPool_IsTerminating(PARCThreadPool *pool);
+bool parcThreadPool_IsTerminating(const PARCThreadPool *pool);
 
 /**
  * Starts all core threads, causing them to idly wait for work.
@@ -634,6 +634,5 @@ void parcThreadPool_Shutdown(PARCThreadPool *pool);
  * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
  */
 PARCLinkedList *parcThreadPool_ShutdownNow(PARCThreadPool *pool);
-
 
 #endif
