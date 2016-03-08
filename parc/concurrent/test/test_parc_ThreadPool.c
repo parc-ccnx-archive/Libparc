@@ -231,6 +231,10 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
 
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
     parcThreadPool_Execute(pool, task);
+    parcThreadPool_Execute(pool, task);
+    parcThreadPool_Execute(pool, task);
+    parcThreadPool_Execute(pool, task);
+    parcThreadPool_Execute(pool, task);
     parcFutureTask_Release(&task);
     
     parcThreadPool_Shutdown(pool);

@@ -277,15 +277,13 @@ _parcFutureTask_Execute(PARCFutureTask *task)
 void *
 parcFutureTask_Run(PARCFutureTask *task)
 {
-    if (parcObject_Lock(task)) {
-        if (!task->isDone) {
-            if (!task->isCancelled) {
-                task->result = _parcFutureTask_Execute(task);
-                task->isDone = true;
-                parcObject_Notify(task);
-            }
+    if (parcFutureTask_Lock(task)) {
+        if (!task->isCancelled) {
+            task->result = _parcFutureTask_Execute(task);
+            task->isDone = true;
+            parcFutureTask_Notify(task);
         }
-        parcObject_Unlock(task);
+        parcFutureTask_Unlock(task);
     } else {
         trapCannotObtainLock("Cannot lock PARCFutureTask");
     }
@@ -298,13 +296,12 @@ parcFutureTask_RunAndReset(PARCFutureTask *task)
     bool result = false;
     
     if (parcObject_Lock(task)) {
-        if (!task->isDone) {
-            if (!task->isCancelled) {
-                _parcFutureTask_Execute(task);
-                parcFutureTask_Reset(task);
-                result = true;
-            }
+        if (!task->isCancelled) {
+            _parcFutureTask_Execute(task);
+            parcFutureTask_Reset(task);
+            result = true;
         }
+        parcFutureTask_Unlock(task);
     } else {
         trapCannotObtainLock("Cannot lock PARCFutureTask");
     }

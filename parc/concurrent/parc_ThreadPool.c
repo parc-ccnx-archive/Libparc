@@ -65,35 +65,43 @@ _workerThread(PARCThread *thread, PARCThreadPool *pool)
      *      If the delay is <= 0, then take the task and execute it.
      *      Otherwise, wait on the workQueue for the supervisor
      */
-    //    { char *string = parcThread_ToString(thread); printf("%s lock\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-    
-    if (parcLinkedList_Lock(pool->workQueue)) {
-        while (parcThread_IsCancelled(thread) == false) {
-            { char *string = parcThread_ToString(thread); printf("%s wait\n", string); parcMemory_Deallocate(&string); fflush(stdout); }
-            
-            if (parcLinkedList_Size(pool->workQueue) > 0) {
-                PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
-                printf("Something to do. %p\n", task);
+//#if 1
+    while (parcThread_IsCancelled(thread) == false) {
+        if (parcLinkedList_Lock(pool->workQueue)) {
+            PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
+            if (task != NULL) {
                 parcLinkedList_Unlock(pool->workQueue);
                 parcFutureTask_Run(task);
                 parcFutureTask_Release(&task);
                 parcLinkedList_Lock(pool->workQueue);
-            } else {
-                printf("Nothing to do.\n");
+
                 parcLinkedList_Notify(pool->workQueue);
+            } else {
+                parcLinkedList_Wait(pool->workQueue);                
             }
-            parcLinkedList_Wait(pool->workQueue);
-            { char *string = parcThread_ToString(thread); printf("%s wakeup\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         }
-        
-        { char *string = parcThread_ToString(thread); printf("%s cancelled, unlock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
         parcLinkedList_Unlock(pool->workQueue);
-    } else {
-        { char *string = parcThread_ToString(thread); printf("%s failed to lock\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
     }
-    
-    { char *string = parcThread_ToString(thread); printf("%s done\n", string); parcMemory_Deallocate(&string); fflush(stdout);}
-    
+//#else
+//    if (parcLinkedList_Lock(pool->workQueue)) {
+//        while (parcThread_IsCancelled(thread) == false) {
+//            if (parcLinkedList_Size(pool->workQueue) > 0) {
+//                PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
+//                printf("Something to do. %p\n", task);
+//                parcLinkedList_Unlock(pool->workQueue);
+//                parcFutureTask_Run(task);
+//                parcFutureTask_Release(&task);
+//                parcLinkedList_Lock(pool->workQueue);
+//            } else {
+//                parcLinkedList_Notify(pool->workQueue);
+//            }
+//            parcLinkedList_Wait(pool->workQueue);
+//        }
+//        
+//        parcLinkedList_Unlock(pool->workQueue);
+//    }
+//#endif
+   
     return NULL;
 }
 
