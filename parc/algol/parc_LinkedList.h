@@ -537,6 +537,31 @@ void parcLinkedList_Display(const PARCLinkedList *list, int indentation);
 parcObject_ImplementNotify(parcLinkedList, PARCLinkedList);
 
 /**
+ * Wakes up all threads that are waiting on the given object's lock.
+ *
+ * A thread waits on an object by calling one of the wait methods, `parcLinkedList_Wait`, `parcLinkedList_WaitFor`, `parcLinkedList_WaitUntil`.
+ * The awakened threads will proceed after the current thread relinquishes the lock on the given object.
+ * The awakened threads will compete in the usual manner with any other threads that might be actively competing
+ * to synchronize on this object.
+ * Awakened threads have no priority between them in being the next thread to lock this object.
+ *
+ * This method can only be called by a thread that is the owner of this object's lock.
+ *
+ * @param [in] object A pointer to a valid `PARCLinkedList` instance.
+ *
+ * Example:
+ * @code
+ * {
+ *     if (parcLinkedList_Lock(object)) {
+ *         parcLinkedList_NotifyAll(object);
+ *         parcLinkedList_Unlock(object);
+ *     }
+ * }
+ * @endcode
+ */
+parcObject_ImplementNotifyAll(parcLinkedList, PARCLinkedList);
+
+/**
  * Causes the calling thread to wait until either another thread invokes the parcLinkedList_Notify() function on the same object.
  *  *
  * @param [in] object A pointer to a valid `PARCLinkedList` instance.
