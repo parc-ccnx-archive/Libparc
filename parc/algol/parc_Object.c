@@ -141,10 +141,11 @@ _parcObject_Header(const PARCObject *object)
 }
 
 static inline PARCObjectDescriptor *
-_objectHeader_Descriptor(const PARCObject *object)
+_parcObject_Descriptor(const PARCObject *object)
 {
     return (_parcObject_Header(object)->descriptor);
 }
+
 
 static inline _PARCObjectLocking *
 _objectHeader_Locking(const PARCObject *object)
@@ -170,22 +171,6 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
     
     return result;
 }
-    
-//static inline bool
-//_objectHeaderIsValid(const _PARCObjectHeader *header)
-//{
-//    bool result = true;
-//
-//    if (header->references == 0) {
-//        result = false;
-//    } else if (_alignmentIsValid(header->objectAlignment) == false) {
-//        result = false;
-//    } else if (header->objectLength == 0) {
-//        result = false;
-//    }
-//
-//    return result;
-//}
 
 /**
  * Compute the origin of the allocated memory.
@@ -275,10 +260,9 @@ _parcObject_Copy(const PARCObject *object)
 static bool
 _parcObject_Equals(const PARCObject *x, const PARCObject *y)
 {
-    bool result = false;
     _PARCObjectHeader *header = _parcObject_Header(x);
 
-    result = memcmp(x, y, header->objectLength) == 0;
+    bool result = memcmp(x, y, header->objectLength) == 0;
 
     return result;
 }
@@ -423,6 +407,7 @@ _parcObject_ResolveCompare(const PARCObjectDescriptor *descriptor)
     return descriptor->compare;
 }
 
+
 int
 parcObject_Compare(const PARCObject *x, const PARCObject *y)
 {
@@ -440,8 +425,7 @@ parcObject_Compare(const PARCObject *x, const PARCObject *y)
     parcObject_OptionalAssertValid(x);
     parcObject_OptionalAssertValid(y);
 
-    _PARCObjectHeader *header = _parcObject_Header(x);
-    PARCObjectCompare *compare = _parcObject_ResolveCompare(header->descriptor);
+    PARCObjectCompare *compare = _parcObject_ResolveCompare(_parcObject_Descriptor(x));
     result = compare(x, y);
 
     return result;
@@ -456,7 +440,7 @@ parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *de
         _PARCObjectHeader *header = _parcObject_Header(object);
         
         if (_parcObjectHeader_IsValid(header, object)) {
-            PARCObjectDescriptor *d = _objectHeader_Descriptor(object);
+            PARCObjectDescriptor *d = _parcObject_Descriptor(object);
             
             while (result == false) {
                 if (d == descriptor) {
@@ -504,8 +488,7 @@ parcObject_HashCode(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectHeader *header = _parcObject_Header(object);
-    PARCObjectHashCode *hashCode = _parcObject_ResolveHashCode(header->descriptor);
+    PARCObjectHashCode *hashCode = _parcObject_ResolveHashCode(_parcObject_Descriptor(object));
 
     return hashCode(object);
 }
@@ -524,8 +507,7 @@ parcObject_Display(const PARCObject *object, const int indentation)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectHeader *header = _parcObject_Header(object);
-    PARCObjectDisplay *display = _parcObject_ResolveDisplay(header->descriptor);
+    PARCObjectDisplay *display = _parcObject_ResolveDisplay(_parcObject_Descriptor(object));
 
     display(object, indentation);
 }
@@ -535,8 +517,7 @@ parcObject_ToString(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectHeader *header = _parcObject_Header(object);
-    PARCObjectToString *toString = _parcObject_ResolveToString(header->descriptor);
+    PARCObjectToString *toString = _parcObject_ResolveToString(_parcObject_Descriptor(object));
 
     return toString(object);
 }
@@ -546,17 +527,16 @@ parcObject_ToJSON(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectHeader *header = _parcObject_Header(object);
-    PARCObjectToJSON *toJSON = _parcObject_ResolveToJSON(header->descriptor);
+    PARCObjectToJSON *toJSON = _parcObject_ResolveToJSON(_parcObject_Descriptor(object));
     return toJSON(object);
 }
 
-PARCObject *
-parcObject_CreateImpl(const size_t objectLength)
-{
-    PARCObject *result = parcObject_CreateInstanceImpl(objectLength, &PARCObject_Descriptor);
-    return result;
-}
+//PARCObject *
+//parcObject_CreateImpl(const size_t objectLength)
+//{
+//    PARCObject *result = parcObject_CreateInstanceImpl(objectLength, &PARCObject_Descriptor);
+//    return result;
+//}
 
 PARCObject *
 parcObject_CreateAndClearImpl(const size_t objectLength)
@@ -622,7 +602,7 @@ parcObject_Copy(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    PARCObjectCopy *copy = _parcObject_ResolveCopy(_objectHeader_Descriptor(object));
+    PARCObjectCopy *copy = _parcObject_ResolveCopy(_parcObject_Descriptor(object));
     return copy(object);
 }
 

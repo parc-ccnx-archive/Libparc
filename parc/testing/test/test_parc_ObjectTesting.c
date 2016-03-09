@@ -473,7 +473,7 @@ __attribute__ ((noinline))
 static PARCObject *
 badCopyJunk(const PARCObject *instance)
 {
-    return parcObject_CreateImpl(10);
+    return parcBuffer_Allocate(10);
 }
 
 LONGBOW_TEST_CASE_EXPECTS(Conformance, parcObjectTesting_AssertObjectConformance_fail_object_copy_junk, .event = &LongBowAssertEvent)

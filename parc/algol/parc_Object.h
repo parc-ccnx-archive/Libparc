@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@
  * functions that implement specific behaviours for interfaces using PARC Object.
  *
  * @author Glenn Scott, Mike Slominski, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_Object_h
 #define libparc_parc_Object_h
@@ -148,6 +148,8 @@ typedef struct PARCObjectDescriptor {
     PARCObjectDisplay *display;
     struct PARCObjectDescriptor *super;
     bool isLockable;
+    size_t objectSize;
+    unsigned objectAlignment;
 } PARCObjectDescriptor;
 
 /*!
@@ -468,7 +470,7 @@ PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObj
 
 /**
  * @def parcObject_MetaInitialize
- * @deprecated Use parcObject_ExtendPARCObject instead;
+ * @deprecated Use parcObject_Override instead;
  *
  * Initialize a PARCObjectDescriptor structure. Every function pointer is set to NULL.
  *
@@ -629,6 +631,8 @@ void parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 #define parcObject_Override(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
     static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = {          \
+        .objectSize = sizeof(_subtype), \
+        .objectAlignment = sizeof(void *), \
         .destroy = NULL,    \
         .destructor = NULL, \
         .release  = NULL,   \
@@ -686,33 +690,33 @@ void parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         .toJSON   = parcCMacro_IfElse(NULL, _autowrap_toJSON_##_type, _autowrap_##_toJSON()), \
         .display  = NULL)
 
-#define parcObject_Create(_subtype) \
-    (_subtype *) parcObject_CreateImpl(sizeof(_subtype))
+//#define parcObject_Create(_subtype) \
+//    (_subtype *) parcObject_CreateImpl(sizeof(_subtype))
 
-/**
- * Create a reference counted segment of memory of at least @p objectLength bytes long with
- * the default functions provided by the `PARCObject` implementation.
- *
- * The allocated memory is such that the memory's base address is aligned on a `sizeof(void *)` boundary.
- *
- * If memory cannot be allocated, `errno` is set to `ENOMEM`.
- *
- * @param [in] objectLength The length, in bytes, of the memory to allocate.
- *
- * @return NULL The memory could not be allocated.
- * @return non-NULL A pointer to a valid `PARCObject` instance providing reference counted memory of at least length bytes.
- *
- * Example:
- * @code
- * {
- *     struct timeval *t = parcObject_CreateImpl(sizeof(struct timeval));
- * }
- * @endcode
- *
- * @see parcObject_CreateAndClear
- * @see parcObject_CreateAndClearImpl
- */
-PARCObject *parcObject_CreateImpl(const size_t objectLength);
+///**
+// * Create a reference counted segment of memory of at least @p objectLength bytes long with
+// * the default functions provided by the `PARCObject` implementation.
+// *
+// * The allocated memory is such that the memory's base address is aligned on a `sizeof(void *)` boundary.
+// *
+// * If memory cannot be allocated, `errno` is set to `ENOMEM`.
+// *
+// * @param [in] objectLength The length, in bytes, of the memory to allocate.
+// *
+// * @return NULL The memory could not be allocated.
+// * @return non-NULL A pointer to a valid `PARCObject` instance providing reference counted memory of at least length bytes.
+// *
+// * Example:
+// * @code
+// * {
+// *     struct timeval *t = parcObject_CreateImpl(sizeof(struct timeval));
+// * }
+// * @endcode
+// *
+// * @see parcObject_CreateAndClear
+// * @see parcObject_CreateAndClearImpl
+// */
+//PARCObject *parcObject_CreateImpl(const size_t objectLength);
 
 #define parcObject_CreateAndClear(_subtype) \
     (_subtype *) parcObject_CreateAndClearImpl(sizeof(_subtype))

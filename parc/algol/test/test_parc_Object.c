@@ -256,9 +256,14 @@ LONGBOW_TEST_CASE(Static, validateAlignment)
                "Expected alignment of 16 failed.");
 }
 
+struct timeval _testObject;
+
+parcObject_Override(_testObject, PARCObject);
+
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid)
 {
-    PARCObject *object = parcObject_CreateImpl(10);
+    PARCObject *object = parcObject_CreateInstanceImpl(10, &_testObject_Descriptor);
+    
     _PARCObjectHeader *header = _parcObject_Header(object);
     
     assertTrue(_parcObjectHeader_IsValid(header, object), "Expected _parcObject_HeaderHeaderIsValid to be valid");
@@ -268,7 +273,7 @@ LONGBOW_TEST_CASE(Static, _objectHeaderIsValid)
 
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid_InvalidAlignment)
 {
-    PARCObject *object = parcObject_CreateImpl(10);
+    PARCObject *object = parcObject_CreateInstanceImpl(10, &_testObject_Descriptor);
     _PARCObjectHeader *header = _parcObject_Header(object);
     header->objectAlignment = sizeof(void *) + 1;
     
@@ -280,7 +285,7 @@ LONGBOW_TEST_CASE(Static, _objectHeaderIsValid_InvalidAlignment)
 
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid_InvalidLength)
 {
-    PARCObject *object = parcObject_CreateImpl(10);
+    PARCObject *object = parcObject_CreateInstanceImpl(10, &_testObject_Descriptor);
     _PARCObjectHeader *header = _parcObject_Header(object);
     header->objectLength = 0;
 
@@ -417,7 +422,7 @@ LONGBOW_TEST_CASE(Global, parcObject_Release)
 
 LONGBOW_TEST_CASE(Global, parcObject_Create)
 {
-    struct timeval *time = parcObject_Create(struct timeval);
+    struct timeval *time = parcObject_CreateInstanceImpl(10, &_testObject_Descriptor);
     parcObject_AssertValid(time);
 
     time->tv_sec = 1;

@@ -84,10 +84,10 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease_PARCObject)
 {
-    PARCObject *object = parcObject_CreateImpl(10);
+    PARCBuffer *object = parcBuffer_Allocate(10);
     
     PARCFutureTask *instance = parcFutureTask_Create(_function, object);
-    parcObject_Release(&object);
+    parcBuffer_Release(&object);
     
     assertNotNull(instance, "Expected non-null result from parcFutureTask_Create(_function, object);");
     
