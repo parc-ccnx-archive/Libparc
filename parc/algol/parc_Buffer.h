@@ -1069,6 +1069,8 @@ PARCBuffer *parcBuffer_Flip(PARCBuffer *buffer);
 /**
  * Get the single `uint8_t` at the index specified.
  *
+ * The buffer's position is not modified.
+ *
  * @param [in] buffer A pointer to a `PARCBuffer` instance.
  * @param [in] index The index into the @p buffer to find the `uint8_t`.
  *

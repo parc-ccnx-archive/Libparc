@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  */
 /**
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
@@ -46,6 +46,7 @@
 
 struct parc_uri_segment {
     PARCBuffer *buffer;
+    bool requiresEscaping;
 };
 
 static char *hexDigitsUpper = "0123456789ABCDEF";
@@ -103,7 +104,7 @@ _parsePercentEncoded(const char *string, unsigned char *value)
 #define uriPlainSegmentChar(c) (c != 0 && index("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~", c) != NULL)
 
 static PARCBufferComposer *
-_uriSegment_BuildString(const PARCURISegment *segment, PARCBufferComposer *composer)
+_parcURISegment_BuildString(const PARCURISegment *segment, PARCBufferComposer *composer)
 {
     assertNotNull(composer, "Parameter must be a non-null pointer to a PARCBufferComposer.");
 
@@ -265,7 +266,7 @@ parcURISegment_Compare(const PARCURISegment *a, const PARCURISegment *b)
 PARCBufferComposer *
 parcURISegment_BuildString(const PARCURISegment *segment, PARCBufferComposer *composer)
 {
-    composer = _uriSegment_BuildString(segment, composer);
+    composer = _parcURISegment_BuildString(segment, composer);
 
     return composer;
 }
