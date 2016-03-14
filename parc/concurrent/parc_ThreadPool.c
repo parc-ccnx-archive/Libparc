@@ -268,18 +268,12 @@ parcThreadPool_ToString(const PARCThreadPool *instance)
     return result;
 }
 
-/**
- * Sets the policy governing whether core threads may time out and terminate if no tasks arrive within the keep-alive time, being replaced if needed when new tasks arrive.
- */
 void
 parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value)
 {
 
 }
 
-/**
- * Returns true if this pool allows core threads to time out and terminate if no tasks arrive within the keepAlive time, being replaced if needed when new tasks arrive.
- */
 bool
 parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool)
 {
@@ -303,17 +297,13 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
                     parcLinkedList_WaitFor(pool->workQueue, delay);
                 }
             }
+            result = true;
             parcLinkedList_Unlock(pool->workQueue);
         }
     }
     
     return result;
 }
-
-/**
- * Method invoked prior to executing the given Runnable in the given thread.
- */
-//protected void	beforeExecute(Thread t, Runnable r)
 
 bool
 parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
@@ -385,21 +375,11 @@ PARCLinkedList
     return pool->workQueue;
 }
 
-///**
-// * Returns the current handler for unexecutable tasks.
-// */
-//RejectedExecutionHandler parcThreadPool_GetRejectedExecutionHandler(PARCThreadPool *pool);
-
 long
 parcThreadPool_GetTaskCount(const PARCThreadPool *pool)
 {
     return pool->taskCount;
 }
-
-/**
- * Returns the thread factory used to create new threads.
- */
-//ThreadFactory parcThreadPool_GetThreadFactory(PARCThreadPool *pool, );
 
 bool
 parcThreadPool_IsShutdown(const PARCThreadPool *pool)
@@ -413,9 +393,6 @@ parcThreadPool_IsTerminated(const PARCThreadPool *pool)
     return pool->isTerminated;
 }
 
-/**
- * Returns true if this executor is in the process of terminating after shutdown() or shutdownNow() but has not completely terminated.
- */
 bool
 parcThreadPool_IsTerminating(const PARCThreadPool *pool)
 {
@@ -428,84 +405,48 @@ parcThreadPool_PrestartAllCoreThreads(PARCThreadPool *pool)
     return 0;
 }
 
-/**
- * Starts a core thread, causing it to idly wait for work.
- */
 bool
 parcThreadPool_PrestartCoreThread(PARCThreadPool *pool)
 {
     return 0;
 }
 
-/**
- * Tries to remove from the work queue all Future tasks that have been cancelled.
- */
 void
 parcThreadPool_Purge(PARCThreadPool *pool)
 {
 
 }
 
-/**
- * Removes this task from the executor's internal queue if it is present, thus causing it not to be run if it has not already started.
- */
 bool
 parcThreadPool_Remove(PARCThreadPool *pool, PARCFutureTask *task)
 {
     return false;
 }
 
-/**
- * Sets the core number of threads.
- */
 void
 parcThreadPool_SetCorePoolSize(PARCThreadPool *pool, int corePoolSize)
 {
 
 }
 
-/**
- * Sets the time limit for which threads may remain idle before being terminated.
- */
 void
 parcThreadPool_SetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout)
 {
 
 }
 
-/**
- * Sets the maximum allowed number of threads.
- */
 void
 parcThreadPool_SetMaximumPoolSize(PARCThreadPool *pool, int maximumPoolSize)
 {
 
 }
 
-///**
-// * Sets a new handler for unexecutable tasks.
-// */
-//void parcThreadPool_SetRejectedExecutionHandler(PARCThreadPool *pool, RejectedExecutionHandler handler);
-
-///**
-// * Sets the thread factory used to create new threads.
-// */
-//void parcThreadPool_SetThreadFactory(PARCThreadPool *pool, ThreadFactory threadFactory);
-
-
-
-/**
- * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be accepted.
- */
 void
 parcThreadPool_Shutdown(PARCThreadPool *pool)
 {
     pool->isTerminating = true;
 }
 
-/**
- * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
- */
 PARCLinkedList *
 parcThreadPool_ShutdownNow(PARCThreadPool *pool)
 {
