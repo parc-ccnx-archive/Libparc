@@ -563,7 +563,7 @@ parcObject_ImplementNotifyAll(parcLinkedList, PARCLinkedList);
 
 /**
  * Causes the calling thread to wait until either another thread invokes the parcLinkedList_Notify() function on the same object.
- *  *
+ *
  * @param [in] object A pointer to a valid `PARCLinkedList` instance.
  *
  * Example:

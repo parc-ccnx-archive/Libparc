@@ -11,8 +11,11 @@
  */
 #include "../parc_ThreadPool.c"
 
+#include <stdio.h>
+
 #include <LongBow/testing.h>
 #include <LongBow/debugging.h>
+
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_SafeMemory.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -227,6 +230,7 @@ _function(PARCFutureTask *task, void *parameter)
 
 LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
 {
+    dprintf(1, "-----\n");
     PARCThreadPool *pool = parcThreadPool_Create(6);
 
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);

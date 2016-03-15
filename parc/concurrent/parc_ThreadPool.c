@@ -58,27 +58,45 @@ struct PARCThreadPool {
     PARCAtomicUint64 *completedTaskCount;
 };
 
+static PARCFutureTask *
+_parcThreadPool_GetNextTask(PARCThreadPool *pool)
+{
+    PARCFutureTask *result = NULL;
+    
+    if (parcLinkedList_Lock(pool->workQueue)) {
+        if (pool->isShutdown == false && pool->isTerminated == false && pool->isTerminating == false) {
+            result = parcLinkedList_RemoveFirst(pool->workQueue);
+        }
+        
+        parcLinkedList_Notify(pool->workQueue);
+        parcLinkedList_Unlock(pool->workQueue);
+    }
+
+    return result;
+}
+
 static void *
 _workerThread(PARCThread *thread, PARCThreadPool *pool)
 {
-    while (parcThread_IsCancelled(thread) == false) {
+    while (parcThread_IsCancelled(thread) == false && pool->isTerminated == false) {
         if (parcLinkedList_Lock(pool->workQueue)) {
             PARCFutureTask *task = parcLinkedList_RemoveFirst(pool->workQueue);
             if (task != NULL) {
+                parcAtomicUint64_Increment(pool->completedTaskCount);
                 parcLinkedList_Unlock(pool->workQueue);
                 parcFutureTask_Run(task);
                 parcFutureTask_Release(&task);
-                parcAtomicUint64_Increment(pool->completedTaskCount);
                 parcLinkedList_Lock(pool->workQueue);
 
                 parcLinkedList_Notify(pool->workQueue);
             } else {
-                parcLinkedList_Wait(pool->workQueue);                
+                parcLinkedList_WaitFor(pool->workQueue, 1000000000);
             }
         }
         parcLinkedList_Unlock(pool->workQueue);
     }
    
+    dprintf(1, "worker done %d\n", parcThread_GetId(thread));
     return NULL;
 }
 
@@ -290,7 +308,9 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
         if (parcLinkedList_Lock(pool->workQueue)) {
             while (parcLinkedList_Size(pool->workQueue) > 0) {
                 if (parcTimeout_IsNever(timeout)) {
-                    parcLinkedList_Wait(pool->workQueue);
+                    //parcLinkedList_Wait(pool->workQueue);
+                    parcLinkedList_WaitFor(pool->workQueue, 1000000000);
+                    dprintf(1, "still waiting %zd\n", parcLinkedList_Size(pool->workQueue));
                 } else {
                     // This is not accurate as this will continue the delay, rather than keep a cumulative amount of delay.
                     uint64_t delay = parcTimeout_InNanoSeconds(timeout);
@@ -311,7 +331,7 @@ parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
     bool result = false;
     
     if (parcThreadPool_Lock(pool)) {
-        if (pool->isTerminated == false && pool->isTerminating == false) {
+        if (pool->isShutdown == false) {
             parcThreadPool_Unlock(pool);
             if (parcLinkedList_Lock(pool->workQueue)) {
                 parcLinkedList_Append(pool->workQueue, task);
@@ -444,6 +464,7 @@ parcThreadPool_SetMaximumPoolSize(PARCThreadPool *pool, int maximumPoolSize)
 void
 parcThreadPool_Shutdown(PARCThreadPool *pool)
 {
+    pool->isShutdown = true;
     pool->isTerminating = true;
 }
 
