@@ -692,11 +692,6 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         .toJSON   = parcCMacro_IfElse(NULL, _autowrap_toJSON_##_type, _autowrap_##_toJSON()), \
         .display  = NULL)
 
-//#define parcObject_CreateAndClear(_subtype) \
-//    (_subtype *) parcObject_CreateAndClearImpl(sizeof(_subtype))
-//
-//PARCObject *parcObject_CreateAndClearImpl(const size_t objectLength);
-
 /**
  * @define parcObject_CreateInstance
  *
@@ -706,9 +701,9 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
  * @param [in] _subtype A subtype's type string (e.g. PARCBuffer)
  */
 #define parcObject_CreateInstance(_subtype) \
-    parcObject_CreateInstanceImpl(sizeof(_subtype), &parcObject_DescriptorName(_subtype))
+    parcObject_CreateInstanceImpl(&parcObject_DescriptorName(_subtype))
 
-PARCObject *parcObject_CreateInstanceImpl(const size_t objectLength, const PARCObjectDescriptor *descriptor);
+PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
  * @define parcObject_CreateAndClearInstance
@@ -720,7 +715,7 @@ PARCObject *parcObject_CreateInstanceImpl(const size_t objectLength, const PARCO
  * @param [in] _subtype A subtype's type string (e.g. PARCBuffer)
  */
 #define parcObject_CreateAndClearInstance(_subtype) \
-    (_subtype *) parcObject_CreateAndClearInstanceImpl(sizeof(_subtype), &parcObject_DescriptorName(_subtype))
+    (_subtype *) parcObject_CreateAndClearInstanceImpl(&parcObject_DescriptorName(_subtype))
 /**
  * Create a reference counted segment of memory of at least @p objectLength long.
  *
@@ -732,8 +727,7 @@ PARCObject *parcObject_CreateInstanceImpl(const size_t objectLength, const PARCO
  *
  * If memory cannot be allocated, `errno` is set to ENOMEM.
  *
- * @param [in] objectLength The length, in bytes, of the memory to allocate.
- * @param [in] descriptor Either NULL, or a pointer to a `PARCObjectDescriptor` structure.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
  *
  * @return NULL The memory could not be allocated.
  * @return non-NULL A pointer to reference counted memory of at least length bytes.
@@ -748,7 +742,7 @@ PARCObject *parcObject_CreateInstanceImpl(const size_t objectLength, const PARCO
  * @see PARCObjectDescriptor
  * @see parcObject_Create
  */
-PARCObject *parcObject_CreateAndClearInstanceImpl(const size_t objectLength, const PARCObjectDescriptor *descriptor);
+PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
  * @def parcObject_ImplementAcquire

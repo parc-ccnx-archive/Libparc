@@ -52,6 +52,8 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
+#define PARCObject_HEADER_MAGIC 0x12345678
+
 typedef enum {
     _PARCObjectLock_Unlocked = 0,
     _PARCObjectLock_Locked = 1
@@ -69,29 +71,12 @@ typedef struct parc_object_locking {
  * This is the per-object header.
  */
 typedef struct object_header {
+    uint32_t magic;
     PARCReferenceCount references;
     PARCObjectDescriptor *descriptor;
-    size_t objectLength;               // The number of bytes which is >= the length to store the object.
 
     _PARCObjectLocking locking;
-
-    unsigned char objectAlignment;    // The required aligment.  Must be a power of 2 and >= sizeof(void *).
 } _PARCObjectHeader;
-
-/**
- * Return true if the given alignment value is greater than or equal to
- * <code>sizeof(void *)</code> and is a power of 2.
- *
- * @param [in] alignment Cache alignment.
- *
- * @return true If the alignment is valid.
- * @return false If the alignment is is less than <code>sizeof(void *)</code> or is not a power of 2.
- */
-static inline bool
-_alignmentIsValid(const size_t alignment)
-{
-    return alignment >= sizeof(void *) && (alignment & (~alignment + 1)) == alignment;
-}
 
 /**
  * Increment/decrement a pointer by the given value.
@@ -153,7 +138,6 @@ _objectHeader_Locking(const PARCObject *object)
     return &(_parcObject_Header(object)->locking);
 }
 
-
 static inline bool
 _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
@@ -161,11 +145,9 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
     
     if ((intptr_t) header >= (intptr_t) object) {
         result = false;
+    } else if (header->magic != PARCObject_HEADER_MAGIC) {
+        result = false;
     } else if (header->references == 0) {
-        result = false;
-    } else if (_alignmentIsValid(header->objectAlignment) == false) {
-        result = false;
-    } else if (header->objectLength == 0) {
         result = false;
     }
     
@@ -183,7 +165,7 @@ _parcObject_Origin(const void *object)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
 
-    return _pointerAdd(object, -_parcObject_PrefixLength(header->objectAlignment));
+    return _pointerAdd(object, -_parcObject_PrefixLength(header->descriptor->objectAlignment));
 }
 
 static inline PARCObjectEquals *
@@ -240,7 +222,7 @@ static int
 _parcObject_Compare(const PARCObject *self, const PARCObject *other)
 {
     _PARCObjectHeader *header = _parcObject_Header(self);
-    size_t length = header->objectLength;
+    size_t length = header->descriptor->objectSize;
     int result = memcmp(self, other, length);
     return result;
 }
@@ -249,9 +231,9 @@ static PARCObject *
 _parcObject_Copy(const PARCObject *object)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
-    size_t length = header->objectLength;
+    size_t length = header->descriptor->objectSize;
 
-    void *result = parcObject_CreateInstanceImpl(length, header->descriptor);
+    void *result = parcObject_CreateInstanceImpl(header->descriptor);
     memcpy(result, object, length);
     parcObject_OptionalAssertValid(result);
     return result;
@@ -262,7 +244,7 @@ _parcObject_Equals(const PARCObject *x, const PARCObject *y)
 {
     _PARCObjectHeader *header = _parcObject_Header(x);
 
-    bool result = memcmp(x, y, header->objectLength) == 0;
+    bool result = memcmp(x, y, header->descriptor->objectSize) == 0;
 
     return result;
 }
@@ -275,7 +257,7 @@ _parcObject_ToString(const PARCObject *object)
     char *string;
     int nwritten = asprintf(&string,
                             "Object@%p { .references=%" PRId64 ", .objectLength = %zd, .objectAlignment=%u } data %p\n",
-                            (void *) header, header->references, header->objectLength, header->objectAlignment, object);
+                            (void *) header, header->references, header->descriptor->objectSize, header->descriptor->objectAlignment, object);
     assertTrue(nwritten >= 0, "Error calling asprintf");
     char *result = parcMemory_StringDuplicate(string, strlen(string));
     free(string);
@@ -290,9 +272,8 @@ _parcObject_ToJSON(const PARCObject *object)
     PARCJSON *json = parcJSON_Create();
 
     parcJSON_AddInteger(json, "references", prefix->references);
-    parcJSON_AddInteger(json, "objectLength", prefix->objectLength);
-    parcJSON_AddInteger(json, "objectAlignment", prefix->objectAlignment);
-    parcJSON_AddInteger(json, "address", prefix->objectAlignment);
+    parcJSON_AddInteger(json, "objectLength", prefix->descriptor->objectSize);
+    parcJSON_AddInteger(json, "objectAlignment", prefix->descriptor->objectAlignment);
 
     char *addressString;
     int nwritten = asprintf(&addressString, "%p", object);
@@ -307,7 +288,7 @@ static PARCHashCode
 _parcObject_HashCode(const PARCObject *object)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
-    return parcHashCode_Hash(object, header->objectLength);
+    return parcHashCode_Hash(object, header->descriptor->objectSize);
 }
 
 static void
@@ -319,12 +300,10 @@ _parcObject_Display(const PARCObject *object, const int indentation)
 
     parcDisplayIndented_PrintLine(indentation,
                                   "PARCObject@%p @%p={ .references=%zd .objectAlignment=%zd .objectLength=%zd }\n",
-                                  object, header, header->references, header->objectAlignment, header->objectLength);
+                                  object, header, header->references, header->descriptor->objectAlignment, header->descriptor->objectSize);
 }
 
-PARCObjectDescriptor
-parcObject_DescriptorName(PARCObject) =
-{
+PARCObjectDescriptor parcObject_DescriptorName(PARCObject) = {
     .name       = "PARCObject",
     .destroy    = NULL,
     .destructor = NULL,
@@ -365,10 +344,6 @@ static inline void
 _parcObjectHeader_AssertValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
-    trapIllegalValueIf(_alignmentIsValid(header->objectAlignment) == false,
-                       "PARCObject@%p is corrupt. The alignment %d is not a power of 2 >= sizeof(void *)",
-                       (void *) object, header->objectAlignment);
-    trapIllegalValueIf(header->objectLength == 0, "PARCObject@%p length must be > 0", object);
 }
 
 static inline void
@@ -406,7 +381,6 @@ _parcObject_ResolveCompare(const PARCObjectDescriptor *descriptor)
     }
     return descriptor->compare;
 }
-
 
 int
 parcObject_Compare(const PARCObject *x, const PARCObject *y)
@@ -531,32 +505,19 @@ parcObject_ToJSON(const PARCObject *object)
     return toJSON(object);
 }
 
-//PARCObject *
-//parcObject_CreateAndClearImpl(const size_t objectLength)
-//{
-//    PARCObject *result = parcObject_CreateAndClearInstanceImpl(objectLength, &PARCObject_Descriptor);
-//    return result;
-//}
-
 PARCObject *
-parcObject_CreateAndClearInstanceImpl(const size_t objectLength, const PARCObjectDescriptor *descriptor)
+parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor)
 {
-    PARCObject *result = parcObject_CreateInstanceImpl(objectLength, descriptor);
-    memset(result, 0, objectLength);
+    PARCObject *result = parcObject_CreateInstanceImpl(descriptor);
+    memset(result, 0, descriptor->objectSize);
     return result;
 }
 
 PARCObject *
-parcObject_CreateInstanceImpl(const size_t objectLength, const PARCObjectDescriptor *descriptor)
+parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
 {
-    if (objectLength == 0) {
-        errno = EINVAL;
-        return NULL;
-    }
-    assertTrue(descriptor->objectSize == objectLength, "Expected %zd, actual %zd", descriptor->objectSize, objectLength);
-
     size_t prefixLength = _parcObject_PrefixLength(sizeof(void *));
-    size_t totalMemoryLength = prefixLength + objectLength;
+    size_t totalMemoryLength = prefixLength + descriptor->objectSize;
 
     void *origin = NULL;
     parcMemory_MemAlign(&origin, sizeof(void *), totalMemoryLength);
@@ -569,9 +530,8 @@ parcObject_CreateInstanceImpl(const size_t objectLength, const PARCObjectDescrip
     // This abuts the prefix to the user accessible memory, it does not start at the beginning
     // of the aligned prefix region.
     _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
+    header->magic = PARCObject_HEADER_MAGIC;
     header->references = 1;
-    header->objectLength = objectLength;
-    header->objectAlignment = sizeof(void *);
     header->descriptor = (PARCObjectDescriptor *) descriptor;
 
     _PARCObjectLocking *locking = &header->locking;
@@ -833,9 +793,6 @@ parcObject_Notify(const PARCObject *object)
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
-//    trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
-//                          "You must Lock the object %p before calling parcObject_Notify", (void *) object);
-
     header->locking.notified = true;
     pthread_cond_signal(&header->locking.notification);
 }
@@ -846,10 +803,7 @@ parcObject_NotifyAll(const PARCObject *object)
     parcObject_OptionalAssertValid(object);
     
     _PARCObjectHeader *header = _parcObject_Header(object);
-    
-//    trapUnexpectedStateIf(header->locking.locker == (pthread_t) NULL,
-//                          "You must Lock the object %p before calling parcObject_NotifyAll", (void *) object);
-    
+        
     header->locking.notified = true;
     pthread_cond_broadcast(&header->locking.notification);
 }
