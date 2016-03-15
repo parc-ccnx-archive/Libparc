@@ -204,6 +204,7 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
     LONGBOW_RUN_TEST_CASE(Object, parcThreadPool_Execute);
 }
 
@@ -215,6 +216,7 @@ LONGBOW_TEST_FIXTURE_SETUP(Specialization)
 LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 {
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+        parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
@@ -249,7 +251,6 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
     uint64_t count = parcThreadPool_GetCompletedTaskCount(pool);
     assertTrue(count == 5, "Expected 5, actual %lld", count);
     
-    parcThreadPool_ShutdownNow(pool);
     
     parcThreadPool_Release(&pool);
 }
