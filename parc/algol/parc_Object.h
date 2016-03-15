@@ -510,6 +510,8 @@ PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObj
  * @return non-NULL Successfully created the implementation
  */
 PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
+                                                  size_t objectSize,
+                                                  unsigned int objectAligment,
                                                   PARCObjectDestructor *destructor,
                                                   PARCObjectRelease *release,
                                                   PARCObjectCopy *copy,
@@ -519,9 +521,9 @@ PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                   PARCObjectHashCode *hashCode,
                                                   PARCObjectToJSON *toJSON,
                                                   PARCObjectDisplay *display,
-                                                  PARCObjectDescriptor *descriptor);
+                                                  PARCObjectDescriptor *super);
 
-void parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
+bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 
 /// Helper MACROS for PARCObject Normalization
@@ -690,38 +692,10 @@ void parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         .toJSON   = parcCMacro_IfElse(NULL, _autowrap_toJSON_##_type, _autowrap_##_toJSON()), \
         .display  = NULL)
 
-//#define parcObject_Create(_subtype) \
-//    (_subtype *) parcObject_CreateImpl(sizeof(_subtype))
-
-///**
-// * Create a reference counted segment of memory of at least @p objectLength bytes long with
-// * the default functions provided by the `PARCObject` implementation.
-// *
-// * The allocated memory is such that the memory's base address is aligned on a `sizeof(void *)` boundary.
-// *
-// * If memory cannot be allocated, `errno` is set to `ENOMEM`.
-// *
-// * @param [in] objectLength The length, in bytes, of the memory to allocate.
-// *
-// * @return NULL The memory could not be allocated.
-// * @return non-NULL A pointer to a valid `PARCObject` instance providing reference counted memory of at least length bytes.
-// *
-// * Example:
-// * @code
-// * {
-// *     struct timeval *t = parcObject_CreateImpl(sizeof(struct timeval));
-// * }
-// * @endcode
-// *
-// * @see parcObject_CreateAndClear
-// * @see parcObject_CreateAndClearImpl
-// */
-//PARCObject *parcObject_CreateImpl(const size_t objectLength);
-
-#define parcObject_CreateAndClear(_subtype) \
-    (_subtype *) parcObject_CreateAndClearImpl(sizeof(_subtype))
-
-PARCObject *parcObject_CreateAndClearImpl(const size_t objectLength);
+//#define parcObject_CreateAndClear(_subtype) \
+//    (_subtype *) parcObject_CreateAndClearImpl(sizeof(_subtype))
+//
+//PARCObject *parcObject_CreateAndClearImpl(const size_t objectLength);
 
 /**
  * @define parcObject_CreateInstance

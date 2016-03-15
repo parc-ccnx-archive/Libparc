@@ -532,18 +532,11 @@ parcObject_ToJSON(const PARCObject *object)
 }
 
 //PARCObject *
-//parcObject_CreateImpl(const size_t objectLength)
+//parcObject_CreateAndClearImpl(const size_t objectLength)
 //{
-//    PARCObject *result = parcObject_CreateInstanceImpl(objectLength, &PARCObject_Descriptor);
+//    PARCObject *result = parcObject_CreateAndClearInstanceImpl(objectLength, &PARCObject_Descriptor);
 //    return result;
 //}
-
-PARCObject *
-parcObject_CreateAndClearImpl(const size_t objectLength)
-{
-    PARCObject *result = parcObject_CreateAndClearInstanceImpl(objectLength, &PARCObject_Descriptor);
-    return result;
-}
 
 PARCObject *
 parcObject_CreateAndClearInstanceImpl(const size_t objectLength, const PARCObjectDescriptor *descriptor)
@@ -560,6 +553,7 @@ parcObject_CreateInstanceImpl(const size_t objectLength, const PARCObjectDescrip
         errno = EINVAL;
         return NULL;
     }
+    assertTrue(descriptor->objectSize == objectLength, "Expected %zd, actual %zd", descriptor->objectSize, objectLength);
 
     size_t prefixLength = _parcObject_PrefixLength(sizeof(void *));
     size_t totalMemoryLength = prefixLength + objectLength;
@@ -658,6 +652,8 @@ parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *descrip
 
 PARCObjectDescriptor *
 parcObjectDescriptor_Create(const char *name,
+                            size_t objectSize,
+                            unsigned int objectAlignment,
                             PARCObjectDestructor *destructor,
                             PARCObjectRelease *release,
                             PARCObjectCopy *copy,
@@ -685,14 +681,17 @@ parcObjectDescriptor_Create(const char *name,
         result->toJSON = toJSON;
         result->display = display;
         result->super = super;
+        result->objectSize = objectSize;
+        result->objectAlignment = objectAlignment;
     }
     return result;
 }
 
-void
+bool
 parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer)
 {
     parcMemory_Deallocate(descriptorPointer);
+    return true;
 }
 
 bool

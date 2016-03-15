@@ -380,6 +380,8 @@ static PARCObjectDescriptor *
 _copyDescriptor(const PARCObjectDescriptor *orig)
 {
     return parcObjectDescriptor_Create("Name",
+                                       orig->objectSize,
+                                       orig->objectAlignment,
                                        orig->destructor,
                                        orig->release, orig->copy,
                                        orig->toString, orig->equals,
@@ -393,17 +395,11 @@ LONGBOW_TEST_FIXTURE_SETUP(Conformance)
     TestData_t *data = parcMemory_AllocateAndClear(sizeof(TestData_t));
     assertNotNull(data, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(TestData_t));
 
-    data->inst1 = parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10);
-    parcBuffer_Flip(data->inst1);
-    data->inst2 = parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10);
-    parcBuffer_Flip(data->inst2);
-    data->inst3 = parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10);
-    parcBuffer_Flip(data->inst3);
-
-    data->lesser = parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }, 10);
-    parcBuffer_Flip(data->lesser);
-    data->greater = parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }, 10);
-    parcBuffer_Flip(data->greater);
+    data->inst1 = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10));
+    data->inst2 = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10));
+    data->inst3 = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10));
+    data->lesser = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }, 10));
+    data->greater = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }, 10));
 
     PARCObjectDescriptor *d = parcObject_SetDescriptor(data->inst1, NULL);
     data->descriptor = _copyDescriptor(d);
