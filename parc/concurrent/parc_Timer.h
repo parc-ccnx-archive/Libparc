@@ -32,7 +32,7 @@
  *
  * Corresponding to each Timer object is a single background thread that is used to execute all of the timer's tasks,
  * sequentially. Timer tasks should complete quickly.
- * If a timer task takes excessive time to complete, it "hogs" the timer's task execution thread. 
+ * If a timer task takes excessive time to complete, it "hogs" the timer's task execution thread.
  * This can, in turn, delay the execution of subsequent tasks,
  * which may "bunch up" and execute in rapid succession when (and if) the offending task finally completes.
  *
@@ -83,7 +83,7 @@ typedef struct PARCTimer PARCTimer;
  *     PARCTimer *a = parcTimer_Create();
  *
  *     PARCTimer *b = parcTimer_Acquire();
-
+ *
  *     parcTimer_Release(&a);
  *     parcTimer_Release(&b);
  * }
@@ -420,7 +420,7 @@ void parcTimer_Cancel(PARCTimer *timer);
  * @returns the number of tasks removed from the queue.
  */
 int parcTimer_Purge(PARCTimer *timer);
- 
+
 /**
  * Schedules the specified task for execution at the specified time.
  */
@@ -440,5 +440,4 @@ void parcTimer_ScheduleAfterDelay(PARCTimer *timer, PARCFutureTask *task, long d
  * Schedules the specified task for repeated fixed-delay execution, beginning after the specified delay.
  */
 void parcTimer_ScheduleAfterDelayAndRepeat(PARCTimer *timer, PARCFutureTask *task, long delay, long period);
-
 #endif

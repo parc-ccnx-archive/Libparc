@@ -82,7 +82,7 @@ typedef struct PARCFutureTaskResult {
  *     PARCFutureTask *a = parcFutureTask_Create();
  *
  *     PARCFutureTask *b = parcFutureTask_Acquire();
-
+ *
  *     parcFutureTask_Release(&a);
  *     parcFutureTask_Release(&b);
  * }
@@ -124,7 +124,7 @@ void parcFutureTask_AssertValid(const PARCFutureTask *instance);
  *
  * @param [in] function A pointer to a function to call.
  * @param [in] parameter A pointer that will be passed to the function when invoked.
- 
+ *
  * @return non-NULL A pointer to a valid `PARCFutureTask` instance.
  * @return NULL An error occurred.
  *
@@ -666,5 +666,4 @@ bool parcFutureTask_RunAndReset(PARCFutureTask *futureTask);
  * @endcode
  */
 void parcFutureTask_Reset(PARCFutureTask *task);
-
 #endif

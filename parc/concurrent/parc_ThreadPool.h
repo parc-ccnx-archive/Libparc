@@ -63,7 +63,7 @@ typedef struct PARCThreadPool PARCThreadPool;
  *     PARCThreadPool *a = parcThreadPool_Create();
  *
  *     PARCThreadPool *b = parcThreadPool_Acquire();
-
+ *
  *     parcThreadPool_Release(&a);
  *     parcThreadPool_Release(&b);
  * }
@@ -634,5 +634,4 @@ void parcThreadPool_Shutdown(PARCThreadPool *pool);
  * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the tasks that were awaiting execution.
  */
 PARCLinkedList *parcThreadPool_ShutdownNow(PARCThreadPool *pool);
-
 #endif

@@ -75,7 +75,6 @@ bool parcAtomicUint64_CompareAndSwapImpl(PARCAtomicUint64 *value, uint64_t predi
 
 #define parcAtomicUint64_CompareAndSwap(_atomic_uint64_, _predicate_, _newValue_) \
     __sync_bool_compare_and_swap(_atomic_uint64_, _predicate_, _newValue_)
-
 #endif
 
 #define parcAtomicUint64_Increment(_atomic_uint64_) parcAtomicUint64_Add(_atomic_uint64_, 1)
@@ -98,7 +97,7 @@ bool parcAtomicUint64_CompareAndSwapImpl(PARCAtomicUint64 *value, uint64_t predi
  *     PARCAtomicUint64 *a = parcAtomicUint64_Create();
  *
  *     PARCAtomicUint64 *b = parcAtomicUint64_Acquire();
-
+ *
  *     parcAtomicUint64_Release(&a);
  *     parcAtomicUint64_Release(&b);
  * }

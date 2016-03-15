@@ -105,18 +105,18 @@ PARCNotifier *parcNotifier_Create(void);
 PARCNotifier *parcNotifier_Acquire(const PARCNotifier *notifier);
 
 /**
-* Release a `PARCNotifier` reference.
-*
-* Only the last invocation where the reference count is decremented to zero,
-* will actually destroy the `PARCNotifier`.
-*
-* @param [in,out] notifier is a pointer to the `PARCNotifier` reference to be released.
-*
-* Example:
-* @code
-* <#example#>
-* @endcode
-*/
+ * Release a `PARCNotifier` reference.
+ *
+ * Only the last invocation where the reference count is decremented to zero,
+ * will actually destroy the `PARCNotifier`.
+ *
+ * @param [in,out] notifier is a pointer to the `PARCNotifier` reference to be released.
+ *
+ * Example:
+ * @code
+ * <#example#>
+ * @endcode
+ */
 
 void parcNotifier_Release(PARCNotifier **notifier);
 

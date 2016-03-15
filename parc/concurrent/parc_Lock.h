@@ -60,7 +60,7 @@ typedef struct PARCLock PARCLock;
  *     PARCLock *a = parcLock_Create();
  *
  *     PARCLock *b = parcLock_Acquire();
-
+ *
  *     parcLock_Release(&a);
  *     parcLock_Release(&b);
  * }

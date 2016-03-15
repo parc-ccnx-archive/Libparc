@@ -75,7 +75,6 @@ bool parcAtomicUint16_CompareAndSwapImpl(PARCAtomicUint16 *value, uint16_t predi
 
 #define parcAtomicUint16_CompareAndSwap(_atomic_uint16_, _predicate_, _newValue_) \
     __sync_bool_compare_and_swap(_atomic_uint16_, _predicate_, _newValue_)
-
 #endif
 
 #define parcAtomicUint16_Increment(_atomic_uint16_) parcAtomicUint16_Add(_atomic_uint16_, 1)
@@ -98,7 +97,7 @@ bool parcAtomicUint16_CompareAndSwapImpl(PARCAtomicUint16 *value, uint16_t predi
  *     PARCAtomicUint16 *a = parcAtomicUint16_Create();
  *
  *     PARCAtomicUint16 *b = parcAtomicUint16_Acquire();
-
+ *
  *     parcAtomicUint16_Release(&a);
  *     parcAtomicUint16_Release(&b);
  * }

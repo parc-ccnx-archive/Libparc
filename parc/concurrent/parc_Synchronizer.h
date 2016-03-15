@@ -59,7 +59,7 @@ typedef struct PARCSynchronizer PARCSynchronizer;
  *     PARCSynchronizer *a = parcSynchronizer_Create();
  *
  *     PARCSynchronizer *b = parcSynchronizer_Acquire();
-
+ *
  *     parcSynchronizer_Release(&a);
  *     parcSynchronizer_Release(&b);
  * }
@@ -286,5 +286,4 @@ void parcSynchronizer_Unlock(PARCSynchronizer *barrier);
  * @endcode
  */
 bool parcSynchronizer_IsLocked(const PARCSynchronizer *synchronizer);
-
 #endif

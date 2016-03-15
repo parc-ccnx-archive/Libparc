@@ -59,7 +59,7 @@ struct PARCThreadPool {
 };
 
 static void *
-_parcThreadPool_Worker(PARCThread *thread, PARCThreadPool *pool)
+_parcThreadPool_Worker(const PARCThread *thread, const PARCThreadPool *pool)
 {
     while (parcThread_IsCancelled(thread) == false && pool->isTerminated == false) {
         if (parcLinkedList_Lock(pool->workQueue)) {
@@ -75,11 +75,10 @@ _parcThreadPool_Worker(PARCThread *thread, PARCThreadPool *pool)
             } else {
                 parcLinkedList_WaitFor(pool->workQueue, 1000000000);
             }
+            parcLinkedList_Unlock(pool->workQueue);
         }
-        parcLinkedList_Unlock(pool->workQueue);
     }
-   
-    dprintf(1, "worker done %d\n", parcThread_GetId(thread));
+
     return NULL;
 }
 
@@ -87,7 +86,7 @@ static void
 _parcThreadPool_CancelAll(const PARCThreadPool *pool)
 {
     PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
-    
+
     while (parcIterator_HasNext(iterator)) {
         PARCThread *thread = parcIterator_Next(iterator);
         parcThread_Cancel(thread);
@@ -99,7 +98,7 @@ static void
 _parcThreadPool_JoinAll(const PARCThreadPool *pool)
 {
     PARCIterator *iterator = parcLinkedList_CreateIterator(pool->threads);
-    
+
     while (parcIterator_HasNext(iterator)) {
         PARCThread *thread = parcIterator_Next(iterator);
         parcThread_Join(thread);
@@ -112,7 +111,7 @@ _parcThreadPool_Destructor(PARCThreadPool **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThreadPool pointer.");
     PARCThreadPool *pool = *instancePtr;
-    
+
     if (pool->isShutdown == false) {
         _parcThreadPool_CancelAll(pool);
         _parcThreadPool_JoinAll(pool);
@@ -120,11 +119,11 @@ _parcThreadPool_Destructor(PARCThreadPool **instancePtr)
 
     parcAtomicUint64_Release(&pool->completedTaskCount);
     parcLinkedList_Release(&pool->threads);
-    
+
     if (parcObject_Lock(pool->workQueue)) {
         parcLinkedList_Release(&pool->workQueue);
     }
-    
+
     return true;
 }
 
@@ -139,9 +138,7 @@ parcObject_Override(PARCThreadPool, PARCObject,
                     .toString = (PARCObjectToString *) parcThreadPool_ToString,
                     .equals = (PARCObjectEquals *) parcThreadPool_Equals,
                     .compare = (PARCObjectCompare *) parcThreadPool_Compare,
-                    .hashCode = (PARCObjectHashCode *) parcThreadPool_HashCode,
-//                    .display = (PARCObjectDisplay *) parcScheduledThreadPool_Display
-);
+                    .hashCode = (PARCObjectHashCode *) parcThreadPool_HashCode);
 
 void
 parcThreadPool_AssertValid(const PARCThreadPool *instance)
@@ -155,7 +152,7 @@ PARCThreadPool *
 parcThreadPool_Create(int poolSize)
 {
     PARCThreadPool *result = parcObject_CreateInstance(PARCThreadPool);
-    
+
     if (result != NULL) {
         result->poolSize = poolSize;
         result->maximumPoolSize = poolSize;
@@ -165,13 +162,13 @@ parcThreadPool_Create(int poolSize)
         result->isTerminating = false;
         result->workQueue = parcLinkedList_Create();
         result->threads = parcLinkedList_Create();
-        
+
         result->completedTaskCount = parcAtomicUint64_Create(0);
-        
+
         result->continueExistingPeriodicTasksAfterShutdown = false;
         result->executeExistingDelayedTasksAfterShutdown = false;
         result->removeOnCancel = true;
-        
+
         if (parcObject_Lock(result)) {
             for (int i = 0; i < poolSize; i++) {
                 PARCThread *thread = parcThread_Create((void *(*)(PARCThread *, PARCObject *)) _parcThreadPool_Worker, (PARCObject *) result);
@@ -182,7 +179,7 @@ parcThreadPool_Create(int poolSize)
             parcObject_Unlock(result);
         }
     }
-    
+
     return result;
 }
 
@@ -190,7 +187,7 @@ int
 parcThreadPool_Compare(const PARCThreadPool *instance, const PARCThreadPool *other)
 {
     int result = 0;
-    
+
     return result;
 }
 
@@ -198,7 +195,7 @@ PARCThreadPool *
 parcThreadPool_Copy(const PARCThreadPool *original)
 {
     PARCThreadPool *result = parcThreadPool_Create(original->poolSize);
-    
+
     return result;
 }
 
@@ -214,7 +211,7 @@ bool
 parcThreadPool_Equals(const PARCThreadPool *x, const PARCThreadPool *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -225,7 +222,7 @@ parcThreadPool_Equals(const PARCThreadPool *x, const PARCThreadPool *y)
             result = true;
         }
     }
-    
+
     return result;
 }
 
@@ -233,7 +230,7 @@ PARCHashCode
 parcThreadPool_HashCode(const PARCThreadPool *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -241,11 +238,11 @@ bool
 parcThreadPool_IsValid(const PARCThreadPool *instance)
 {
     bool result = false;
-    
+
     if (instance != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -253,11 +250,10 @@ PARCJSON *
 parcThreadPool_ToJSON(const PARCThreadPool *instance)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     if (result != NULL) {
-        
     }
-    
+
     return result;
 }
 
@@ -272,13 +268,11 @@ parcThreadPool_ToString(const PARCThreadPool *instance)
 void
 parcThreadPool_SetAllowCoreThreadTimeOut(PARCThreadPool *pool, bool value)
 {
-
 }
 
 bool
 parcThreadPool_GetAllowsCoreThreadTimeOut(const PARCThreadPool *pool)
 {
-    
     return false;
 }
 
@@ -286,7 +280,7 @@ bool
 parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
 {
     bool result = false;
-    
+
     if (pool->isTerminating) {
         if (parcLinkedList_Lock(pool->workQueue)) {
             while (parcLinkedList_Size(pool->workQueue) > 0) {
@@ -301,10 +295,10 @@ parcThreadPool_AwaitTermination(PARCThreadPool *pool, PARCTimeout *timeout)
             result = true;
             parcLinkedList_Unlock(pool->workQueue);
         }
-        
+
         parcThreadPool_ShutdownNow(pool);
     }
-    
+
     return result;
 }
 
@@ -312,7 +306,7 @@ bool
 parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
 {
     bool result = false;
-    
+
     if (parcThreadPool_Lock(pool)) {
         if (pool->isShutdown == false) {
             parcThreadPool_Unlock(pool);
@@ -326,7 +320,7 @@ parcThreadPool_Execute(PARCThreadPool *pool, PARCFutureTask *task)
             parcThreadPool_Unlock(pool);
         }
     }
-    
+
     return result;
 }
 
@@ -372,8 +366,8 @@ parcThreadPool_GetPoolSize(const PARCThreadPool *pool)
     return pool->poolSize;
 }
 
-PARCLinkedList
-*parcThreadPool_GetQueue(const PARCThreadPool *pool)
+PARCLinkedList *
+parcThreadPool_GetQueue(const PARCThreadPool *pool)
 {
     return pool->workQueue;
 }
@@ -417,7 +411,6 @@ parcThreadPool_PrestartCoreThread(PARCThreadPool *pool)
 void
 parcThreadPool_Purge(PARCThreadPool *pool)
 {
-
 }
 
 bool
@@ -429,19 +422,16 @@ parcThreadPool_Remove(PARCThreadPool *pool, PARCFutureTask *task)
 void
 parcThreadPool_SetCorePoolSize(PARCThreadPool *pool, int corePoolSize)
 {
-
 }
 
 void
 parcThreadPool_SetKeepAliveTime(PARCThreadPool *pool, PARCTimeout *timeout)
 {
-
 }
 
 void
 parcThreadPool_SetMaximumPoolSize(PARCThreadPool *pool, int maximumPoolSize)
 {
-
 }
 
 void
@@ -458,23 +448,23 @@ PARCLinkedList *
 parcThreadPool_ShutdownNow(PARCThreadPool *pool)
 {
     parcThreadPool_Shutdown(pool);
-    
+
     // Cause all of the worker threads to exit.
     _parcThreadPool_CancelAll(pool);
-    
+
     // Wake them all up so they detect that they are cancelled.
     if (parcThreadPool_Lock(pool)) {
         parcThreadPool_NotifyAll(pool);
         parcThreadPool_Unlock(pool);
     }
-    
+
     if (parcLinkedList_Lock(pool->workQueue)) {
         parcLinkedList_NotifyAll(pool->workQueue);
         parcLinkedList_Unlock(pool->workQueue);
     }
     // Join with all of them, thereby cleaning up all of them.
     _parcThreadPool_JoinAll(pool);
-    
+
     pool->isTerminated = true;
     return NULL;
 }

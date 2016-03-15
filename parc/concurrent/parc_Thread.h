@@ -60,7 +60,7 @@ typedef struct PARCThread PARCThread;
  *     PARCThread *a = parcThread_Create();
  *
  *     PARCThread *b = parcThread_Acquire();
-
+ *
  *     parcThread_Release(&a);
  *     parcThread_Release(&b);
  * }

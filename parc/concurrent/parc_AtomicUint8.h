@@ -75,7 +75,6 @@ bool parcAtomicUint8_CompareAndSwapImpl(PARCAtomicUint8 *value, uint8_t predicat
 
 #define parcAtomicUint8_CompareAndSwap(_atomic_uint8_, _predicate_, _newValue_) \
     __sync_bool_compare_and_swap(_atomic_uint8_, _predicate_, _newValue_)
-
 #endif
 
 #define parcAtomicUint8_Increment(_atomic_uint8_) parcAtomicUint8_Add(_atomic_uint8_, 1)
@@ -98,7 +97,7 @@ bool parcAtomicUint8_CompareAndSwapImpl(PARCAtomicUint8 *value, uint8_t predicat
  *     PARCAtomicUint8 *a = parcAtomicUint8_Create();
  *
  *     PARCAtomicUint8 *b = parcAtomicUint8_Acquire();
-
+ *
  *     parcAtomicUint8_Release(&a);
  *     parcAtomicUint8_Release(&b);
  * }

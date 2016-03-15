@@ -116,7 +116,8 @@ bool parcTimeout_Equals(PARCTimeout x, PARCTimeout y);
  *
  * @return true  The given timeout represents an infinite delay.
  */
-static inline bool parcTimeout_IsNever(const PARCTimeout *timeout)
+static inline bool
+parcTimeout_IsNever(const PARCTimeout *timeout)
 {
     return (timeout == PARCTimeout_Never);
 }
@@ -128,7 +129,8 @@ static inline bool parcTimeout_IsNever(const PARCTimeout *timeout)
  *
  * @return true  The given timeout represents an immediate, no-delay timeout.
  */
-static inline bool parcTimeout_IsImmediate(const PARCTimeout *timeout)
+static inline bool
+parcTimeout_IsImmediate(const PARCTimeout *timeout)
 {
     return parcTimeout_IsNever(timeout) ? false : (*timeout == 0);
 }
@@ -142,9 +144,9 @@ static inline bool parcTimeout_IsImmediate(const PARCTimeout *timeout)
  *
  * @return The number of nano-seconds in the given PARCTimeout instance, UINT64_MAX.
  */
-static inline uint64_t parcTimeout_InNanoSeconds(const PARCTimeout *timeout)
+static inline uint64_t
+parcTimeout_InNanoSeconds(const PARCTimeout *timeout)
 {
     return parcTimeout_IsNever(timeout) ? UINT64_MAX : *timeout;
 }
-
 #endif /* parc_Timeout_h */

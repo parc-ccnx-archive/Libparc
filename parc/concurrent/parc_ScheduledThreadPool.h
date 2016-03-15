@@ -64,7 +64,7 @@ typedef struct PARCScheduledThreadPool PARCScheduledThreadPool;
  *     PARCScheduledThreadPool *a = parcScheduledThreadPool_Create();
  *
  *     PARCScheduledThreadPool *b = parcScheduledThreadPool_Acquire();
-
+ *
  *     parcScheduledThreadPool_Release(&a);
  *     parcScheduledThreadPool_Release(&b);
  * }
@@ -438,5 +438,4 @@ PARCList *parcScheduledThreadPool_ShutdownNow(PARCScheduledThreadPool *pool);
  * Submits a PARCFutureTask task for execution and returns the PARCFutureTask representing that task.
  */
 PARCScheduledTask *parcScheduledThreadPool_Submit(PARCScheduledThreadPool *pool, PARCFutureTask *task);
-
 #endif

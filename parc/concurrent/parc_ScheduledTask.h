@@ -44,7 +44,7 @@ typedef struct PARCScheduledTask PARCScheduledTask;
  *     PARCScheduledTask *a = parcScheduledTask_Create();
  *
  *     PARCScheduledTask *b = parcScheduledTask_Acquire();
-
+ *
  *     parcScheduledTask_Release(&a);
  *     parcScheduledTask_Release(&b);
  * }
@@ -456,5 +456,4 @@ bool parcScheduledTask_IsCancelled(const PARCScheduledTask *task);
  * @endcode
  */
 bool parcScheduledTask_IsDone(const PARCScheduledTask *task);
-
 #endif
