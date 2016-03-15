@@ -30,7 +30,7 @@ _parcScheduledTask_Destructor(PARCScheduledTask **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCScheduledTask pointer.");
     PARCScheduledTask *task = *instancePtr;
-    
+
     parcFutureTask_Release(&task->task);
     return true;
 }
@@ -61,7 +61,7 @@ PARCScheduledTask *
 parcScheduledTask_Create(PARCFutureTask *task, uint64_t executionTime)
 {
     PARCScheduledTask *result = parcObject_CreateInstance(PARCScheduledTask);
-    
+
     if (result != NULL) {
         result->task = parcFutureTask_Acquire(task);
         result->executionTime = executionTime;
@@ -74,7 +74,7 @@ int
 parcScheduledTask_Compare(const PARCScheduledTask *instance, const PARCScheduledTask *other)
 {
     int result = 0;
-    
+
     return result;
 }
 
@@ -82,7 +82,7 @@ PARCScheduledTask *
 parcScheduledTask_Copy(const PARCScheduledTask *original)
 {
     PARCScheduledTask *result = parcScheduledTask_Create(original->task, original->executionTime);
-    
+
     return result;
 }
 
@@ -98,7 +98,7 @@ bool
 parcScheduledTask_Equals(const PARCScheduledTask *x, const PARCScheduledTask *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -110,7 +110,7 @@ parcScheduledTask_Equals(const PARCScheduledTask *x, const PARCScheduledTask *y)
             }
         }
     }
-    
+
     return result;
 }
 
@@ -118,7 +118,7 @@ PARCHashCode
 parcScheduledTask_HashCode(const PARCScheduledTask *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -126,11 +126,11 @@ bool
 parcScheduledTask_IsValid(const PARCScheduledTask *instance)
 {
     bool result = false;
-    
+
     if (instance != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -138,11 +138,10 @@ PARCJSON *
 parcScheduledTask_ToJSON(const PARCScheduledTask *instance)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     if (result != NULL) {
-        
     }
-    
+
     return result;
 }
 

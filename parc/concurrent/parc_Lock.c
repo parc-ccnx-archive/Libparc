@@ -39,7 +39,6 @@
 #include <parc/concurrent/parc_Lock.h>
 
 struct PARCLock {
-
     pthread_mutex_t lock;
     pthread_mutexattr_t lockAttributes;
     pthread_cond_t notification;

@@ -115,7 +115,7 @@ parcSynchronizer_TryLock(PARCSynchronizer *instance)
 #ifdef PARCLibrary_DISABLE_ATOMICS
     bool result = pthread_mutex_trylock(&instance->mutex) == 0;
 #else
-    bool result =__sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Unlocked, _PARCSynchronizer_Locked);
+    bool result = __sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Unlocked, _PARCSynchronizer_Locked);
 #endif
     return result;
 }
@@ -126,8 +126,9 @@ parcSynchronizer_Lock(PARCSynchronizer *instance)
 #ifdef PARCLibrary_DISABLE_ATOMICS
     pthread_mutex_lock(&instance->mutex);
 #else
-    while(!__sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Unlocked, _PARCSynchronizer_Locked))
+    while (!__sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Unlocked, _PARCSynchronizer_Locked)) {
         ;
+    }
 #endif
 }
 
@@ -137,8 +138,9 @@ parcSynchronizer_Unlock(PARCSynchronizer *instance)
 #ifdef PARCLibrary_DISABLE_ATOMICS
     pthread_mutex_unlock(&instance->mutex);
 #else
-    while (!__sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Locked, _PARCSynchronizer_Unlocked))
+    while (!__sync_bool_compare_and_swap(&instance->mutex, _PARCSynchronizer_Locked, _PARCSynchronizer_Unlocked)) {
         ;
+    }
 #endif
 }
 

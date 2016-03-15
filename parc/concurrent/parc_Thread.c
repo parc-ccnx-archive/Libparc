@@ -51,10 +51,10 @@ _parcThread_Destructor(PARCThread **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
-    
+
     thread->isCancelled = true;
     parcThread_Join(thread);
-    
+
     return true;
 }
 
@@ -84,9 +84,9 @@ PARCThread *
 parcThread_Create(void *(*runFunction)(PARCThread *, PARCObject *), PARCObject *restrict parameter)
 {
     assertNotNull(parameter, "Parameter cannot be NULL.");
-    
+
     PARCThread *result = parcObject_CreateAndClearInstance(PARCThread);
-    
+
     if (result) {
         result->run = runFunction;
         result->argument = parcObject_Acquire(parameter);
@@ -108,7 +108,7 @@ PARCThread *
 parcThread_Copy(const PARCThread *original)
 {
     PARCThread *result = NULL;
-    
+
     return result;
 }
 
@@ -124,7 +124,7 @@ bool
 parcThread_Equals(const PARCThread *x, const PARCThread *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -132,7 +132,7 @@ parcThread_Equals(const PARCThread *x, const PARCThread *y)
     } else {
         result = pthread_equal(x->thread, y->thread);
     }
-    
+
     return result;
 }
 
@@ -140,7 +140,7 @@ PARCHashCode
 parcThread_HashCode(const PARCThread *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -148,11 +148,11 @@ bool
 parcThread_IsValid(const PARCThread *thread)
 {
     bool result = false;
-    
+
     if (thread != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -160,7 +160,7 @@ PARCJSON *
 parcThread_ToJSON(const PARCThread *thread)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     return result;
 }
 
@@ -178,7 +178,7 @@ _parcThread_Run(PARCThread *thread)
     thread->isRunning = true;
     thread->run(thread, thread->argument);
     thread->isRunning = false;
-    
+
     // The thread is done, release the reference to the argument acquired when this PARCThread was created.
     // This prevents the reference from lingering leading to memory leaks.
     if (thread->argument != NULL) {

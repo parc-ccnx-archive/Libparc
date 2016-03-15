@@ -44,8 +44,8 @@ static void
 _parcTimer_Finalize(PARCTimer **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCTimer pointer.");
-    
-    
+
+
     /* cleanup the instance fields here */
 }
 
@@ -67,9 +67,8 @@ PARCTimer *
 parcTimer_Create(void)
 {
     PARCTimer *result = parcObject_CreateInstance(PARCTimer);
-    
+
     if (result != NULL) {
-        
     }
 
     return result;
@@ -79,7 +78,7 @@ int
 parcTimer_Compare(const PARCTimer *instance, const PARCTimer *other)
 {
     int result = 0;
-    
+
     return result;
 }
 
@@ -87,7 +86,7 @@ PARCTimer *
 parcTimer_Copy(const PARCTimer *original)
 {
     PARCTimer *result = parcTimer_Create();
-    
+
     return result;
 }
 
@@ -103,7 +102,7 @@ bool
 parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -111,7 +110,7 @@ parcTimer_Equals(const PARCTimer *x, const PARCTimer *y)
     } else {
         return true;
     }
-    
+
     return result;
 }
 
@@ -119,7 +118,7 @@ PARCHashCode
 parcTimer_HashCode(const PARCTimer *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -127,11 +126,11 @@ bool
 parcTimer_IsValid(const PARCTimer *instance)
 {
     bool result = false;
-    
+
     if (instance != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -139,11 +138,10 @@ PARCJSON *
 parcTimer_ToJSON(const PARCTimer *instance)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     if (result != NULL) {
-        
     }
-    
+
     return result;
 }
 
@@ -158,7 +156,6 @@ parcTimer_ToString(const PARCTimer *instance)
 void
 parcTimer_Cancel(PARCTimer *timer)
 {
-    
 }
 
 int
@@ -170,24 +167,20 @@ parcTimer_Purge(PARCTimer *timer)
 void
 parcTimer_ScheduleAtTime(PARCTimer *timer, PARCFutureTask *task, time_t absoluteTime)
 {
-    
 }
 
 void
 parcTimer_ScheduleAtTimeAndRepeat(PARCTimer *timer, PARCFutureTask *task, time_t firstTime, long period)
 {
-    
 }
 
 void
 parcTimer_ScheduleAfterDelay(PARCTimer *timer, PARCFutureTask *task, long delay)
 {
-    
 }
 
 void
 parcTimer_ScheduleAfterDelayAndRepeat(PARCTimer *timer, PARCFutureTask *task, long delay, long period)
 {
-    
 }
 

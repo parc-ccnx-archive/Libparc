@@ -61,11 +61,11 @@ _parcFutureTask_Destructor(PARCFutureTask **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCFutureTask pointer.");
     PARCFutureTask *task = *instancePtr;
-    
+
     if (parcObject_IsInstanceOf(task->parameter, &PARCObject_Descriptor)) {
         parcObject_Release(&task->parameter);
     }
-    
+
     return true;
 }
 
@@ -98,7 +98,7 @@ parcFutureTask_Create(void *(*function)(PARCFutureTask *task, void *parameter), 
     if (parcObject_IsInstanceOf(parameter, &PARCObject_Descriptor)) {
         parameter = parcObject_Acquire(parameter);
     }
-    
+
     if (result != NULL) {
         result->function = function;
         result->parameter = parameter;
@@ -112,7 +112,7 @@ int
 parcFutureTask_Compare(const PARCFutureTask *instance, const PARCFutureTask *other)
 {
     int result = 0;
-    
+
     return result;
 }
 
@@ -120,7 +120,7 @@ PARCFutureTask *
 parcFutureTask_Copy(const PARCFutureTask *original)
 {
     PARCFutureTask *result = parcFutureTask_Create(original->function, original->parameter);
-    
+
     return result;
 }
 
@@ -136,7 +136,7 @@ bool
 parcFutureTask_Equals(const PARCFutureTask *x, const PARCFutureTask *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -148,7 +148,7 @@ parcFutureTask_Equals(const PARCFutureTask *x, const PARCFutureTask *y)
             }
         }
     }
-    
+
     return result;
 }
 
@@ -156,7 +156,7 @@ PARCHashCode
 parcFutureTask_HashCode(const PARCFutureTask *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -164,11 +164,11 @@ bool
 parcFutureTask_IsValid(const PARCFutureTask *instance)
 {
     bool result = false;
-    
+
     if (instance != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -176,11 +176,10 @@ PARCJSON *
 parcFutureTask_ToJSON(const PARCFutureTask *instance)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     if (result != NULL) {
-        
     }
-    
+
     return result;
 }
 
@@ -196,7 +195,7 @@ bool
 parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
 {
     bool result = false;
-    
+
     if (parcObject_Lock(task)) {
         if (task->isRunning) {
             if (mayInterruptIfRunning) {
@@ -209,10 +208,10 @@ parcFutureTask_Cancel(PARCFutureTask *task, bool mayInterruptIfRunning)
             parcObject_Notify(task);
             result = true;
         }
-        
+
         parcObject_Unlock(task);
     }
-    
+
     return result;
 }
 
@@ -220,10 +219,10 @@ PARCFutureTaskResult
 parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
 {
     PARCFutureTaskResult result;
-    
+
     result.execution = PARCExecution_Timeout;
     result.value = 0;
-    
+
     if (parcTimeout_IsImmediate(timeout)) {
         if (futureTask->isDone) {
             result.execution = PARCExecution_OK;
@@ -232,7 +231,7 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
     } else {
         result.execution = PARCExecution_Interrupted;
         result.value = 0;
-        
+
         parcObject_Lock(futureTask);
         while (!futureTask->isDone) {
             if (parcTimeout_IsNever(timeout)) {
@@ -250,7 +249,7 @@ parcFutureTask_Get(const PARCFutureTask *futureTask, const PARCTimeout *timeout)
         }
         parcObject_Unlock(futureTask);
     }
-    
+
     return result;
 }
 
@@ -272,7 +271,7 @@ _parcFutureTask_Execute(PARCFutureTask *task)
     task->isRunning = true;
     void *result = task->function(task, task->parameter);
     task->isRunning = false;
-    
+
     return result;
 }
 
@@ -296,7 +295,7 @@ bool
 parcFutureTask_RunAndReset(PARCFutureTask *task)
 {
     bool result = false;
-    
+
     if (parcObject_Lock(task)) {
         if (!task->isCancelled) {
             _parcFutureTask_Execute(task);
@@ -307,7 +306,7 @@ parcFutureTask_RunAndReset(PARCFutureTask *task)
     } else {
         trapCannotObtainLock("Cannot lock PARCFutureTask");
     }
-    
+
     return result;
 }
 
