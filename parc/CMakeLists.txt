@@ -345,7 +345,6 @@ set(libparcLibraries
 foreach(lib ${libparcLibraries})
   install(TARGETS ${lib} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
   set_property(TARGET ${lib} PROPERTY C_STANDARD 99)
-  set_property(TARGET ${lib} PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endforeach()
 
 install(FILES ${LIBPARC_ALGOL_HEADER_FILES}      DESTINATION include/parc/algol )
