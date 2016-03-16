@@ -42,6 +42,8 @@ set(PARC_BIN_LIBRARIES
   ${CMAKE_THREAD_LIBS_INIT}
   )
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 add_custom_target(cleanup_profiling_data
         "find" "." "-name" "*.gcda" "-delete"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
