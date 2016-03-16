@@ -111,9 +111,6 @@ parcObject_Override(_DummyObject, PARCObject,
                     .hashCode = (PARCObjectHashCode *)_dummy_HashCode,
                     .toJSON = (PARCObjectToJSON *)_dummy_ToJSON);
 
-//parcObject_ExtendPARCObject(_DummyObject, _dummy_Destroy, _dummy_Copy, _dummy_ToString,
-//                            _dummy_Equals, _dummy_Compare, _dummy_HashCode, _dummy_ToJSON);
-
 static _DummyObject *
 _dummy_Copy(const _DummyObject *obj)
 {

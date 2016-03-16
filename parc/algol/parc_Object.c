@@ -52,7 +52,7 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
-#define PARCObject_HEADER_MAGIC 0x12345678
+#define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x12345678
 
 typedef enum {
     _PARCObjectLock_Unlocked = 0,
@@ -71,7 +71,7 @@ typedef struct parc_object_locking {
  * This is the per-object header.
  */
 typedef struct object_header {
-    uint32_t magic;
+    uint32_t magicGuardNumber;
     PARCReferenceCount references;
     PARCObjectDescriptor *descriptor;
 
@@ -93,7 +93,7 @@ _pointerAdd(const void *base, const size_t increment)
     return result;
 }
 
-/**
+/*
  * Compute the size of the preamble as the number of bytes necessary
  * to fit the object header (with padding) into allocated memory,
  * such that the first address after the header is aligned according to the value of the alignment parameter.
@@ -112,7 +112,7 @@ _parcObject_PrefixLength(const size_t alignment)
     return (sizeof(_PARCObjectHeader) + (alignment - 1)) & - alignment;
 }
 
-/**
+/*
  * Given the memory address, return a pointer to the corresponding _PARCObjectHeader structure.
  *
  * @param [in] object The base pointer to the object.
@@ -145,7 +145,7 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
     
     if ((intptr_t) header >= (intptr_t) object) {
         result = false;
-    } else if (header->magic != PARCObject_HEADER_MAGIC) {
+    } else if (header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER) {
         result = false;
     } else if (header->references == 0) {
         result = false;
@@ -154,7 +154,7 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
     return result;
 }
 
-/**
+/*
  * Compute the origin of the allocated memory.
  *
  * This may be different than the address of the object header,
@@ -530,7 +530,7 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
     // This abuts the prefix to the user accessible memory, it does not start at the beginning
     // of the aligned prefix region.
     _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
-    header->magic = PARCObject_HEADER_MAGIC;
+    header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
 

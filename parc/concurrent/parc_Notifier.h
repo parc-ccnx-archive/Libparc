@@ -87,37 +87,51 @@ typedef struct parc_notifier PARCNotifier;
 PARCNotifier *parcNotifier_Create(void);
 
 /**
- * Acquire a new reference to an instance of `PARCNotifier`.
+ * Increase the number of references to a `PARCNotifier`.
  *
- * The reference count to the instance is incremented.
+ * Note that new `PARCNotifier` is not created,
+ * only that the given `PARCNotifier` reference count is incremented.
+ * Discard the reference by invoking `parcNotifier_Release`.
  *
- * @param [in] notifier The instance of `PARCNotifier` to which to refer.
+ * @param [in] instance A pointer to a `PARCNotifier` instance.
  *
- * @return The same value as the input parameter @p notifier.
+ * @return The input `PARCNotifier` pointer.
  *
  * Example:
  * @code
  * {
- *     <#example#>
+ *     PARCNotifier *a = parcNotifier_Create(...);
+ *
+ *     PARCNotifier *b = parcNotifier_Acquire(a);
+ *
+ *     parcNotifier_Release(&a);
+ *     parcNotifier_Release(&b);
  * }
  * @endcode
  */
 PARCNotifier *parcNotifier_Acquire(const PARCNotifier *notifier);
 
 /**
- * Release a `PARCNotifier` reference.
+ * Release a previously acquired reference to the specified instance,
+ * decrementing the reference count for the instance.
  *
- * Only the last invocation where the reference count is decremented to zero,
- * will actually destroy the `PARCNotifier`.
+ * The pointer to the instance is set to NULL as a side-effect of this function.
  *
- * @param [in,out] notifier is a pointer to the `PARCNotifier` reference to be released.
+ * If the invocation causes the last reference to the instance to be released,
+ * the instance is deallocated and the instance's implementation will perform
+ * additional cleanup and release other privately held references.
+ *
+ * @param [in,out] instancePtr A pointer to a pointer to the instance to release, which will be set to NULL.
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCNotifier *a = parcNotifier_Create(...);
+ *
+ *     parcNotifier_Release(&a);
+ * }
  * @endcode
  */
-
 void parcNotifier_Release(PARCNotifier **notifier);
 
 /**
