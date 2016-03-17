@@ -32,7 +32,11 @@
 #include <parc/algol/parc_SafeMemory.h>
 #include <parc/algol/parc_BufferComposer.h>
 #include <parc/security/parc_Security.h>
-#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
+
+#include <parc/security/parc_Pkcs12KeyStore.h>
+#include <parc/security/parc_KeyStore.h>
+#include <parc/security/parc_PublicKeySigner.h>
+#include <parc/security/parc_Signer.h>
 
 #include <fcntl.h>
 #include <LongBow/unit-test.h>
@@ -111,13 +115,22 @@ LONGBOW_TEST_FIXTURE(Local)
 
 LONGBOW_TEST_FIXTURE_SETUP(Local)
 {
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
     parcSecurity_Init();
+    
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
 
     TestData *data = parcMemory_AllocateAndClear(sizeof(TestData));
     assertNotNull(data, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(TestData));
-    data->signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256));
+    
+    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
+    PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    
+    data->signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     assertNotNull(data->signer, "Got null result from opening openssl pkcs12 file");
 
+    parcKeyStore_Release(&keyStore);
     data->inMemoryInterface = parcInMemoryVerifier_Create();
 
     longBowTestCase_SetClipBoardData(testCase, data);
@@ -132,7 +145,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Local)
     data->inMemoryInterface->Destroy(&data->inMemoryInterface);
     parcSigner_Release(&data->signer);
     parcMemory_Deallocate((void **) &data);
-
+    
     parcSecurity_Fini();
 
     if (parcSafeMemory_ReportAllocation(STDOUT_FILENO) != 0) {

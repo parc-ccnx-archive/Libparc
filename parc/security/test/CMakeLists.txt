@@ -14,13 +14,14 @@ set(TestsExpectedToPass
   test_parc_Key
   test_parc_KeyId
   test_parc_KeyStore
-  test_parc_PublicKeySignerPkcs12Store
+  test_parc_Pkcs12KeyStore
+  test_parc_PublicKeySigner
+  test_parc_SymmetricKeySigner
+  test_parc_SymmetricKeyStore
   test_parc_Security
-  test_parc_SelfSignedCertificate
   test_parc_Signature
   test_parc_Signer
   test_parc_SigningAlgorithm
-  test_parc_SymmetricSignerFileStore
   test_parc_Verifier
   test_parc_X509Certificate
   )

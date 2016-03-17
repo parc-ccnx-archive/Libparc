@@ -74,7 +74,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcIdentity_Acquire);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentity_GetFileName);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentity_GetPassWord);
-    LONGBOW_RUN_TEST_CASE(Global, parcIdentity_GetSigner);
+    LONGBOW_RUN_TEST_CASE(Global, parcIdentity_CreateSigner);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentity_Equals);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentity_Display);
 }
@@ -105,7 +105,6 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Create)
     PARCIdentity *identity = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
     assertNotNull(identity, "Expected non-null");
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -120,10 +119,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Acquire)
     PARCIdentity *identity = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
     assertNotNull(identity, "Expected non-null");
 
-//    assertTrue(parcObject_ValidateAcquireContract(parcIdentity_Acquire, identity) == true, "Expected true");
     parcObjectTesting_AssertAcquireReleaseContract(parcIdentity_Acquire, identity);
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -140,7 +137,6 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetFileName)
 
     assertEqualStrings(keystoreName, parcIdentity_GetFileName(identity));
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -157,11 +153,10 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetPassWord)
 
     assertEqualStrings(keystorePassword, parcIdentity_GetPassWord(identity));
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
-LONGBOW_TEST_CASE(Global, parcIdentity_GetSigner)
+LONGBOW_TEST_CASE(Global, parcIdentity_CreateSigner)
 {
     parcSecurity_Init();
 
@@ -176,13 +171,12 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetSigner)
 
     assertEqualStrings(keystorePassword, parcIdentity_GetPassWord(identity));
 
-    PARCSigner *signer = parcIdentity_GetSigner(identity);
+    PARCSigner *signer = parcIdentity_CreateSigner(identity);
 
     assertNotNull(signer, "Expected non-null");
 
-    parcSigner_Release(&signer);
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
+    parcSigner_Release(&signer);
 
     parcSecurity_Fini();
 }
@@ -192,10 +186,12 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Equals)
     const char *keystoreName = "test_rsa.p12";
     const char *keystorePassword = "blueberry";
 
-    PARCIdentityFile *identityFile = parcIdentityFile_Create(keystoreName, keystorePassword);
-    PARCIdentity *x = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
-    PARCIdentity *y = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
-    PARCIdentity *z = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
+    PARCIdentityFile *identityFileX = parcIdentityFile_Create(keystoreName, keystorePassword);
+    PARCIdentity *x = parcIdentity_Create(identityFileX, PARCIdentityFileAsPARCIdentity);
+    PARCIdentityFile *identityFileY = parcIdentityFile_Create(keystoreName, keystorePassword);
+    PARCIdentity *y = parcIdentity_Create(identityFileY, PARCIdentityFileAsPARCIdentity);
+    PARCIdentityFile *identityFileZ = parcIdentityFile_Create(keystoreName, keystorePassword);
+    PARCIdentity *z = parcIdentity_Create(identityFileZ, PARCIdentityFileAsPARCIdentity);
 
     PARCIdentityFile *identityFile1 = parcIdentityFile_Create("foo", keystorePassword);
     PARCIdentityFile *identityFile2 = parcIdentityFile_Create(keystoreName, "bar");
@@ -204,12 +200,9 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Equals)
 
     parcObjectTesting_AssertEqualsFunction(parcIdentity_Equals, x, y, z, u1, u2);
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&x);
     parcIdentity_Release(&y);
     parcIdentity_Release(&z);
-    parcIdentityFile_Release(&identityFile1);
-    parcIdentityFile_Release(&identityFile2);
     parcIdentity_Release(&u1);
     parcIdentity_Release(&u2);
 }
@@ -227,7 +220,6 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Display)
 
     parcIdentity_Display(identity, 0);
 
-    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 

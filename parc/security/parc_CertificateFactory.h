@@ -101,6 +101,9 @@ PARCCertificate *parcCertificateFactory_CreateCertificateFromFile(PARCCertificat
  */
 PARCCertificate *parcCertificateFactory_CreateCertificateFromBuffer(PARCCertificateFactory *factory, PARCBuffer *buffer);
 
+// TODO
+PARCCertificate *parcCertificateFactory_CreateSelfSignedCertificate(PARCCertificateFactory *factor, PARCBuffer **privateKey, char *subjectName, size_t keyLength, size_t valdityDays);
+
 /**
  * Increase the number of references to a `PARCCertificateFactory` instance.
  *

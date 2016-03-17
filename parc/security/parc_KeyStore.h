@@ -40,91 +40,251 @@
 #ifndef libparc_parc_KeyStore_h
 #define libparc_parc_KeyStore_h
 
+#include <parc/algol/parc_Buffer.h>
+#include <parc/security/parc_CryptoHash.h>
+
 struct parc_key_store;
 typedef struct parc_key_store PARCKeyStore;
+
+typedef struct parc_keystore_interface {
+    /**
+     * The hash of the signer's public key (or secret key for HMAC).
+     *
+     * Try using `parcSigner_CreateKeyId` for a sinterfaceer interface.
+     * You must destroy the returned PARCCryptoHash.
+     * For public key, its the SHA256 digest of the public key.
+     * For HMAC, its the SHA256 digest of the secret key.
+     *
+     * Equivalent of (for rsa/sha256):
+     *    openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der
+     *    openssl sha256 -out test_rsa_pub_sha256.bin -sha256 -binary < test_rsa_pub.der
+     *
+     * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+     *
+     * @return A PARCCryptoHash value.
+     */
+    PARCCryptoHash *(*GetVerifierKeyDigest)(void *interfaceContext);
+    
+    /**
+     * Returns a copy of the the certificate digest.
+     * Returns NULL for symmetric keystores.
+     *
+     * Equivalent of (for rsa/sha256):
+     *    openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+     *    openssl sha256 -out test_rsa_crt_sha256.bin -sha256 -binary < test_rsa_crt.der
+     * Which is also the same as (but not in der format)
+     *    openssl x509 -in test_rsa.crt -fingerprint -sha256
+     *
+     * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+     *
+     * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
+     */
+    PARCCryptoHash *(*GetCertificateDigest)(void *interfaceContext);
+    
+    /**
+     * Returns a copy of the DER encoded certificate.
+     * Returns NULL for symmetric keystores.
+     *
+     * Equivalent of:
+     *   openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+     *
+     * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+     *
+     * @return A pointer to a PARCBuffer containing the encoded certificate.
+     */
+    PARCBuffer *(*GetDEREncodedCertificate)(void *interfaceContext);
+    
+    /**
+     * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
+     *
+     * Equivalent of (for rsa/sha256):
+     *   `openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der`
+     *
+     * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+     *
+     * @return A pointer to a PARCBuffer containing the encoded public key.
+     */
+    PARCBuffer *(*GetDEREncodedPublicKey)(void *interfaceContext);
+    
+    /**
+     * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
+     *
+     * Equivalent of (for rsa/sha256):
+     *   `openssl rsa -in test_rsa_key.pem -outform DER -out test_rsa.der`
+     *
+     * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+     *
+     * @return A pointer to a PARCBuffer containing the encoded private key.
+     */
+    PARCBuffer *(*GetDEREncodedPrivateKey)(void *interfaceContext);
+    
+    void (*Release)(void **instanceP);
+} PARCKeyStoreInterface;
 
 /**
  * Create a `PARCKeyStore` from a filename.
  *
- * @param [in] fileName The file name.
- * @param [in] passWord The password to be used.
+ * @param [in] instance A concrete instance of a `PARCKeyStore.`
+ * @param [in] interface The interface for the `PARCKeyStore.`
  *
  * @return A pointer to the new `PARCKeyStore`
  *
  * Example:
  * @code
  * {
- *     <#example#>
  * }
  * @endcode
  */
-PARCKeyStore *parcKeyStore_CreateFile(const char *fileName, const char *passWord);
+PARCKeyStore *parcKeyStore_Create(void *instance, PARCKeyStoreInterface *interface);
 
 /**
- * Acquire a new reference to an instance of `PARCKeyStore`.
+ * Increase the number of references to an instance of this object.
  *
- * The reference count to the instance is incremented.
+ * Note that new instance is not created, only that the given instance's reference count
+ * is incremented. Discard the reference by invoking `parcKeyStore_Release()`.
  *
- * @param [in] keyStore The instance of `PARCKeyStore` to which to refer.
+ * @param [in] keyStore A pointer to the original instance.
  *
- * @return The same value as the input parameter @p keyStore
+ * @return The value of the input parameter @p instance.
  *
  * Example:
  * @code
  * {
- *     <#example#>
+ *     ...
+ *
+ *     PARCKeyStore *keyStore = parcKeyStore_Acquire(keyStoreInstance);
+ *
+ *     parcKeyStore_Release(&keyStore);
  * }
  * @endcode
+ *
+ * @see parcKey_Release
  */
 PARCKeyStore *parcKeyStore_Acquire(const PARCKeyStore *keyStore);
 
 /**
- * Release a `PARCKeyStore` reference.
+ * Release a previously acquired reference to the specified instance,
+ * decrementing the reference count for the instance.
  *
- * Only the last invocation where the reference count is decremented to zero,
- * will actually destroy the `PARCKeyStore`.
+ * The pointer to the instance is set to NULL as a side-effect of this function.
  *
- * @param [in,out] keyStorePtr A pointer to the pointer to the `PARCKeyStore` to release.
+ * If the invocation causes the last reference to the instance to be released,
+ * the instance is deallocated and the instance's implementation will perform
+ * additional cleanup and release other privately held references.
+ *
+ * @param [in] keyStorePtr A pointer to a pointer to the instance to release.
  *
  * Example:
  * @code
  * {
- *     <#example#>
+ *     ...
+ *
+ *     PARCKeyStore *keyStore = parcKeyStore_Acquire(keyStoreInstance);
+ *
+ *     parcKeyStore_Release(&keyStore);
  * }
  * @endcode
  */
 void parcKeyStore_Release(PARCKeyStore **keyStorePtr);
 
 /**
- * Get the file name from a `PARCKeyStore`.
+ * The hash of the signer's public key (or secret key for HMAC).
  *
- * @param [in] keyStore  An instance of `PARCKeyStore`.
+ * Try using `parcSigner_CreateKeyId` for a sinterfaceer interface.
+ * You must destroy the returned PARCCryptoHash.
+ * For public key, its the SHA256 digest of the public key.
+ * For HMAC, its the SHA256 digest of the secret key.
  *
- * @return  A pointer to the filename from the @p keyStore.
+ * Equivalent of (for rsa/sha256):
+ *    openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der
+ *    openssl sha256 -out test_rsa_pub_sha256.bin -sha256 -binary < test_rsa_pub.der
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A PARCCryptoHash value.
  *
  * Example:
  * @code
  * {
- *     <#example#>
  * }
  * @endcode
  */
-const char *parcKeyStore_GetFileName(const PARCKeyStore *keyStore);
+PARCCryptoHash *parcKeyStore_GetVerifierKeyDigest(PARCKeyStore *interfaceContext);
 
 /**
- * Get the password from a `PARCKeyStore`.
+ * Returns a copy of the the certificate digest.
+ * Returns NULL for symmetric keystores.
  *
- * @param [in] keyStore An instance of `PARCKeyStore`.
+ * Equivalent of (for rsa/sha256):
+ *    openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+ *    openssl sha256 -out test_rsa_crt_sha256.bin -sha256 -binary < test_rsa_crt.der
+ * Which is also the same as (but not in der format)
+ *    openssl x509 -in test_rsa.crt -fingerprint -sha256
  *
- * @return  A pointer to the password from the @p keyStore.
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
  *
+ * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
  *
  * Example:
  * @code
  * {
- *     <#example#>
  * }
  * @endcode
  */
-const char *parcKeyStore_GetPassWord(const PARCKeyStore *keyStore);
+PARCCryptoHash *parcKeyStore_GetCertificateDigest(PARCKeyStore *interfaceContext);
+
+/**
+ * Returns a copy of the DER encoded certificate.
+ * Returns NULL for symmetric keystores.
+ *
+ * Equivalent of:
+ *   openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded certificate.
+ *
+ * Example:
+ * @code
+ * {
+ * }
+ * @endcode
+ */
+PARCBuffer *parcKeyStore_GetDEREncodedCertificate(PARCKeyStore *interfaceContext);
+
+/**
+ * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
+ *
+ * Equivalent of (for rsa/sha256):
+ *   `openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der`
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded public key.
+ *
+ * Example:
+ * @code
+ * {
+ * }
+ * @endcode
+ */
+PARCBuffer *parcKeyStore_GetDEREncodedPublicKey(PARCKeyStore *interfaceContext);
+
+/**
+ * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
+ *
+ * Equivalent of (for rsa/sha256):
+ *   `openssl rsa -in test_rsa_key.pem -outform DER -out test_rsa.der`
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded private key.
+ *
+ * Example:
+ * @code
+ * {
+ * }
+ * @endcode
+ */
+PARCBuffer *parcKeyStore_GetDEREncodedPrivateKey(PARCKeyStore *interfaceContext);
 #endif // libparc_parc_KeyStore_h

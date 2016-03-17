@@ -88,3 +88,23 @@ parcCertificateFactory_CreateCertificateFromBuffer(PARCCertificateFactory *facto
     // Unsupported configuration
     return NULL;
 }
+
+PARCCertificate *
+parcCertificateFactory_CreateSelfSignedCertificate(PARCCertificateFactory *factory, PARCBuffer **privateKey,
+                                                   char *subjectName, size_t keyLength, size_t valdityDays)
+{
+    if (factory->type == PARCCertificateType_X509 && factory->encoding == PARCContainerEncoding_DER) {
+        PARCX509Certificate *certificate = parcX509Certificate_CreateSelfSignedCertificate(privateKey, subjectName, (int) keyLength, valdityDays);
+        
+        // This may fail.
+        if (certificate == NULL) {
+            return NULL;
+        }
+        
+        PARCCertificate *wrapper = parcCertificate_CreateFromInstance(PARCX509CertificateInterface, certificate);
+        return wrapper;
+    }
+    
+    // Unsupported configuration
+    return NULL;
+}

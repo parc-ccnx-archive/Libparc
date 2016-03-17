@@ -39,7 +39,9 @@
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
-#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
+
+#include <parc/security/parc_Pkcs12KeyStore.h>
+#include <parc/security/parc_PublicKeySigner.h>
 
 #include <parc/security/parc_IdentityFile.h>
 
@@ -53,7 +55,7 @@ PARCIdentityInterface *PARCIdentityFileAsPARCIdentity = &(PARCIdentityInterface)
     .Release        = (void (*)(void **))                       parcIdentityFile_Release,
     .GetPassWord    = (void *(*)(const void *))                 parcIdentityFile_GetPassWord,
     .GetFileName    = (void *(*)(const void *))                 parcIdentityFile_GetFileName,
-    .GetSigner      = (PARCSigner *(*)(const void *))           parcIdentityFile_GetSigner,
+    .GetSigner      = (PARCSigner *(*)(const void *))           parcIdentityFile_CreateSigner,
     .Equals         = (bool (*)(const void *, const void *))    parcIdentityFile_Equals,
     .Display        = (void (*)(const void *, size_t))          parcIdentityFile_Display
 };
@@ -115,9 +117,17 @@ parcIdentityFile_GetPassWord(const PARCIdentityFile *identity)
 }
 
 PARCSigner *
-parcIdentityFile_GetSigner(const PARCIdentityFile *identity)
+parcIdentityFile_CreateSigner(const PARCIdentityFile *identity)
 {
-    return parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(identity->fileName, identity->passWord, PARC_HASH_SHA256));
+    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(identity->fileName, identity->passWord, PARC_HASH_SHA256);
+    PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
+
+    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    PARCSigner *pkSigner = parcSigner_Create(signer, PARCPublicKeySignerAsSigner);
+
+    parcKeyStore_Release(&publicKeyStore);
+
+    return pkSigner;
 }
 
 bool
