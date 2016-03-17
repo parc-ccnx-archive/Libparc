@@ -88,6 +88,7 @@
 #include <parc/security/parc_Signature.h>
 #include <parc/security/parc_CryptoHashType.h>
 #include <parc/security/parc_Key.h>
+#include <parc/security/parc_KeyStore.h>
 
 struct parc_signer;
 /**
@@ -116,68 +117,7 @@ typedef struct parc_signer PARCSigner;
  * This defines the contract that any concrete implementation provides.
  *
  */
-typedef struct ccnx_signer_interface {
-    void *interfaceContext;
-
-    /**
-     * The hash of the signer's public key (or secret key for HMAC).
-     *
-     * Try using `parcSigner_CreateKeyId` for a sinterfaceer interface.
-     * You must destroy the returned PARCCryptoHash.
-     * For public key, its the SHA256 digest of the public key.
-     * For HMAC, its the SHA256 digest of the secret key.
-     *
-     * Equivalent of (for rsa/sha256):
-     *    openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der
-     *    openssl sha256 -out test_rsa_pub_sha256.bin -sha256 -binary < test_rsa_pub.der
-     *
-     * @param [in] interfaceContext A pointer to a concrete PARCSigner instance.
-     *
-     * @return A PARCCryptoHash value.
-     */
-    PARCCryptoHash *(*GetVerifierKeyDigest)(void *interfaceContext);
-
-    /**
-     * Returns a copy of the the certificate digest.
-     * Returns NULL for symmetric keystores.
-     *
-     * Equivalent of (for rsa/sha256):
-     *    openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
-     *    openssl sha256 -out test_rsa_crt_sha256.bin -sha256 -binary < test_rsa_crt.der
-     * Which is also the same as (but not in der format)
-     *    openssl x509 -in test_rsa.crt -fingerprint -sha256
-     *
-     * @param [in] interfaceContext A pointer to a concrete PARCSigner instance.
-     *
-     * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
-     */
-    PARCCryptoHash *(*GetCertificateDigest)(void *interfaceContext);
-
-    /**
-     * Returns a copy of the DER encoded certificate.
-     * Returns NULL for symmetric keystores.
-     *
-     * Equivalent of:
-     *   openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
-     *
-     * @param [in] interfaceContextPtr A pointer to a concrete PARCSigner instance.
-     *
-     * @return A pointer to a PARCBuffer containing the encoded certificate.
-     */
-    PARCBuffer *(*GetDEREncodedCertificate)(void *interfaceContext);
-
-    /**
-     * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
-     *
-     * Equivalent of (for rsa/sha256):
-     *   `openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der`
-     *
-     * @param [in] interfaceContextPtr A pointer to a concrete PARCSigner instance.
-     *
-     * @return A pointer to a PARCBuffer containing the encoded public key.
-     */
-    PARCBuffer *(*GetDEREncodedPublicKey)(void *interfaceContext);
-
+typedef struct parc_signer_interface {    
     /**
      * Returns a the hasher to use for the signature.  This is important for
      * symmetric key HMAC to use this hasher, not one from PARCCryptoHasher.
@@ -207,16 +147,6 @@ typedef struct ccnx_signer_interface {
     PARCSignature *(*SignDigest)(void *interfaceContext, const PARCCryptoHash * parcDigest);
 
     /**
-     * Release a previously acquired reference to the specified instance,
-     * decrementing the reference count for the instance.
-     *
-     * On the last release, it destroys the signing context and the underlying implementation
-     *
-     * @param [in out] interfaceContextPtr A pointer to a concrete `PARCSigner` pointer instance to be destroyed
-     */
-    void (*Destroy)(struct ccnx_signer_interface **interfaceContextPtr);
-
-    /**
      * Return the PARSigningAlgorithm used for signing with the given `PARCSigner`
      *
      * @param [in] interfaceContext A pointer to a concrete PARCSigner instance.
@@ -233,6 +163,10 @@ typedef struct ccnx_signer_interface {
      * @return A PARCCryptoHashType value.
      */
     PARCCryptoHashType (*GetCryptoHashType)(void *interfaceContext);
+    
+    PARCKeyStore *(*GetKeyStore)(void *interfaceContext);
+    
+    void (*Release)(void **instanceP);
 } PARCSigningInterface;
 
 /**
@@ -249,12 +183,9 @@ typedef struct ccnx_signer_interface {
  * Example
  * @code
  * {
- *      ...
+ *     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *      parcSigner_AssertValid(signer);
- *
- *      ...
+ *     parcSigner_AssertValid(signer);
  * }
  * @endcode
  */
@@ -263,7 +194,8 @@ void parcSigner_AssertValid(const PARCSigner *signer);
 /**
  * Create a signing context based on a concrete implementation.
  *
- * @param [in] interfaceContext A concrete implementation of a `PARCSigner`
+ * @param [in] instance A concrete implementation of a `PARCSigner`
+ * @param [in] interfaceContext The interface of a concrete implementation of a `PARCSigner`
  *
  * @return NULL A `PARCSigner` could not be allocated
  * @return PARCSigner A new `PARCSigner` instance derived from the specified concrete signer context.
@@ -271,11 +203,11 @@ void parcSigner_AssertValid(const PARCSigner *signer);
  * Example:
  * @code
  * {
- *     PARCSigner *s = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  * }
  * @endcode
  */
-PARCSigner *parcSigner_Create(PARCSigningInterface *interfaceContext);
+PARCSigner *parcSigner_Create(void *instance, PARCSigningInterface *interfaceContext);
 
 /**
  * Increase the number of references to the given `PARCSigner` instance.
@@ -294,8 +226,7 @@ PARCSigner *parcSigner_Create(PARCSigningInterface *interfaceContext);
  * {
  *      ...
  *
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *      parcSigner_AssertValid(signer);
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *      PARCSigner *handle = parcSigner_Acquire(signer);
  *      // use the handle instance as needed
  *
@@ -323,62 +254,13 @@ PARCSigner *parcSigner_Acquire(const PARCSigner *signer);
  * Example:
  * @code
  * {
- *     PARCSigner *x = parcSigner_Create(interfaceContext);
+ *     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
- *     parcSigner_Release(&x);
+ *     parcSigner_Release(&signer);
  * }
  * @endcode
  */
 void parcSigner_Release(PARCSigner **signerPtr);
-
-/**
- * Release a previously acquired reference to the specified instance,
- * decrementing the reference count for the instance.
- *
- * On the last release, it destroys the signing context and the underlying implementation
- *
- * @param [in, out] signingPtr A pointer to the `PARCSigner` pointer instance to be destroyed
- *
- * Example:
- * @code
- * @code
- * {
- *      ...
- *
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *      parcSigner_Release(signer);
- *
- *      ...
- * }
- * @endcode
- */
-void parcSigner_Release(PARCSigner **signingPtr);
-
-/**
- * The hash of the signer's public key (or secret key for HMAC).
- *
- * Try using `parcSigner_CreateKeyId` for a sinterfaceer interface.
- * You must destroy the returned PARCCryptoHash.
- * For public key, its the SHA256 digest of the public key.
- * For HMAC, its the SHA256 digest of the secret key.
- *
- * Equivalent of (for rsa/sha256):
- *    openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der
- *    openssl sha256 -out test_rsa_pub_sha256.bin -sha256 -binary < test_rsa_pub.der
- *
- * @param [in] signer A pointer to a PARCSigner instance.
- * @return A PARCCryptoHash value.
- *
- * Example:
- * @code
- * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *
- *      PARCCryptoHash *verifierKeyId = parcSigner_GetVerifierKeyDigest(signer);
- * }
- * @endcode
- */
-PARCCryptoHash *parcSigner_GetVerifierKeyDigest(const PARCSigner *signer);
 
 /**
  * Create a PARCKeyId instance from the given pinter to a `PARCSigner` instance.
@@ -390,84 +272,13 @@ PARCCryptoHash *parcSigner_GetVerifierKeyDigest(const PARCSigner *signer);
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *      PARCKeyId *keyId = parcSigner_CreateKeyId(signer);
- *
- *      parcKeyId_Release(&keyId);
  * }
  * @endcode
- * @see parcKeyId_Release
  */
 PARCKeyId *parcSigner_CreateKeyId(const PARCSigner *signer);
-
-/**
- * Returns a copy of the the certificate digest.
- * Returns NULL for symmetric keystores.
- *
- * Equivalent of (for rsa/sha256):
- *    openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
- *    openssl sha256 -out test_rsa_crt_sha256.bin -sha256 -binary < test_rsa_crt.der
- * Which is also the same as (but not in der format)
- *    openssl x509 -in test_rsa.crt -fingerprint -sha256
- *
- * @param [in] signer A pointer to a PARCSigner instance.
- *
- * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
- *
- * Example:
- * @code
- * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *
- *      PARCCryptoHash *certificateHash = parcSigner_GetCertificateDigest(signer);
- * }
- * @endcode
- */
-PARCCryptoHash *parcSigner_GetCertificateDigest(PARCSigner *signer);
-
-/**
- * Returns a copy of the DER encoded certificate.
- * Returns NULL for symmetric keystores.
- *
- * Equivalent of:
- *   openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
- *
- * @param [in] signer A pointer to a PARCSigner instance.
- *
- * @return A pointer to a PARCBuffer containing the encoded certificate.
- *
- * Example:
- * @code
- * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *
- *      PARCBuffer *encodedCertificate = parcSigner_GetDEREncodedCertificate(signer);
- * }
- * @endcode
- */
-PARCBuffer *parcSigner_GetDEREncodedCertificate(PARCSigner *signer);
-
-/**
- * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
- *
- * Equivalent of (for rsa/sha256):
- *   `openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der`
- *
- * @param [in] signer A pointer to a PARCSigner instance.
- *
- * @return A pointer to a PARCBuffer containing the encoded public key.
- *
- * Example:
- * @code
- * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
- *
- *      PARCBuffer *encodedKey = parcSigner_GetDEREncodedPublicKey(signer);
- * }
- * @endcode
- */
-PARCBuffer *parcSigner_GetDEREncodedPublicKey(const PARCSigner *signer);
 
 /**
  * Get the DER encoded public key and keyid wrapped in a `PARCKey` instance.
@@ -479,7 +290,7 @@ PARCBuffer *parcSigner_GetDEREncodedPublicKey(const PARCSigner *signer);
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *      PARCKey *publicKey = parcSigner_CreatePublicKey(signer);
  * }
@@ -503,7 +314,7 @@ PARCKey *parcSigner_CreatePublicKey(PARCSigner *signer);
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *      PARCCryptoHasher hasher = parcSigner_GetCryptoHasher(signer);
  * }
@@ -525,7 +336,7 @@ PARCCryptoHasher *parcSigner_GetCryptoHasher(const PARCSigner *signer);
  * Example:
  * @code
  * {
- *     PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
  *     parcCryptoHasher_Init(hasher);
@@ -548,7 +359,7 @@ PARCSignature *parcSigner_SignDigest(const PARCSigner *signer, const PARCCryptoH
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *      PARCSigningAlgorithm suite = parcSigner_GetSigningAlgorithm(signer);
  * }
@@ -566,7 +377,7 @@ PARCSigningAlgorithm parcSigner_GetSigningAlgorithm(PARCSigner *signer);
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
  *      PARCCryptoHashType suite = parcSigner_GetCryptoHashType(signer);
  * }
@@ -575,20 +386,20 @@ PARCSigningAlgorithm parcSigner_GetSigningAlgorithm(PARCSigner *signer);
 PARCCryptoHashType parcSigner_GetCryptoHashType(const PARCSigner *signer);
 
 /**
- * Given a PARCSigner instance, return the corresponding PARCCryptoSuite value.
+ * Given a `PARCSigner` instance, return the `PARCKeyStore` containing its public key information.
  *
  * @param [in] signer A pointer to a `PARCSigner` instance.
  *
- * @return A PARCCryptoSuite value.
+ * @return A `PARCKeyStore` instance.
  *
  * Example:
  * @code
  * {
- *      PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open("filename", "password", PARC_HASH_SHA256));
+ *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *
- *      PARCCryptoSuite suite = parcSigner_GetCryptoSuite(signer);
+ *      PARCKeyStore *keyStore = parcSigner_GetKeyStore(signer);
  * }
  * @endcode
  */
-PARCCryptoSuite parcSigner_GetCryptoSuite(const PARCSigner *signer);
+PARCKeyStore *parcSigner_GetKeyStore(const PARCSigner *signer);
 #endif // libparc_parc_Signer_h

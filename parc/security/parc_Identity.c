@@ -76,7 +76,7 @@ parcIdentity_Create(void *instance, const PARCIdentityInterface *interface)
 
     PARCIdentity *result = parcObject_CreateInstance(PARCIdentity);
 
-    result->instance = parcObject_Acquire(instance);
+    result->instance = instance;
     result->interface = interface;
 
     return result;
@@ -112,7 +112,7 @@ parcIdentity_GetPassWord(const PARCIdentity *identity)
 }
 
 PARCSigner *
-parcIdentity_GetSigner(const PARCIdentity *identity)
+parcIdentity_CreateSigner(const PARCIdentity *identity)
 {
     return identity->interface->GetSigner(identity->instance);
 }

@@ -37,7 +37,8 @@
 
 #include <parc/algol/parc_ArrayList.h>
 #include <parc/security/parc_Security.h>
-#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
+#include <parc/security/parc_Pkcs12KeyStore.h>
+#include <parc/security/parc_PublicKeySigner.h>
 
 void
 parcPublicKey_Create(PARCArrayList *args)
@@ -56,7 +57,8 @@ parcPublicKey_Create(PARCArrayList *args)
     if (parcArrayList_Size(args) > 6) {
         validityDays = (unsigned int) strtoul(parcArrayList_Get(args, 6), NULL, 10);
     }
-    bool result = parcPublicKeySignerPkcs12Store_CreateFile(fileName, password, subjectName, keyLength, validityDays);
+    
+    bool result = parcPkcs12KeyStore_CreateFile(fileName, password, subjectName, keyLength, validityDays);
     if (!result) {
         printf("Error: %s %s", fileName, strerror(errno));
         return;
@@ -70,8 +72,16 @@ parcPublicKey_Validate(PARCArrayList *args)
     char *fileName = parcArrayList_Get(args, 2);
     char *password = parcArrayList_Get(args, 3);
 
-    PARCSigningInterface *interface = parcPublicKeySignerPkcs12Store_Open(fileName, password, PARC_HASH_SHA256);
-    if (interface == NULL) {
+    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(fileName, password, PARC_HASH_SHA256);
+    PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
+    
+    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    PARCSigner *pkSigner = parcSigner_Create(signer, PARCPublicKeySignerAsSigner);
+    
+    parcKeyStore_Release(&publicKeyStore);
+    parcPkcs12KeyStore_Release(&keyStore);
+    
+    if (pkSigner == NULL) {
         printf("Invalid %s\n", fileName);
         return;
     }

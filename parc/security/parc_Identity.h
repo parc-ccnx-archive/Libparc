@@ -83,7 +83,7 @@ typedef struct parc_identity_interface {
     void *(*GetFileName)(const void *original);
 
     /**
-     * @see parcIdentity_GetSigner
+     * @see parcIdentity_CreateSigner
      */
     PARCSigner *(*GetSigner)(const void *identity);
 
@@ -281,7 +281,7 @@ const char *parcIdentity_GetPassWord(const PARCIdentity *identity);
  * @code
  * {
  *     PARCIdentity *identity = parcIdentity_Create(...);
- *     PARCSigner *signer = parcIdentity_GetSigner(identity);
+ *     PARCSigner *signer = parcIdentity_CreateSigner(identity);
  *
  *     // use the signer as needed...
  *
@@ -290,7 +290,7 @@ const char *parcIdentity_GetPassWord(const PARCIdentity *identity);
  * }
  * @endcode
  */
-PARCSigner *parcIdentity_GetSigner(const PARCIdentity *identity);
+PARCSigner *parcIdentity_CreateSigner(const PARCIdentity *identity);
 
 /**
  * Determine if two PARCIdentity are equal.

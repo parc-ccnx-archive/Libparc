@@ -79,6 +79,9 @@ PARCX509Certificate *parcX509Certificate_CreateFromPEMFile(const char *filename)
  */
 PARCX509Certificate *parcX509Certificate_CreateFromDERBuffer(const PARCBuffer *buffer);
 
+// TODO
+PARCX509Certificate *parcX509Certificate_CreateSelfSignedCertificate(PARCBuffer **privateKey, char *subjectName, int keyLength, size_t valdityDays);
+
 /**
  * Increase the number of references to a `PARCX509Certificate` instance.
  *

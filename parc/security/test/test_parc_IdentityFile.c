@@ -50,6 +50,7 @@ LONGBOW_TEST_RUNNER(parc_IdentityFile)
 // The Test Runner calls this function once before any Test Fixtures are run.
 LONGBOW_TEST_RUNNER_SETUP(parc_IdentityFile)
 {
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -67,10 +68,10 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Equals);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_GetFileName);
     LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_GetPassWord);
-    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_GetSigner);
-    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Display);
-    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Exists_True);
-    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Exists_False);
+    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_CreateSigner);
+//    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Display);
+//    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Exists_True);
+//    LONGBOW_RUN_TEST_CASE(Global, parcIdentityFile_Exists_False);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -169,7 +170,7 @@ LONGBOW_TEST_CASE(Global, parcIdentityFile_Exists_False)
     parcIdentityFile_Release(&identityFile);
 }
 
-LONGBOW_TEST_CASE(Global, parcIdentityFile_GetSigner)
+LONGBOW_TEST_CASE(Global, parcIdentityFile_CreateSigner)
 {
     parcSecurity_Init();
 
@@ -180,12 +181,12 @@ LONGBOW_TEST_CASE(Global, parcIdentityFile_GetSigner)
 
     assertNotNull(identityFile, "Expected non-null");
 
-    PARCSigner *signer = parcIdentityFile_GetSigner(identityFile);
+    PARCSigner *signer = parcIdentityFile_CreateSigner(identityFile);
 
     assertNotNull(signer, "Expected non-null");
-
-    parcSigner_Release(&signer);
+    
     parcIdentityFile_Release(&identityFile);
+    parcSigner_Release(&signer);
 
     parcSecurity_Fini();
 }

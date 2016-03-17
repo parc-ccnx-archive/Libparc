@@ -173,14 +173,15 @@ set(LIBPARC_SECURITY_HEADER_FILES
 	security/parc_IdentityFile.h 
 	security/parc_Key.h 
 	security/parc_KeyId.h 
-    security/parc_KeyStore.h 
-	security/parc_PublicKeySignerPkcs12Store.h 
-	security/parc_SelfSignedCertificate.h 
+    security/parc_KeyStore.h
+    security/parc_Pkcs12KeyStore.h
+    security/parc_PublicKeySigner.h
 	security/parc_Security.h 
 	security/parc_Signature.h 
-	security/parc_Signer.h 
-	security/parc_Verifier.h 
-	security/parc_SymmetricSignerFileStore.h 
+	security/parc_Signer.h
+    security/parc_SymmetricKeySigner.h
+    security/parc_SymmetricKeyStore.h
+	security/parc_Verifier.h
     security/parc_ContainerEncoding.h 
     security/parc_Certificate.h 
     security/parc_CertificateFactory.h 
@@ -200,14 +201,15 @@ set(LIBPARC_SECURITY_SOURCE_FILES
 	security/parc_IdentityFile.c 
 	security/parc_Key.c 
 	security/parc_KeyId.c 
-    security/parc_KeyStore.c 
-	security/parc_PublicKeySignerPkcs12Store.c 
-	security/parc_SelfSignedCertificate.c 
+    security/parc_KeyStore.c
+	security/parc_Pkcs12KeyStore.c
+	security/parc_PublicKeySigner.c
+    security/parc_SymmetricKeySigner.c
+	security/parc_SymmetricKeyStore.c
 	security/parc_Security.c 
 	security/parc_Signature.c 
 	security/parc_Signer.c 
-	security/parc_Verifier.c 
-	security/parc_SymmetricSignerFileStore.c 
+	security/parc_Verifier.c
     security/parc_ContainerEncoding.c 
     security/parc_Certificate.c 
     security/parc_CertificateFactory.c 

@@ -43,24 +43,26 @@
 
 #include <LongBow/runtime.h>
 
-#include <parc/security/parc_Signer.h>
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_Object.h>
 
+#include <parc/security/parc_Signer.h>
+#include <parc/security/parc_KeyStore.h>
+
 struct parc_signer {
+    void *instance;
     PARCSigningInterface *interface;
 };
 
-static void
+static bool
 _parcSigner_FinalRelease(PARCSigner **signerPtr)
 {
     PARCSigner *signer = *signerPtr;
-
-    signer->interface->Destroy(&signer->interface);
+    if (signer->interface != NULL) {
+        signer->interface->Release(&(signer->instance));
+    }
+    return true;
 }
-
-
-parcObject_ExtendPARCObject(PARCSigner, _parcSigner_FinalRelease, NULL, NULL, NULL, NULL, NULL, NULL);
 
 void
 parcSigner_AssertValid(const PARCSigner *signer)
@@ -68,62 +70,35 @@ parcSigner_AssertValid(const PARCSigner *signer)
     assertNotNull(signer, "Parameter must be non-null PARCSigner");
 }
 
+parcObject_ImplementAcquire(parcSigner, PARCSigner);
+parcObject_ImplementRelease(parcSigner, PARCSigner);
+
+parcObject_Override(PARCSigner, PARCObject,
+    .destructor = (PARCObjectDestructor *) _parcSigner_FinalRelease);
+
 PARCSigner *
-parcSigner_Create(PARCSigningInterface *interfaceContext)
+parcSigner_Create(void *instance, PARCSigningInterface *interfaceContext)
 {
     assertNotNull(interfaceContext, "Parameter must be non-null implementation pointer");
 
     PARCSigner *signer = parcObject_CreateInstance(PARCSigner);
     if (signer != NULL) {
+        signer->instance = instance;
         signer->interface = interfaceContext;
     }
     return signer;
 }
 
-parcObject_ImplementAcquire(parcSigner, PARCSigner);
-
-parcObject_ImplementRelease(parcSigner, PARCSigner);
-
-PARCCryptoHash *
-parcSigner_GetVerifierKeyDigest(const PARCSigner *signer)
-{
-    parcSigner_OptionalAssertValid(signer);
-
-    return signer->interface->GetVerifierKeyDigest(signer->interface->interfaceContext);
-}
-
-PARCCryptoHash *
-parcSigner_GetCertificateDigest(PARCSigner *signer)
-{
-    parcSigner_OptionalAssertValid(signer);
-
-    return signer->interface->GetCertificateDigest(signer->interface->interfaceContext);
-}
-
-PARCBuffer *
-parcSigner_GetDEREncodedCertificate(PARCSigner *signer)
-{
-    parcSigner_OptionalAssertValid(signer);
-
-    return signer->interface->GetDEREncodedCertificate(signer->interface->interfaceContext);
-}
-
-PARCBuffer *
-parcSigner_GetDEREncodedPublicKey(const PARCSigner *signer)
-{
-    parcSigner_OptionalAssertValid(signer);
-
-    return signer->interface->GetDEREncodedPublicKey(signer->interface->interfaceContext);
-}
-
 PARCKey *
 parcSigner_CreatePublicKey(PARCSigner *signer)
 {
-    PARCCryptoHash *hash = parcSigner_GetVerifierKeyDigest(signer);
+    PARCKeyStore *keyStore = parcSigner_GetKeyStore(signer);
+
+    PARCCryptoHash *hash = parcKeyStore_GetVerifierKeyDigest(keyStore);
 
     PARCKeyId *keyid = parcKeyId_Create(parcCryptoHash_GetDigest(hash));
 
-    PARCBuffer *derEncodedKey = parcSigner_GetDEREncodedPublicKey(signer);
+    PARCBuffer *derEncodedKey = parcKeyStore_GetDEREncodedPublicKey(keyStore);
 
     PARCKey *key = parcKey_CreateFromDerEncodedPublicKey(keyid,
                                                          parcSigner_GetSigningAlgorithm(signer),
@@ -139,7 +114,7 @@ parcSigner_CreatePublicKey(PARCSigner *signer)
 PARCKeyId *
 parcSigner_CreateKeyId(const PARCSigner *signer)
 {
-    PARCCryptoHash *hash = parcSigner_GetVerifierKeyDigest(signer);
+    PARCCryptoHash *hash = parcKeyStore_GetVerifierKeyDigest(parcSigner_GetKeyStore(signer));
     PARCBuffer *keyidBytes = parcCryptoHash_GetDigest(hash);
     PARCKeyId *result = parcKeyId_Create(keyidBytes);
 
@@ -152,7 +127,7 @@ parcSigner_GetCryptoHasher(const PARCSigner *signer)
 {
     parcSigner_OptionalAssertValid(signer);
 
-    return signer->interface->GetCryptoHasher(signer->interface->interfaceContext);
+    return signer->interface->GetCryptoHasher(signer->instance);
 }
 
 PARCSignature *
@@ -161,7 +136,7 @@ parcSigner_SignDigest(const PARCSigner *signer, const PARCCryptoHash *parcDigest
     parcSigner_OptionalAssertValid(signer);
 
     assertNotNull(parcDigest, "parcDigest to sign must not be null");
-    return signer->interface->SignDigest(signer->interface->interfaceContext, parcDigest);
+    return signer->interface->SignDigest(signer->instance, parcDigest);
 }
 
 PARCSigningAlgorithm
@@ -169,7 +144,7 @@ parcSigner_GetSigningAlgorithm(PARCSigner *signer)
 {
     parcSigner_OptionalAssertValid(signer);
 
-    return signer->interface->GetSigningAlgorithm(signer->interface->interfaceContext);
+    return signer->interface->GetSigningAlgorithm(signer->instance);
 }
 
 PARCCryptoHashType
@@ -177,5 +152,13 @@ parcSigner_GetCryptoHashType(const PARCSigner *signer)
 {
     parcSigner_OptionalAssertValid(signer);
 
-    return signer->interface->GetCryptoHashType(signer->interface->interfaceContext);
+    return signer->interface->GetCryptoHashType(signer->instance);
+}
+
+PARCKeyStore *
+parcSigner_GetKeyStore(const PARCSigner *signer)
+{
+    parcSigner_OptionalAssertValid(signer);
+
+    return signer->interface->GetKeyStore(signer->instance);
 }

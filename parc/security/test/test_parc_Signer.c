@@ -37,8 +37,86 @@
 
 #include <errno.h>
 
-#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
-#include <parc/security/parc_SymmetricSignerFileStore.h>
+//#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
+//#include <parc/security/parc_SymmetricSignerFileStore.h>
+
+#include <parc/security/parc_Pkcs12KeyStore.h>
+#include <parc/security/parc_KeyStore.h>
+#include <parc/security/parc_PublicKeySigner.h>
+#include <parc/security/parc_SymmetricKeySigner.h>
+
+#define FAKE_SIGNATURE "signature"
+
+typedef struct {
+    PARCCryptoHasher *hasher;
+    PARCKeyStore *keyStore;
+    PARCSymmetricKeyStore *privateKeyStore;
+} _MockSigner;
+
+static PARCSignature *
+_SignDigest(PARCSigner *interfaceContext)
+{
+    PARCBuffer *buffer = parcBuffer_WrapCString(FAKE_SIGNATURE);
+    PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, buffer);
+    parcBuffer_Release(&buffer);
+    return signature;
+}
+
+static PARCSigningAlgorithm
+_GetSigningAlgorithm(PARCSigner *interfaceContext)
+{
+    return PARCSigningAlgorithm_RSA;
+}
+
+static PARCCryptoHashType
+_GetCryptoHashType(PARCSigner  *signer)
+{
+    return PARC_HASH_SHA256;
+}
+
+static PARCCryptoHasher *
+_GetCryptoHasher(_MockSigner  *signer)
+{
+    return signer->hasher;
+}
+
+static PARCKeyStore *
+_GetKeyStore(_MockSigner *signer)
+{
+    return signer->keyStore;
+}
+
+static _MockSigner *
+_createSigner()
+{
+    _MockSigner *signer = parcMemory_Allocate(sizeof(_MockSigner));
+
+    signer->hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+
+    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
+    assertNotNull(publicKeyStore, "Got null result from opening openssl pkcs12 file");
+    signer->keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+
+    return signer;
+}
+
+static void
+_releaseSigner(_MockSigner **signer)
+{
+    parcCryptoHasher_Release(&((*signer)->hasher));
+    parcKeyStore_Release(&((*signer)->keyStore));
+
+    parcMemory_Deallocate(signer);
+}
+
+static PARCSigningInterface *_MockSignerInterface = &(PARCSigningInterface) {
+        .GetCryptoHasher = (PARCCryptoHasher *(*)(void *)) _GetCryptoHasher,
+        .SignDigest = (PARCSignature *(*)(void *, const PARCCryptoHash *)) _SignDigest,
+        .GetSigningAlgorithm = (PARCSigningAlgorithm (*)(void *)) _GetSigningAlgorithm,
+        .GetCryptoHashType = (PARCCryptoHashType (*)(void *)) _GetCryptoHashType,
+        .GetKeyStore = (PARCKeyStore *(*)(void *)) _GetKeyStore,
+        .Release = (void (*)(void **)) _releaseSigner
+};
 
 LONGBOW_TEST_RUNNER(parc_Signer)
 {
@@ -48,6 +126,7 @@ LONGBOW_TEST_RUNNER(parc_Signer)
 // The Test Runner calls this function once before any Test Fixtures are run.
 LONGBOW_TEST_RUNNER_SETUP(parc_Signer)
 {
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -59,15 +138,15 @@ LONGBOW_TEST_RUNNER_TEARDOWN(parc_Signer)
 
 LONGBOW_TEST_FIXTURE(Global)
 {
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_Create_PubKey);
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_Create_HMAC);
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_Acquire);
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetCertificateDigest);
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate);
-    LONGBOW_RUN_TEST_CASE(Global, parcSigner_CreatePublicKey);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_Create);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_AcquireRelease);
     LONGBOW_RUN_TEST_CASE(Global, parcSigner_CreateKeyId);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_CreatePublicKey);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetCryptoHasher);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_SignDigest);
     LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetSigningAlgorithm);
     LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetCryptoHashType);
+    LONGBOW_RUN_TEST_CASE(Global, parcSigner_GetKeyStore);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -86,373 +165,135 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_CASE(Global, parcSigner_Create_PubKey)
+LONGBOW_TEST_CASE(Global, parcSigner_Create)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
+    assertNotNull(signer, "Expected non-null signer");
 
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
-
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
     parcSigner_Release(&signer);
 }
 
-LONGBOW_TEST_CASE(Global, parcSigner_Create_HMAC)
+LONGBOW_TEST_CASE(Global, parcSigner_AcquireRelease)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
-
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.hmac", tmp_dirname);
-
-    // create the file
-    PARCBuffer *secret_key = parcSymmetricSignerFileStore_CreateKey(256);
-    parcSymmetricSignerFileStore_CreateFile(filename, password, secret_key);
-
-    // open it as a symmetric key provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcSymmetricSignerFileStore_OpenFile(filename, password, PARC_HASH_SHA256));
-
-    // the rest is identical to public key
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    parcBuffer_Release(&secret_key);
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
-    parcSigner_Release(&signer);
-}
-
-LONGBOW_TEST_CASE(Global, parcSigner_Acquire)
-{
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
-
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
-
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
-
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
+    assertNotNull(signer, "Expected non-null signer");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcSigner_Acquire, signer);
 
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
     parcSigner_Release(&signer);
+    assertNull(signer, "Expected null result from parcSigner_Release();");
 }
 
-LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
+LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
+    PARCKeyId *keyId = parcSigner_CreateKeyId(signer);
 
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
+    assertNotNull(keyId, "Expected non-NULL PARCKeyId");
 
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    PARCCryptoHash *certDigest = parcSigner_GetCertificateDigest(signer);
-    assertNotNull(certDigest, "Expected a non NULL value");
-    parcCryptoHash_Release(&certDigest);
-
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
-    parcSigner_Release(&signer);
-}
-
-LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
-{
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
-
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
-
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
-
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    PARCBuffer *certificate_der = parcSigner_GetDEREncodedCertificate(signer);
-    assertNotNull(certificate_der, "Expected a non NULL value");
-    parcBuffer_Release(&certificate_der);
-
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
+    parcKeyId_Release(&keyId);
     parcSigner_Release(&signer);
 }
 
 LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
-
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
-
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
-
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
     PARCKey *key = parcSigner_CreatePublicKey(signer);
-    assertNotNull(key, "Expected a non NULL value");
-    parcKey_Release(&key);
+
+    // Compute the real value
+    PARCCryptoHash *hash = parcKeyStore_GetVerifierKeyDigest(mock->keyStore);
+    PARCKeyId *keyid = parcKeyId_Create(parcCryptoHash_GetDigest(hash));
+    PARCBuffer *derEncodedKey = parcKeyStore_GetDEREncodedPublicKey(mock->keyStore);
+
+    PARCKey *expectedKey = parcKey_CreateFromDerEncodedPublicKey(keyid,
+                                                         parcSigner_GetSigningAlgorithm(signer),
+                                                         derEncodedKey);
+
+    parcBuffer_Release(&derEncodedKey);
+    parcKeyId_Release(&keyid);
 
     parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
+
+    assertTrue(parcKey_Equals(key, expectedKey), "Expected public keys to be computed equally.");
+
+    parcKey_Release(&key);
+    parcKey_Release(&expectedKey);
     parcSigner_Release(&signer);
 }
 
-LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
+LONGBOW_TEST_CASE(Global, parcSigner_GetCryptoHasher)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
-    unsigned key_bits = 1024;
-    unsigned valid_days = 30;
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
-
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.p12", tmp_dirname);
-
-    // create the file
-    parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
-
-    // open it as an RSA provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256));
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
 
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
+    assertNotNull(hasher, "Expected non-NULL PARCCryptoHasher");
 
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
+    parcSigner_Release(&signer);
+}
 
-    PARCKeyId *keyId = parcSigner_CreateKeyId(signer);
-    assertNotNull(keyId, "Expected a non NULL value");
-    parcKeyId_Release(&keyId);
+LONGBOW_TEST_CASE(Global, parcSigner_SignDigest)
+{
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+
+    PARCBuffer *buffer = parcBuffer_Allocate(10);
+    PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+    PARCSignature *signature = parcSigner_SignDigest(signer, hash);
+
+    assertNotNull(signature, "Expected non-NULL PARCSignature");
+
+    PARCBuffer *bits = parcSignature_GetSignature(signature);
+    char *bitstring = parcBuffer_ToString(bits);
+    char *expectedString = FAKE_SIGNATURE;
+    assertTrue(strcmp(bitstring, expectedString) == 0, "Expected the forced signature as output %s, got %s", expectedString, bitstring);
+    parcMemory_Deallocate(&bitstring);
 
     parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
+    parcBuffer_Release(&buffer);
+    parcSignature_Release(&signature);
     parcSigner_Release(&signer);
 }
 
 LONGBOW_TEST_CASE(Global, parcSigner_GetSigningAlgorithm)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
+    PARCSigningAlgorithm alg = parcSigner_GetSigningAlgorithm(signer);
+    assertTrue(PARCSigningAlgorithm_RSA == alg, "Expected PARCSigningAlgorithm_RSA algorithm, got %d", alg);
 
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.hmac", tmp_dirname);
-
-    // create the file
-    PARCBuffer *secret_key = parcSymmetricSignerFileStore_CreateKey(256);
-    parcSymmetricSignerFileStore_CreateFile(filename, password, secret_key);
-
-    // open it as a symmetric key provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcSymmetricSignerFileStore_OpenFile(filename, password, PARC_HASH_SHA256));
-
-    // the rest is identical to public key
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    assertTrue(parcSigner_GetSigningAlgorithm(signer) == PARCSigningAlgorithm_HMAC, "Expected to be true");
-
-    parcBuffer_Release(&secret_key);
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
     parcSigner_Release(&signer);
 }
 
 LONGBOW_TEST_CASE(Global, parcSigner_GetCryptoHashType)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
-    char filename[MAXPATHLEN];
-    const char *password = "flumox";
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    const char to_sign[] = "it was a dark and stormy night, and all through the house not a digest was creeping";
+    PARCCryptoHashType type = parcSigner_GetCryptoHashType(signer);
+    assertTrue(PARC_HASH_SHA256 == type, "Expected PARC_HASH_SHA256 algorithm, got %d", type);
 
-    char *tmp_dirname = mkdtemp(dirname);
-    assertNotNull(tmp_dirname, "tmp_dirname should not be null");
-    sprintf(filename, "%s/pubkeystore.hmac", tmp_dirname);
+    parcSigner_Release(&signer);
+}
 
-    // create the file
-    PARCBuffer *secret_key = parcSymmetricSignerFileStore_CreateKey(256);
-    parcSymmetricSignerFileStore_CreateFile(filename, password, secret_key);
+LONGBOW_TEST_CASE(Global, parcSigner_GetKeyStore)
+{
+    _MockSigner *mock = _createSigner();
+    PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
 
-    // open it as a symmetric key provider for the signer
-    PARCSigner *signer = parcSigner_Create(parcSymmetricSignerFileStore_OpenFile(filename, password, PARC_HASH_SHA256));
+    PARCKeyStore *keyStore = parcSigner_GetKeyStore(signer);
+    assertNotNull(keyStore, "Expected non-NULL PARCKeyStore");
 
-    // the rest is identical to public key
-    PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBytes(hasher, to_sign, sizeof(to_sign));
-    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
-    PARCSignature *sig = parcSigner_SignDigest(signer, hash);
-
-    unlink(filename);
-    int rc = rmdir(tmp_dirname);
-    assertTrue(rc == 0, "directory cleanup failed");
-
-    char *s = parcSignature_ToString(sig);
-    printf("Signature: %s\n", s);
-    parcMemory_Deallocate((void **) &s);
-
-    assertTrue(parcSigner_GetCryptoHashType(signer) == PARC_HASH_SHA256, "Expected to be true");
-
-    parcBuffer_Release(&secret_key);
-    parcCryptoHash_Release(&hash);
-    parcSignature_Release(&sig);
     parcSigner_Release(&signer);
 }
 

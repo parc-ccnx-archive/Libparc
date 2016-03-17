@@ -38,43 +38,77 @@
 #include <parc/algol/parc_Object.h>
 
 struct parc_key_store {
-    const char *fileName;
-    const char *passWord;
+    void *instance;
+    PARCKeyStoreInterface *interface;
 };
 
 void static
 _finalize(PARCKeyStore **keyStorePtr)
 {
     PARCKeyStore *keyStore = *keyStorePtr;
-    parcMemory_Deallocate((void **) &(keyStore->fileName));
-    parcMemory_Deallocate((void **) &(keyStore->passWord));
+    if (keyStore->interface != NULL && keyStore->instance != NULL) {
+        keyStore->interface->Release(&keyStore->instance);
+    }
 }
-
 
 parcObject_ExtendPARCObject(PARCKeyStore, _finalize, NULL, NULL, NULL, NULL, NULL, NULL);
-
-PARCKeyStore *
-parcKeyStore_CreateFile(const char *fileName, const char *passWord)
-{
-    PARCKeyStore *instance = parcObject_CreateInstance(PARCKeyStore);
-    instance->fileName = parcMemory_StringDuplicate(fileName, strlen(fileName));
-    instance->passWord = parcMemory_StringDuplicate(passWord, strlen(passWord));
-
-    return instance;
-}
-
 parcObject_ImplementAcquire(parcKeyStore, PARCKeyStore);
-
 parcObject_ImplementRelease(parcKeyStore, PARCKeyStore);
 
-const char *
-parcKeyStore_GetFileName(const PARCKeyStore *keyStore)
+PARCKeyStore *
+parcKeyStore_Create(void *instance, PARCKeyStoreInterface *interface)
 {
-    return keyStore->fileName;
+    PARCKeyStore *keyStore = parcObject_CreateInstance(PARCKeyStore);
+    
+    if (keyStore != NULL) {
+        keyStore->instance = instance;
+        keyStore->interface = interface;
+    }
+
+    return keyStore;
 }
 
-const char *
-parcKeyStore_GetPassWord(const PARCKeyStore *keyStore)
+PARCCryptoHash *
+parcKeyStore_GetVerifierKeyDigest(PARCKeyStore *interfaceContext)
 {
-    return keyStore->passWord;
+    if (interfaceContext->interface != NULL) {
+        return interfaceContext->interface->GetVerifierKeyDigest(interfaceContext->instance);
+    }
+    return NULL;
+}
+
+PARCCryptoHash *
+parcKeyStore_GetCertificateDigest(PARCKeyStore *interfaceContext)
+{
+    if (interfaceContext->interface != NULL) {
+        return interfaceContext->interface->GetCertificateDigest(interfaceContext->instance);
+    }
+    return NULL;
+}
+
+PARCBuffer *
+parcKeyStore_GetDEREncodedCertificate(PARCKeyStore *interfaceContext)
+{
+    if (interfaceContext->interface != NULL) {
+        return interfaceContext->interface->GetDEREncodedCertificate(interfaceContext->instance);
+    }
+    return NULL;
+}
+
+PARCBuffer *
+parcKeyStore_GetDEREncodedPublicKey(PARCKeyStore *interfaceContext)
+{
+    if (interfaceContext->interface != NULL) {
+        return interfaceContext->interface->GetDEREncodedPublicKey(interfaceContext->instance);
+    }
+    return NULL;
+}
+
+PARCBuffer *
+parcKeyStore_GetDEREncodedPrivateKey(PARCKeyStore *interfaceContext)
+{
+    if (interfaceContext->interface != NULL) {
+        return interfaceContext->interface->GetDEREncodedPrivateKey(interfaceContext->instance);
+    }
+    return NULL;
 }
