@@ -32,6 +32,9 @@
 
 #include <LongBow/testing.h>
 #include <LongBow/debugging.h>
+
+#include <stdio.h>
+
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_SafeMemory.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -198,6 +201,8 @@ LONGBOW_TEST_CASE(Object, parcStopwatch_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+    LONGBOW_RUN_TEST_CASE(Specialization, parcStopwatch_Multi);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcStopwatch_ElapsedTimeNanos);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -212,6 +217,40 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     }
 
     return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Specialization, parcStopwatch_Multi)
+{
+    PARCStopwatch *a = parcStopwatch_Create();
+    PARCStopwatch *b = parcStopwatch_Create();
+    PARCStopwatch *c = parcStopwatch_Create();
+    
+    parcStopwatch_Start(a, b, c);
+    sleep(2);
+    uint64_t nanos = parcStopwatch_ElapsedTimeNanos(a);
+    printf("%llu %llu\n", nanos, nanos/1000000000);
+    if (nanos > (3000000000)) {
+        parcStopwatch_Display(a, 0);
+    }
+    
+    parcStopwatch_Release(&a);
+    parcStopwatch_Release(&b);
+    parcStopwatch_Release(&c);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcStopwatch_ElapsedTimeNanos)
+{
+    PARCStopwatch *instance = parcStopwatch_Create();
+
+    parcStopwatch_StartImpl(instance, NULL);
+    sleep(2);
+    uint64_t nanos = parcStopwatch_ElapsedTimeNanos(instance);
+    printf("%llu %llu\n", nanos, nanos/1000000000);
+    if (nanos > (3000000000)) {
+        parcStopwatch_Display(instance, 0);
+    }
+    
+    parcStopwatch_Release(&instance);
 }
 
 int

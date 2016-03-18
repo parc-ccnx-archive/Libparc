@@ -104,6 +104,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Create)
 
     PARCIdentity *identity = parcIdentity_Create(identityFile, PARCIdentityFileAsPARCIdentity);
     assertNotNull(identity, "Expected non-null");
+    parcIdentityFile_Release(&identityFile);
 
     parcIdentity_Release(&identity);
 }
@@ -120,7 +121,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Acquire)
     assertNotNull(identity, "Expected non-null");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcIdentity_Acquire, identity);
-
+    
+    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -136,7 +138,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetFileName)
     assertNotNull(identity, "Expected non-null");
 
     assertEqualStrings(keystoreName, parcIdentity_GetFileName(identity));
-
+    
+    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -152,7 +155,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetPassWord)
     assertNotNull(identity, "Expected non-null");
 
     assertEqualStrings(keystorePassword, parcIdentity_GetPassWord(identity));
-
+    
+    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 
@@ -174,7 +178,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_CreateSigner)
     PARCSigner *signer = parcIdentity_CreateSigner(identity);
 
     assertNotNull(signer, "Expected non-null");
-
+    
+    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
     parcSigner_Release(&signer);
 
@@ -199,7 +204,13 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Equals)
     PARCIdentity *u2 = parcIdentity_Create(identityFile2, PARCIdentityFileAsPARCIdentity);
 
     parcObjectTesting_AssertEqualsFunction(parcIdentity_Equals, x, y, z, u1, u2);
-
+    
+    parcIdentityFile_Release(&identityFileX);
+    parcIdentityFile_Release(&identityFileY);
+    parcIdentityFile_Release(&identityFileZ);
+    parcIdentityFile_Release(&identityFile1);
+    parcIdentityFile_Release(&identityFile2);
+    
     parcIdentity_Release(&x);
     parcIdentity_Release(&y);
     parcIdentity_Release(&z);
@@ -219,7 +230,8 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Display)
     assertNotNull(identity, "Expected non-null");
 
     parcIdentity_Display(identity, 0);
-
+    
+    parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
 

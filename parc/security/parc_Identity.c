@@ -70,13 +70,13 @@ parcIdentity_AssertValid(const PARCIdentity *identity)
 }
 
 PARCIdentity *
-parcIdentity_Create(void *instance, const PARCIdentityInterface *interface)
+parcIdentity_Create(PARCObject *instance, const PARCIdentityInterface *interface)
 {
     assertNotNull(interface, "Got null interface in parcIdentity_Create");
 
     PARCIdentity *result = parcObject_CreateInstance(PARCIdentity);
 
-    result->instance = instance;
+    result->instance = parcObject_Acquire(instance);
     result->interface = interface;
 
     return result;

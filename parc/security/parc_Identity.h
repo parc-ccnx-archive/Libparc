@@ -56,6 +56,7 @@
 #ifndef libparc_parc_Identity_h
 #define libparc_parc_Identity_h
 
+#include <parc/algol/parc_Object.h>
 #include <parc/security/parc_Signer.h>
 
 struct parc_identity;
@@ -169,7 +170,7 @@ void parcIdentity_AssertValid(const PARCIdentity *identity);
  * }
  * @endcode
  */
-PARCIdentity *parcIdentity_Create(void *instance, const PARCIdentityInterface *interface);
+PARCIdentity *parcIdentity_Create(PARCObject *instance, const PARCIdentityInterface *interface);
 
 /**
  * Increase the number of references to a `PARCIdentity` instance.

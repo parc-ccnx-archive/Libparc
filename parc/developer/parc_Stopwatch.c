@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,18 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
 #include <sys/time.h>
+#include <inttypes.h>
+
+#if __APPLE__
+#include <mach/mach.h>
+#include <mach/clock.h>
+#include <mach/mach_time.h>
+#endif
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -39,8 +46,8 @@
 #include <parc/developer/parc_Stopwatch.h>
 
 struct PARCStopwatch {
-    struct timeval start;
-    struct timeval stop;
+    uint64_t start;
+//    uint64_t stop;
 };
 
 static bool
@@ -80,14 +87,10 @@ parcStopwatch_Create(void)
     PARCStopwatch *result = parcObject_CreateInstance(PARCStopwatch);
 
     if (result != NULL) {
-        result->start.tv_sec = 0;
-        result->start.tv_usec = 0;
-        result->stop.tv_sec = 0;
-        result->stop.tv_usec = 0;
+        result->start = 0;
     }
 
     return result;
-
 }
 
 PARCStopwatch *
@@ -95,7 +98,6 @@ parcStopwatch_Copy(const PARCStopwatch *original)
 {
     PARCStopwatch *result = parcStopwatch_Create();
     result->start = original->start;
-    result->stop = original->stop;
 
     return result;
 }
@@ -103,9 +105,7 @@ parcStopwatch_Copy(const PARCStopwatch *original)
 void
 parcStopwatch_Display(const PARCStopwatch *instance, int indentation)
 {
-    parcDisplayIndented_PrintLine(indentation, "PARCStopwatch@%p {", instance);
-    /* Call Display() functions for the fields here. */
-    parcDisplayIndented_PrintLine(indentation, "}");
+    parcDisplayIndented_PrintLine(indentation, "PARCStopwatch@%p { .start=%" PRIu64 " }", instance, instance->start);
 }
 
 bool
@@ -119,9 +119,7 @@ parcStopwatch_Equals(const PARCStopwatch *x, const PARCStopwatch *y)
         result = false;
     } else {
         if (memcmp(&x->start, &y->start, sizeof(x->start)) == 0) {
-            if (memcmp(&x->stop, &y->stop, sizeof(x->stop)) == 0) {
-                result = true;
-            }
+            result = true;
         }
     }
 
@@ -131,7 +129,7 @@ parcStopwatch_Equals(const PARCStopwatch *x, const PARCStopwatch *y)
 PARCHashCode
 parcStopwatch_HashCode(const PARCStopwatch *timer)
 {
-    PARCHashCode result = parcHashCode_Hash((uint8_t *) timer, sizeof(PARCStopwatch));
+    PARCHashCode result = parcHashCode_Hash((uint8_t *) timer, sizeof(PARCStopwatch *));
     return result;
 }
 
@@ -154,17 +152,10 @@ parcStopwatch_ToJSON(const PARCStopwatch *instance)
 
     if (result != NULL) {
         PARCJSON *start = parcJSON_Create();
-        parcJSON_AddInteger(start, "seconds", instance->start.tv_sec);
-        parcJSON_AddInteger(start, "microseconds", instance->start.tv_usec);
-
-        PARCJSON *stop = parcJSON_Create();
-        parcJSON_AddInteger(stop, "seconds", instance->stop.tv_sec);
-        parcJSON_AddInteger(stop, "microseconds", instance->stop.tv_usec);
+        parcJSON_AddInteger(start, "nanoseconds", instance->start);
 
         parcJSON_AddObject(result, "start", start);
-        parcJSON_AddObject(result, "stop", stop);
         parcJSON_Release(&start);
-        parcJSON_Release(&stop);
     }
 
     return result;
@@ -173,30 +164,116 @@ parcStopwatch_ToJSON(const PARCStopwatch *instance)
 char *
 parcStopwatch_ToString(const PARCStopwatch *instance)
 {
-    char *result = parcMemory_Format("PARCStopwatch@%p\n", instance);
+    char *result = parcMemory_Format("PARCStopwatch@%p={ .start=%" PRIu64 " }", instance, instance->start);
 
     return result;
 }
 
+#if _linux_
 void
-parcStopwatch_Start(PARCStopwatch *timer)
+parcStopwatch_StartImpl(PARCStopwatch *timer, ...)
 {
-    gettimeofday(&timer->start, NULL);
+    struct timespec theTime;
+    clock_gettime(CLOCK_REALTIME_COARSE, &theTime);
+    
+    timer->start = (uint64_t) (theTime.tv_sec * 1000000000) + theTime.tv_nsec;
+    
+    va_list ap;
+    va_start(ap, timer);
+    PARCStopwatch *t;
+    
+    while ((t = va_arg(ap, PARCStopwatch *)) != NULL) {
+        t->start = timer->start;
+    }
 }
 
-void
-parcStopwatch_Stop(PARCStopwatch *timer)
+static inline uint64_t
+_parcStopwatch_Stop(PARCStopwatch *timer)
 {
-    gettimeofday(&timer->stop, NULL);
+    struct timespec theTime;
+    clock_gettime(CLOCK_REALTIME_COARSE, &theTime);
+    
+    uint64_t result = (uint64_t) (theTime.tv_sec * 1000000000) + theTime.tv_nsec;
+    return result;
+}
+#elif __APPLE__
+
+static mach_timebase_info_data_t _parcStopWatch_TimeBaseInfo;
+
+void
+parcStopwatch_StartImpl(PARCStopwatch *timer, ...)
+{
+    if (_parcStopWatch_TimeBaseInfo.denom == 0) {
+        mach_timebase_info(&_parcStopWatch_TimeBaseInfo);
+    }
+    
+    timer->start = mach_absolute_time() * _parcStopWatch_TimeBaseInfo.numer / _parcStopWatch_TimeBaseInfo.denom;
+    
+    va_list ap;
+    va_start(ap, timer);
+    PARCStopwatch *t;
+    
+    while ((t = va_arg(ap, PARCStopwatch *)) != NULL) {
+        t->start = timer->start;
+    }
+}
+
+static inline uint64_t
+_parcStopwatch_Stop(PARCStopwatch *timer)
+{
+    uint64_t result = mach_absolute_time() * _parcStopWatch_TimeBaseInfo.numer / _parcStopWatch_TimeBaseInfo.denom;
+    
+    return result;
+}
+#else
+void
+parcStopwatch_StartImpl(PARCStopwatch *timer, ...)
+{
+    struct timeval theTime;
+    gettimeofday(&theTime, NULL);
+    
+    timer->start = (uint64_t) (theTime.tv_sec * 1000000000) + tv.tv_usec * 1000;
+    va_list ap;
+    va_start(ap, timer);
+    PARCStopwatch *t;
+    
+    while ((t = va_arg(ap, PARCStopwatch *)) != NULL) {
+        t->start = timer->start;
+    }
+}
+
+static inline uint64_t
+_parcStopwatch_Stop(PARCStopwatch *timer)
+{
+    struct timeval theTime;
+    gettimeofday(&theTime, NULL);
+    
+    uint64_t result = theTime.tv_sec * 1000000000 + tv.tv_usec * 1000;
+    
+    return result;
+}
+#endif
+
+static inline uint64_t
+_parcStopWatch_ElapsedTimeNanos(PARCStopwatch *timer)
+{
+    return (_parcStopwatch_Stop(timer) - timer->start);
 }
 
 uint64_t
-parcStopwatch_ElapsedTime(const PARCStopwatch *timer)
+parcStopwatch_ElapsedTimeNanos(PARCStopwatch *timer)
 {
-    struct timeval difference;
-    timersub(&timer->stop, &timer->start, &difference);
-
-    uint64_t result = difference.tv_sec * 1000000 + difference.tv_usec;
-    return result;
+    return _parcStopWatch_ElapsedTimeNanos(timer);
 }
 
+uint64_t
+parcStopwatch_ElapsedTimeMicros(PARCStopwatch *timer)
+{
+    return _parcStopWatch_ElapsedTimeNanos(timer) / 1000;
+}
+
+uint64_t
+parcStopwatch_ElapsedTimeMillis(PARCStopwatch *timer)
+{
+    return _parcStopWatch_ElapsedTimeNanos(timer) / 1000000;
+}

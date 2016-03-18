@@ -26,9 +26,11 @@
  */
 /**
  * @file parc_Stopwatch.h
- * @brief <#Brief Description#>
+ * @brief Measure elapsed time
  *
- * <#Detailed Description#>
+ * A `PARCStopwatch` measures the time elapsed between the invocation of `parcStopwatch_Start()`
+ * and a subsequent invocation of one of the `parcStopwatch_ElapsedTime` functions.
+ * The `parcStopwatch_Start()` function may be called for a stopwatch effectively resetting the stopwatch to a new starting time.
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
@@ -36,6 +38,7 @@
 #ifndef PARCLibrary_parc_Stopwatch
 #define PARCLibrary_parc_Stopwatch
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
@@ -96,8 +99,6 @@ void parcStopwatch_AssertValid(const PARCStopwatch *stopwatch);
 
 /**
  * Create an instance of PARCStopwatch
- *
- * <#Paragraphs Of Explanation#>
  *
  * @return non-NULL A pointer to a valid PARCStopwatch instance.
  * @return NULL An error occurred.
@@ -366,45 +367,49 @@ PARCJSON *parcStopwatch_ToJSON(const PARCStopwatch *stopwatch);
 char *parcStopwatch_ToString(const PARCStopwatch *stopwatch);
 
 /**
- * <#One Line Description#>
- *
- * <#Paragraphs Of Explanation#>
+ * Start one or more PARCStopwatch instances.
  *
  * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
+ * @param [in] ... A variable argument list consisting of pointers to valid PARCStopwatch instances.
  *
  * Example:
  * @code
  * {
- *     <#example#>
+ *     PARCStopwatch *A = parcStopwatch_Create();
+ *     PARCStopwatch *B = parcStopwatch_Create();
+ *     PARCStopwatch *C = parcStopwatch_Create();
+ *
+ *     parcStopwatch_Start(A, B, C);
+ *
  * }
  * @endcode
  */
-void parcStopwatch_Start(PARCStopwatch *stopwatch);
+#define parcStopwatch_Start(...) parcStopwatch_StartImpl(__VA_ARGS__, NULL)
 
 /**
- * <#One Line Description#>
- *
- * <#Paragraphs Of Explanation#>
+ * Start one or more PARCStopwatch instances.
  *
  * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
+ * @param [in] ... A NULL termianted argument list consisting of pointers to valid PARCStopwatch instances.
  *
  * Example:
  * @code
  * {
- *     <#example#>
+ *     PARCStopwatch *stopWatch = parcStopwatch_Create();
+ *     parcStopwatch_StartImpl(stopWatch, NULL);
  * }
  * @endcode
  */
-void parcStopwatch_Stop(PARCStopwatch *stopwatch);
+void parcStopwatch_StartImpl(PARCStopwatch *stopwatch, ...);
 
 /**
- * <#One Line Description#>
+ * Get the number of nanoseconds between the time the PARCStopwatch was started and the time of this function call.
  *
- * <#Paragraphs Of Explanation#>
+ * The accuracy is dependant upon the operating environment's time resolution.
  *
  * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
  *
- * @return The difference between the start and stop times.
+ * @return The difference between the start and stop times nanoseconds.
  *
  * Example:
  * @code
@@ -413,5 +418,41 @@ void parcStopwatch_Stop(PARCStopwatch *stopwatch);
  * }
  * @endcode
  */
-uint64_t parcStopwatch_ElapsedTime(const PARCStopwatch *stopwatch);
+uint64_t parcStopwatch_ElapsedTimeNanos(PARCStopwatch *stopwatch);
+
+/**
+ * Get the number of microseconds between the time the PARCStopwatch was started and the time of this function call.
+ *
+ * The accuracy is dependant upon the operating environment's time resolution.
+ *
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
+ *
+ * @return The difference between the start and stop times in microseconds.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+uint64_t parcStopwatch_ElapsedTimeMicros(PARCStopwatch *stopwatch);
+
+/**
+ * Get the number of milliseconds between the time the PARCStopwatch was started and the time of this function call.
+ *
+ * The accuracy is dependant upon the operating environment's time resolution.
+ *
+ * @param [in] stopwatch A pointer to a valid PARCStopwatch instance.
+ *
+ * @return The difference between the start and stop times in milliseconds.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+uint64_t parcStopwatch_ElapsedTimeMillis(PARCStopwatch *stopwatch);
 #endif
