@@ -169,7 +169,7 @@ parcStopwatch_ToString(const PARCStopwatch *instance)
     return result;
 }
 
-#if _linux_
+#if __linux__
 void
 parcStopwatch_StartImpl(PARCStopwatch *timer, ...)
 {
