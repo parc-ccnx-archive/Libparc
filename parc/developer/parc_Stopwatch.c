@@ -232,7 +232,7 @@ parcStopwatch_StartImpl(PARCStopwatch *timer, ...)
     struct timeval theTime;
     gettimeofday(&theTime, NULL);
     
-    timer->start = (uint64_t) (theTime.tv_sec * 1000000000) + tv.tv_usec * 1000;
+    timer->start = (uint64_t) (theTime.tv_sec * 1000000000) + theTime.tv_usec * 1000;
     va_list ap;
     va_start(ap, timer);
     PARCStopwatch *t;
@@ -248,7 +248,7 @@ _parcStopwatch_Stop(PARCStopwatch *timer)
     struct timeval theTime;
     gettimeofday(&theTime, NULL);
     
-    uint64_t result = theTime.tv_sec * 1000000000 + tv.tv_usec * 1000;
+    uint64_t result = theTime.tv_sec * 1000000000 + theTime.tv_usec * 1000;
     
     return result;
 }
