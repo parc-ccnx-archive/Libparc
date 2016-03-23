@@ -28,9 +28,6 @@
  * @author Scott, Glenn <Glenn.Scott@parc.com>, Palo Alto Research Center (Xerox PARC)
  * @copyright 2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-// Include the file(s) containing the functions to be tested.
-// This permits internal static functions to be visible to this Test Framework.
-
 #include "../parc_StdlibMemory.c"
 
 #include <LongBow/testing.h>
@@ -44,6 +41,7 @@ LONGBOW_TEST_RUNNER(test_parc_StdlibMemory)
     // Test Fixtures are run in the order specified, but all tests should be idempotent.
     // Never rely on the execution order of tests or share state between them.
     LONGBOW_RUN_TEST_FIXTURE(Global);
+    LONGBOW_RUN_TEST_FIXTURE(Threads);
     LONGBOW_RUN_TEST_FIXTURE(Performance);
 }
 
@@ -225,6 +223,44 @@ LONGBOW_TEST_CASE(Global, parcStdlibMemory_StringDuplicate)
                "Expected 0 outstanding allocations, actual %d", parcStdlibMemory_Outstanding());
 }
 
+LONGBOW_TEST_FIXTURE(Threads)
+{
+    LONGBOW_RUN_TEST_CASE(Threads, Threads1000);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(Threads)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(Threads)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+void *
+allocator(void *unused)
+{
+    for (int i = 0; i < 1000; i++) {
+        void *memory = parcStdlibMemory_Allocate(10);
+        parcStdlibMemory_Deallocate(&memory);
+    }
+    return 0;
+}
+
+LONGBOW_TEST_CASE(Threads, Threads1000)
+{
+#define NTHREADS 1000
+    pthread_t thread[NTHREADS];
+    
+    for (int i = 0; i < NTHREADS; i++) {
+        pthread_create(&thread[i], NULL, allocator, i);
+    }
+    for (int i = 0; i < NTHREADS; i++) {
+        pthread_join(thread[0], NULL);
+    }
+}
+
 LONGBOW_TEST_FIXTURE_OPTIONS(Performance, .enabled = false)
 {
     LONGBOW_RUN_TEST_CASE(Performance, parcStdlibMemory_AllocateDeallocate_Forward);
@@ -244,7 +280,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Performance)
 }
 
 #define ELEMENT_COUNT 1000000
-#define ELEMENT_SIZE 150
+#define ELEMENT_SIZE 151
 void *memory[ELEMENT_COUNT];
 
 LONGBOW_TEST_CASE(Performance, parcStdlibMemory_AllocateDeallocate_Forward)

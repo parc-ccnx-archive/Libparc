@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013, 2014, 2015, 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013, 2014, 2015, 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
@@ -40,10 +40,42 @@
 
 #include <LongBow/runtime.h>
 
-#include <parc/algol/parc_AtomicInteger.h>
 #include <parc/algol/parc_StdlibMemory.h>
 
 static uint32_t _parcStdlibMemory_OutstandingAllocations;
+
+#ifdef PARCLibrary_DISABLE_ATOMICS
+static pthread_mutex_t _parcStdlibMemory_Mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static inline void
+_parcStdlibMemory_IncrementOutstandingAllocations(void)
+{
+    pthread_mutex_lock(&_parcStdlibMemory_Mutex);
+    _parcStdlibMemory_OutstandingAllocations++;
+    pthread_mutex_unlock(&_parcStdlibMemory_Mutex);
+}
+
+static inline void
+_parcStdlibMemory_DecrementOutstandingAllocations(void)
+{
+    pthread_mutex_lock(&_parcStdlibMemory_Mutex);
+    _parcStdlibMemory_OutstandingAllocations--;
+    pthread_mutex_unlock(&_parcStdlibMemory_Mutex);
+}
+#else
+
+static inline void
+_parcStdlibMemory_IncrementOutstandingAllocations(void)
+{
+    __sync_add_and_fetch(&_parcStdlibMemory_OutstandingAllocations, 1);
+}
+
+static inline void
+_parcStdlibMemory_DecrementOutstandingAllocations(void)
+{
+    __sync_sub_and_fetch(&_parcStdlibMemory_OutstandingAllocations, 1);
+}
+#endif
 
 #if HAVE_REALLOC == 0
 static void *
@@ -72,11 +104,7 @@ parcStdlibMemory_Allocate(size_t size)
 
     void *result = malloc(size);
     if (result != NULL) {
-#ifdef PARCLibrary_DISABLE_ATOMICS
-        parcAtomicInteger_Uint32Increment(&_parcStdlibMemory_OutstandingAllocations);
-#else
-        __sync_add_and_fetch(&_parcStdlibMemory_OutstandingAllocations, 1);
-#endif
+        _parcStdlibMemory_IncrementOutstandingAllocations();
     }
 
     return result;
@@ -108,7 +136,7 @@ parcStdlibMemory_MemAlign(void **pointer, size_t alignment, size_t size)
         return ENOMEM;
     }
 
-    parcAtomicInteger_Uint32Increment(&_parcStdlibMemory_OutstandingAllocations);
+    _parcStdlibMemory_IncrementOutstandingAllocations();
 
     return 0;
 }
@@ -123,11 +151,7 @@ parcStdlibMemory_Deallocate(void **pointer)
     free(*pointer);
     *pointer = NULL;
 
-#ifdef PARCLibrary_DISABLE_ATOMICS
-    parcAtomicInteger_Uint32Decrement(&_parcStdlibMemory_OutstandingAllocations);
-#else
-    __sync_sub_and_fetch(&_parcStdlibMemory_OutstandingAllocations, 1);
-#endif
+    _parcStdlibMemory_DecrementOutstandingAllocations();
 }
 
 void *
@@ -140,7 +164,7 @@ parcStdlibMemory_Reallocate(void *pointer, size_t newSize)
 #endif
 
     if (pointer == NULL) {
-        parcAtomicInteger_Uint32Increment(&_parcStdlibMemory_OutstandingAllocations);
+        _parcStdlibMemory_IncrementOutstandingAllocations();
     }
     return result;
 }
@@ -148,7 +172,7 @@ parcStdlibMemory_Reallocate(void *pointer, size_t newSize)
 char *
 parcStdlibMemory_StringDuplicate(const char *string, size_t length)
 {
-    parcAtomicInteger_Uint32Increment(&_parcStdlibMemory_OutstandingAllocations);
+    _parcStdlibMemory_IncrementOutstandingAllocations();
     return strndup(string, length);
 }
 
@@ -157,7 +181,6 @@ parcStdlibMemory_Outstanding(void)
 {
     return _parcStdlibMemory_OutstandingAllocations;
 }
-
 
 PARCMemoryInterface PARCStdlibMemoryAsPARCMemory = {
     .Allocate         = (uintptr_t) parcStdlibMemory_Allocate,
