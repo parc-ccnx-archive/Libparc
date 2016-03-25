@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  */
 /**
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 
@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
-#include <sys/queue.h>
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
@@ -52,37 +51,35 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
-#define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x12345678
-
-typedef enum {
-    _PARCObjectLock_Unlocked = 0,
-    _PARCObjectLock_Locked = 1
-} _PARCObjectLock;
+//#define PEROBJECTLOCKATTRIBUTES 1
 
 typedef struct parc_object_locking {
     pthread_mutex_t lock;
+#ifdef PEROBJECTLOCKATTRIBUTES
     pthread_mutexattr_t lockAttributes;
+#endif
     pthread_cond_t notification;
     pthread_t locker;
-    bool notified;
 } _PARCObjectLocking;
 
-/**
+/*
  * This is the per-object header.
  */
 typedef struct object_header {
+#define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x12345678
     uint32_t magicGuardNumber;
     PARCReferenceCount references;
     PARCObjectDescriptor *descriptor;
+    _PARCObjectLocking *locking;
 
-    _PARCObjectLocking locking;
+    _PARCObjectLocking lock;
 } _PARCObjectHeader;
 
-/**
+/*
  * Increment/decrement a pointer by the given value.
  *
- * @param [in] base The base pointer to be modified.
- * @param [in] increment The size of the pointer increment.
+ * @param [in] base The base pointer.
+ * @param [in] increment The value of the pointer increment.
  *
  * @return void* The updated pointer
  */
@@ -94,7 +91,7 @@ _pointerAdd(const void *base, const size_t increment)
 }
 
 /*
- * Compute the size of the preamble as the number of bytes necessary
+ * Compute the size of the prefix as the number of bytes necessary
  * to fit the object header (with padding) into allocated memory,
  * such that the first address after the header is aligned according to the value of the alignment parameter.
  *
@@ -131,11 +128,10 @@ _parcObject_Descriptor(const PARCObject *object)
     return (_parcObject_Header(object)->descriptor);
 }
 
-
 static inline _PARCObjectLocking *
-_objectHeader_Locking(const PARCObject *object)
+_parcObjectHeader_Locking(const PARCObject *object)
 {
-    return &(_parcObject_Header(object)->locking);
+    return &(_parcObject_Header(object)->lock);
 }
 
 static inline bool
@@ -157,11 +153,11 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
 /*
  * Compute the origin of the allocated memory.
  *
- * This may be different than the address of the object header,
+ * This will be greater than the start of the object header.
  * due to alignment requirements causing the object header to be offset from the origin.
  */
 static inline void *
-_parcObject_Origin(const void *object)
+_parcObject_Origin(const PARCObject *object)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
 
@@ -315,7 +311,10 @@ PARCObjectDescriptor parcObject_DescriptorName(PARCObject) = {
     .hashCode   = _parcObject_HashCode,
     .toJSON     = _parcObject_ToJSON,
     .display    = _parcObject_Display,
-    .super      = NULL
+    .super      = NULL,
+    .isLockable = true,
+    .objectSize = 0,
+    .objectAlignment = sizeof(void *)    
 };
 
 bool
@@ -513,6 +512,25 @@ parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor)
     return result;
 }
 
+static inline void
+_parcObject_InitializeLocking(_PARCObjectLocking *locking)
+{
+    if (locking != NULL) {
+#ifdef PEROBJECTLOCKATTRIBUTES
+        pthread_mutexattr_init(&locking->lockAttributes);
+        pthread_mutexattr_settype(&locking->lockAttributes, PTHREAD_MUTEX_NORMAL);
+        pthread_mutex_init(&locking->lock, &locking->lockAttributes);
+#else
+        //        locking->lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+        locking->lock = (pthread_mutex_t) PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
+#endif
+        
+        locking->locker = (pthread_t) NULL;
+        //        pthread_cond_init(&locking->notification, NULL);
+        locking->notification = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
+    }
+}
+
 PARCObject *
 parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
 {
@@ -527,23 +545,16 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
         return NULL;
     }
 
-    // This abuts the prefix to the user accessible memory, it does not start at the beginning
-    // of the aligned prefix region.
+    // This abuts the prefix to the user accessible memory,
+    // it does not start at the beginning of the aligned prefix region.
     _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
 
-    _PARCObjectLocking *locking = &header->locking;
-    if (locking != NULL) {
-        pthread_mutexattr_init(&locking->lockAttributes);
-        pthread_mutexattr_settype(&locking->lockAttributes, PTHREAD_MUTEX_NORMAL);
-
-        pthread_mutex_init(&locking->lock, &locking->lockAttributes);
-
-        locking->locker = (pthread_t) NULL;
-        pthread_cond_init(&locking->notification, NULL);
-        locking->notified = false;
+    if (header->descriptor->isLockable) {
+        header->locking = &header->lock;
+        _parcObject_InitializeLocking(header->locking);
     }
 
     errno = 0;
@@ -564,17 +575,20 @@ PARCReferenceCount
 parcObject_Release(PARCObject **objectPointer)
 {
     PARCObject *object = *objectPointer;
+    parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
     trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
 
-    parcObject_OptionalAssertValid(object);
-
     PARCReferenceCount result = parcAtomicUint64_Decrement(&header->references);
 
     if (result == 0) {
         if (_parcObjectType_Destructor(header->descriptor, objectPointer)) {
+            if (header->locking != NULL) {
+                pthread_cond_destroy(&header->locking->notification);
+//                pthread_cond_destroy(&header->lock.notification);
+            }
             void *origin = _parcObject_Origin(object);
             parcMemory_Deallocate(&origin);
             assertNotNull(*objectPointer, "Class implementation unnecessarily clears the object pointer.");
@@ -614,6 +628,7 @@ PARCObjectDescriptor *
 parcObjectDescriptor_Create(const char *name,
                             size_t objectSize,
                             unsigned int objectAlignment,
+                            bool isLockable,
                             PARCObjectDestructor *destructor,
                             PARCObjectRelease *release,
                             PARCObjectCopy *copy,
@@ -643,6 +658,7 @@ parcObjectDescriptor_Create(const char *name,
         result->super = super;
         result->objectSize = objectSize;
         result->objectAlignment = objectAlignment;
+        result->isLockable = isLockable;
     }
     return result;
 }
@@ -663,11 +679,11 @@ parcObject_Unlock(const PARCObject *object)
         _parcObjectHeader_AssertValid(header, object);
         
         if (object != NULL) {            
-            _PARCObjectLocking *locking = &header->locking;
-            locking->locker = (pthread_t) NULL;
-            result = (pthread_mutex_unlock(&locking->lock) == 0);
+//            _PARCObjectLocking *locking = &header->lock;
+            header->locking->locker = (pthread_t) NULL;
+            result = (pthread_mutex_unlock(&header->locking->lock) == 0);
             
-            assertTrue(result, "Attempted to unlock a unowned lock.");
+            assertTrue(result, "Attempted to unlock an unowned lock.");
         }
     }
     return result;
@@ -683,7 +699,7 @@ parcObject_Lock(const PARCObject *object)
     if (object != NULL) {        
         parcObject_OptionalAssertValid(object);
         
-        _PARCObjectLocking *locking = _objectHeader_Locking(object);
+        _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
         
         errno = pthread_mutex_lock(&locking->lock);
@@ -704,7 +720,7 @@ parcObject_TryLock(const PARCObject *object)
     if (object != NULL) {
         parcObject_OptionalAssertValid(object);
         
-        _PARCObjectLocking *locking = _objectHeader_Locking(object);
+        _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         
         trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
         
@@ -720,7 +736,7 @@ bool
 parcObject_IsLocked(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
-    _PARCObjectLocking *locking = _objectHeader_Locking(object);
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     return locking->locker != (pthread_t) NULL;
 }
 
@@ -729,25 +745,20 @@ parcObject_Wait(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectLocking *locking = _objectHeader_Locking(object);
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
 
-    locking->notified = false;
-    while (locking->notified == false) {
-        pthread_cond_wait(&locking->notification, &locking->lock);
-    }
+    pthread_cond_wait(&locking->notification, &locking->lock);
 }
 
 bool
 parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
 {
+    parcObject_OptionalAssertValid(object);
+    
     bool result = true;
     
-    parcObject_OptionalAssertValid(object);
-
-    _PARCObjectHeader *header = _parcObject_Header(object);
-
-    header->locking.notified = false;
-    int waitResult = pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, time);
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
+    int waitResult = pthread_cond_timedwait(&locking->notification, &locking->lock, time);
     
     if (waitResult == ETIMEDOUT) {
         result = false;
@@ -759,11 +770,9 @@ parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
 bool
 parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
 {
-    bool result = true;
-    
     parcObject_OptionalAssertValid(object);
-
-    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    bool result = true;
     
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -776,8 +785,10 @@ parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
     time.tv_nsec += nanoSeconds;
     time.tv_sec += time.tv_nsec / 1000000000;
     time.tv_nsec = time.tv_nsec % 1000000000;
-
-    int waitResult = pthread_cond_timedwait(&header->locking.notification, &header->locking.lock, &time);
+    
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
+    
+    int waitResult = pthread_cond_timedwait(&locking->notification, &locking->lock, &time);
     
     if (waitResult == ETIMEDOUT) {
         result = false;
@@ -791,10 +802,9 @@ parcObject_Notify(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
 
-    _PARCObjectHeader *header = _parcObject_Header(object);
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
 
-    header->locking.notified = true;
-    pthread_cond_signal(&header->locking.notification);
+    pthread_cond_signal(&locking->notification);
 }
 
 void
@@ -802,8 +812,7 @@ parcObject_NotifyAll(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
     
-    _PARCObjectHeader *header = _parcObject_Header(object);
+    _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         
-    header->locking.notified = true;
-    pthread_cond_broadcast(&header->locking.notification);
+    pthread_cond_broadcast(&locking->notification);
 }

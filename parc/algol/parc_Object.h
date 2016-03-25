@@ -512,6 +512,7 @@ PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObj
 PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                   size_t objectSize,
                                                   unsigned int objectAligment,
+                                                  bool isLockable,
                                                   PARCObjectDestructor *destructor,
                                                   PARCObjectRelease *release,
                                                   PARCObjectCopy *copy,
