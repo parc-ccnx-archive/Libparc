@@ -96,8 +96,11 @@ PARCHashMap *parcHashMap_Acquire(const PARCHashMap *instance);
 void parcHashMap_AssertValid(const PARCHashMap *instance);
 
 /**
- * Create an instance of PARCHashMap
+ * Constructs an empty `PARCHashMap` with a default minimum number of 'buckets'.
  *
+ * The capacity will expand and contract as needed to keep load factor table
+ * below the max load factor of 0.75 and above the minimum load factor or 0.25.
+ * The default minimum number of buckets is 42.
  *
  * @return non-NULL A pointer to a valid PARCHashMap instance.
  * @return NULL An error occurred.
@@ -114,9 +117,12 @@ void parcHashMap_AssertValid(const PARCHashMap *instance);
 PARCHashMap *parcHashMap_Create(void);
 
 /**
- * Constructs an empty `PARCHashMap` with the specified number of 'buckets'.
+ * Constructs an empty `PARCHashMap` with the specified minimum number of 'buckets'.
  *
- * @param [in] capacity The number of buckets.  Must be greater than 0.
+ * The capacity will expand and contract as needed to keep load factor table
+ * below the max load factor of 0.75 and above the minimum load factor or 0.25.
+ *
+ * @param [in] capacity The minimum number of buckets.  Must be greater than 0.
  *
  * @return non-NULL A pointer to a valid PARCHashMap instance.
  * @return NULL An error occurred.

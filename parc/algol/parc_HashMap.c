@@ -90,8 +90,11 @@ _parcHashMapEntry_HashCode(const _PARCHashMapEntry *entry)
 
 struct PARCHashMap {
     PARCLinkedList **buckets;
-    unsigned int capacity;
-    unsigned int size;
+    size_t minCapacity;
+    size_t capacity;
+    size_t size;
+    double maxLoadFactor;
+    double minLoadFactor;
 };
 
 static _PARCHashMapEntry *
@@ -103,16 +106,18 @@ _parcHashMap_GetEntry(const PARCHashMap *hashMap, const PARCObject *key)
 
     _PARCHashMapEntry *result = NULL;
 
-    PARCIterator *iterator = parcLinkedList_CreateIterator(hashMap->buckets[bucket]);
+    if (hashMap->buckets[bucket] != NULL) {
+        PARCIterator *iterator = parcLinkedList_CreateIterator(hashMap->buckets[bucket]);
 
-    while (parcIterator_HasNext(iterator)) {
-        _PARCHashMapEntry *entry = parcIterator_Next(iterator);
-        if (parcObject_Equals(key, entry->key)) {
-            result = entry;
-            break;
+        while (parcIterator_HasNext(iterator)) {
+            _PARCHashMapEntry *entry = parcIterator_Next(iterator);
+            if (parcObject_Equals(key, entry->key)) {
+                result = entry;
+                break;
+            }
         }
+        parcIterator_Release(&iterator);
     }
-    parcIterator_Release(&iterator);
 
     return result;
 }
@@ -144,7 +149,9 @@ _parcHashMap_Finalize(PARCHashMap **instancePtr)
     PARCHashMap *hashMap = *instancePtr;
 
     for (unsigned int i = 0; i < hashMap->capacity; i++) {
-        parcLinkedList_Release(&hashMap->buckets[i]);
+        if (hashMap->buckets[i] != NULL) {
+            parcLinkedList_Release(&hashMap->buckets[i]);
+        }
     }
 
     parcMemory_Deallocate(&hashMap->buckets);
@@ -175,13 +182,12 @@ parcHashMap_CreateCapacity(unsigned int capacity)
             capacity = DEFAULT_CAPACITY;
         }
 
+        result->minCapacity = capacity;
         result->capacity = capacity;
         result->size = 0;
-        result->buckets = parcMemory_Allocate(capacity * sizeof(PARCLinkedList*));
-
-        for (unsigned int i = 0; i < result->capacity; i++) {
-            result->buckets[i] = parcLinkedList_Create();
-        }
+        result->maxLoadFactor = 0.75;
+        result->minLoadFactor = result->maxLoadFactor / 3.0;
+        result->buckets = parcMemory_AllocateAndClear(capacity * sizeof(PARCLinkedList*));
     }
 
     return result;
@@ -203,11 +209,17 @@ parcHashMap_Copy(const PARCHashMap *original)
     PARCHashMap *result = parcObject_CreateInstance(PARCHashMap);
 
     result->capacity = original->capacity;
+    result->minCapacity = original->minCapacity;
+    result->maxLoadFactor = original->maxLoadFactor;
+    result->minLoadFactor = original->minLoadFactor;
     result->size = original->size;
     result->buckets = parcMemory_Allocate(result->capacity * sizeof(PARCLinkedList*));
 
     for (unsigned int i = 0; i < result->capacity; i++) {
-        result->buckets[i] = parcLinkedList_Copy(original->buckets[i]);
+        result->buckets[i] = NULL;
+        if (original->buckets[i] != NULL) {
+            result->buckets[i] = parcLinkedList_Copy(original->buckets[i]);
+        }
     }
 
     return result;
@@ -250,11 +262,12 @@ parcHashMap_Equals(const PARCHashMap *x, const PARCHashMap *y)
         if (x->capacity == y->capacity) {
             if (x->size == y->size) {
                 result = true;
-                for (unsigned int i = 0; i < x->capacity; i++) {
-                    // For each item in an X bucket, it must be in the Y bucket.
-                    if (parcLinkedList_SetEquals(x->buckets[i], y->buckets[i]) == false) {
-                        result = false;
-                        break;
+                for (unsigned int i = 0; (i < x->capacity) && result; i++) {
+                    if ((x->buckets[i] == NULL) || (y->buckets[i] == NULL)) {
+                        result =  (x->buckets[i] == y->buckets[i]);
+                    } else {
+                        // For each item in an X bucket, it must be in the Y bucket.
+                        result = parcLinkedList_SetEquals(x->buckets[i], y->buckets[i]);
                     }
                 }
             }
@@ -272,7 +285,9 @@ parcHashMap_HashCode(const PARCHashMap *hashMap)
     PARCHashCode result = 0;
 
     for (unsigned int i = 0; i < hashMap->capacity; i++) {
-        result += parcLinkedList_HashCode(hashMap->buckets[i]);
+        if (hashMap->buckets[i] != NULL) {
+            result += parcLinkedList_HashCode(hashMap->buckets[i]);
+        }
     }
 
     return result;
@@ -288,18 +303,12 @@ parcHashMap_IsValid(const PARCHashMap *map)
             result = true;
 
             for (unsigned int i = 0; i < map->capacity; i++) {
-                if (parcLinkedList_IsValid(map->buckets[i]) == false) {
-                    result = false;
-                    break;
+                if (map->buckets[i] != NULL) {
+                    if (parcLinkedList_IsValid(map->buckets[i]) == false) {
+                        result = false;
+                        break;
+                    }
                 }
-                PARCIterator *iterator = parcLinkedList_CreateIterator(map->buckets[i]);
-                while (parcIterator_HasNext(iterator)) {
-                    _PARCHashMapEntry *entry = parcIterator_Next(iterator);
-                    parcObject_IsValid(entry->key);
-                    parcObject_IsValid(entry->value);
-                }
-
-                parcIterator_Release(&iterator);
             }
         }
     }
@@ -385,6 +394,40 @@ parcHashMap_Contains(PARCHashMap *hashMap, const PARCObject *key)
     return result;
 }
 
+static void
+_parcHashMap_Resize(PARCHashMap *hashMap, size_t newCapacity)
+{
+    if (newCapacity < hashMap->minCapacity) {
+        return;
+    }
+
+    PARCLinkedList **newBuckets = parcMemory_AllocateAndClear(newCapacity * sizeof(PARCLinkedList*));
+
+    for (unsigned int i = 0; i < hashMap->capacity; i++) {
+        if (hashMap->buckets[i] != NULL) {
+            if (!parcLinkedList_IsEmpty(hashMap->buckets[i])) {
+                PARCIterator *elementIt = parcLinkedList_CreateIterator(hashMap->buckets[i]);
+                while (parcIterator_HasNext(elementIt)) {
+                    _PARCHashMapEntry *entry = parcIterator_Next(elementIt);
+                    PARCHashCode keyHash = parcObject_HashCode(entry->key);
+                    int newBucket = keyHash % newCapacity;
+                    if (newBuckets[newBucket] == NULL) {
+                        newBuckets[newBucket] = parcLinkedList_Create();
+                    }
+                    parcLinkedList_Append(newBuckets[newBucket], entry);
+                }
+                parcIterator_Release(&elementIt);
+            }
+            parcLinkedList_Release(&hashMap->buckets[i]);
+        }
+    }
+    PARCLinkedList **cleanupBuckets = hashMap->buckets;
+    hashMap->buckets = newBuckets;
+    hashMap->capacity = newCapacity;
+
+    parcMemory_Deallocate(&cleanupBuckets);
+}
+
 bool
 parcHashMap_Remove(PARCHashMap *hashMap, const PARCObject *key)
 {
@@ -394,18 +437,28 @@ parcHashMap_Remove(PARCHashMap *hashMap, const PARCObject *key)
 
     bool result = false;
 
-    PARCIterator *iterator = parcLinkedList_CreateIterator(hashMap->buckets[bucket]);
+    if (hashMap->buckets[bucket] != NULL) {
+        PARCIterator *iterator = parcLinkedList_CreateIterator(hashMap->buckets[bucket]);
 
-    while (parcIterator_HasNext(iterator)) {
-        _PARCHashMapEntry *entry = parcIterator_Next(iterator);
-        if (parcObject_Equals(key, entry->key)) {
-            parcIterator_Remove(iterator);
-            hashMap->size--;
-            result = true;
-            break;
+        while (parcIterator_HasNext(iterator)) {
+            _PARCHashMapEntry *entry = parcIterator_Next(iterator);
+            if (parcObject_Equals(key, entry->key)) {
+                parcIterator_Remove(iterator);
+                hashMap->size--;
+                result = true;
+                break;
+            }
         }
+        parcIterator_Release(&iterator);
     }
-    parcIterator_Release(&iterator);
+
+    // When expanded by 2 the load factor goes from .75 (3/4) to .375 (3/8), if
+    // we compress by 2 when the load factor is .25 (1/4) the load
+    // factor becomes .5 (1/2).
+    double loadFactor = (double)hashMap->size/(double)hashMap->capacity;
+    if (loadFactor <= (hashMap->minLoadFactor)) {
+        _parcHashMap_Resize(hashMap, hashMap->capacity / 2);
+    }
 
     return result;
 }
@@ -413,6 +466,15 @@ parcHashMap_Remove(PARCHashMap *hashMap, const PARCObject *key)
 PARCHashMap *
 parcHashMap_Put(PARCHashMap *hashMap, const PARCObject *key, const PARCObject *value)
 {
+
+    // When expanded by 2 the load factor goes from .75 (3/4) to .375 (3/8), if
+    // we compress by 2 when the load factor is .25 (1/4) the load
+    // factor becomes .5 (1/2).
+    double loadFactor = (double)hashMap->size/(double)hashMap->capacity;
+    if (loadFactor >= hashMap->maxLoadFactor) {
+        _parcHashMap_Resize(hashMap, hashMap->capacity * 2);
+    }
+
     _PARCHashMapEntry *entry = _parcHashMap_GetEntry(hashMap, key);
 
     if (entry != NULL) {
@@ -426,6 +488,9 @@ parcHashMap_Put(PARCHashMap *hashMap, const PARCObject *key, const PARCObject *v
         PARCHashCode keyHash = parcObject_HashCode(key);
         int bucket = keyHash % hashMap->capacity;
 
+        if (hashMap->buckets[bucket] == NULL) {
+            hashMap->buckets[bucket] = parcLinkedList_Create();
+        }
         parcLinkedList_Append(hashMap->buckets[bucket], entry);
         hashMap->size++;
         _parcHashMapEntry_Release(&entry);
@@ -469,7 +534,14 @@ _parcHashMap_Init(PARCHashMap *map __attribute__((unused)))
     if (state != NULL) {
         state->map = map;
         state->bucket = 0;
-        state->listIterator = parcLinkedList_CreateIterator(map->buckets[0]);
+        state->listIterator = NULL;
+        for (size_t i = 0; i < map->capacity; ++i) {
+            if (map->buckets[i] != NULL) {
+                state->bucket = i;
+                state->listIterator = parcLinkedList_CreateIterator(map->buckets[i]);
+                break;
+            }
+        }
 
         trapOutOfMemoryIf(state->listIterator == NULL, "Cannot create parcLinkedList_CreateIterator");
     }
@@ -480,7 +552,9 @@ _parcHashMap_Init(PARCHashMap *map __attribute__((unused)))
 static bool
 _parcHashMap_Fini(PARCHashMap *map __attribute__((unused)), _PARCHashMapIterator *state __attribute__((unused)))
 {
-    parcIterator_Release(&state->listIterator);
+    if (state->listIterator != NULL) {
+        parcIterator_Release(&state->listIterator);
+    }
     parcMemory_Deallocate(&state);
     return true;
 }
@@ -498,26 +572,30 @@ _parcHashMap_Remove(PARCHashMap *map, _PARCHashMapIterator **statePtr __attribut
 {
     _PARCHashMapIterator *state = *statePtr;
 
-    parcIterator_Remove(state->listIterator);
-    map->size--;
+    if (state->listIterator != NULL) {
+        parcIterator_Remove(state->listIterator);
+        map->size--;
+    }
 }
 
 static bool
 _parcHashMap_HasNext(PARCHashMap *map __attribute__((unused)), _PARCHashMapIterator *state)
 {
     bool result = false;
-
-    if (parcIterator_HasNext(state->listIterator)) {
-        result = true;
-    } else {
-        while (result == false && ++state->bucket < map->capacity) {
-            parcIterator_Release(&state->listIterator);
-            state->listIterator = parcLinkedList_CreateIterator(map->buckets[state->bucket]);
-            trapOutOfMemoryIf(state->listIterator == NULL, "Cannot create parcLinkedList_CreateIterator");
-            result = parcIterator_HasNext(state->listIterator);
+    if (state->listIterator != NULL) {
+        if (parcIterator_HasNext(state->listIterator)) {
+            result = true;
+        } else {
+            while ((result == false) && (++state->bucket < map->capacity)) {
+                if (map->buckets[state->bucket] != NULL) {
+                    parcIterator_Release(&state->listIterator);
+                    state->listIterator = parcLinkedList_CreateIterator(map->buckets[state->bucket]);
+                    trapOutOfMemoryIf(state->listIterator == NULL, "Cannot create parcLinkedList_CreateIterator");
+                    result = parcIterator_HasNext(state->listIterator);
+                }
+            }
         }
     }
-
     return result;
 }
 

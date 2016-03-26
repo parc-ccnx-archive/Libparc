@@ -25,7 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#Glenn Scott <Glenn.Scott@parc.com>#>, Palo Alto Research Center (Xerox PARC)
+ * @author <#Glenn Scott <Glenn.Scott@parc.com>#>,  Palo Alto Research Center (Xerox PARC)
+ * @author Michael Slominski,  Palo Alto Research Center (Xerox PARC)
  * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include "../parc_HashMap.c"
@@ -108,18 +109,13 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateCapacityNominal)
     PARCHashMap *instance = parcHashMap_CreateCapacity(CAPACITY);
     assertNotNull(instance, "Expeced non-null result from parcHashMap_Create();");
     parcObjectTesting_AssertAcquireReleaseContract(parcHashMap_Acquire, instance);
+    assertTrue(instance->capacity == CAPACITY, "Expect capacity to be %zu", CAPACITY);
+    assertTrue(instance->size == 0, "Expect size to be 0");
 
     //Make sure all the buckets exist
-    PARCBuffer *key = parcBuffer_WrapCString("key");
-    PARCBuffer *value = parcBuffer_WrapCString("value");
-    _PARCHashMapEntry *entry = _parcHashMapEntry_Create(key, value);
     for (size_t i = 0; i < CAPACITY; ++i) {
-        parcLinkedList_Append(instance->buckets[i], entry);
-        ++instance->size;
+        assertNull(instance->buckets[i], "Expect the hashmap to be clear");
     }
-    _parcHashMapEntry_Release(&entry);
-    parcBuffer_Release(&key);
-    parcBuffer_Release(&value);
 
     parcHashMap_Release(&instance);
     assertNull(instance, "Expeced null result from parcHashMap_Release();");
@@ -306,6 +302,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Contains_False);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Remove);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Remove_False);
+    LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Resize);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator_HasNext);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator_Next);
@@ -341,7 +338,7 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Put)
     size_t valueReferences = parcObject_GetReferenceCount(value);
 
     parcHashMap_Put(instance, key, value);
-    //M.S. Put now results in a copy of the key.
+    //M.S. Put() now results in a copy of the key.
     //assertTrue(keyReferences + 1 == parcObject_GetReferenceCount(key), "Expected key reference to be incremented by 1.");
     assertTrue(valueReferences + 1 == parcObject_GetReferenceCount(value), "Expected value reference to be incremented by 1.");
 
@@ -352,6 +349,85 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Put)
     parcBuffer_Release(&key);
     parcBuffer_Release(&value);
 
+    parcHashMap_Release(&instance);
+}
+
+LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
+{
+    size_t initialSize = 8;
+    PARCHashMap *instance = parcHashMap_CreateCapacity(initialSize);
+
+    PARCBuffer *key = parcBuffer_Allocate(sizeof(uint32_t));
+    PARCBuffer *value42 = parcBuffer_WrapCString("value42");
+    double maxLoadFactor = instance->maxLoadFactor;
+    size_t testRunSize = initialSize * maxLoadFactor;
+    for (uint32_t i = 0; i < testRunSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000+i);
+        parcHashMap_Put(instance, parcBuffer_Flip(key), value);
+        parcBuffer_Release(&value);
+    }
+    assertTrue(parcHashMap_Size(instance) == testRunSize, "Expect the size to be %zu", testRunSize);
+    assertTrue(instance->capacity == initialSize, "Expect to have the original capacity");
+
+    for (uint32_t i = 0; i < testRunSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000 + i);
+        const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
+        assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
+        parcBuffer_Release(&value);
+    }
+
+
+    parcBuffer_PutUint32(key, 42);
+    parcHashMap_Put(instance, parcBuffer_Flip(key), value42);
+    assertTrue(parcHashMap_Size(instance) == testRunSize+1, "Expect the size to be %zu", testRunSize);
+    assertTrue(instance->capacity == 2*initialSize, "Expect to have the original capacity");
+
+    for (uint32_t i = 0; i < testRunSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000 + i);
+        const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
+        assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
+        parcBuffer_Release(&value);
+    }
+
+    parcBuffer_PutUint32(key, 42);
+    const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
+    assertTrue(parcBuffer_Equals(value42, storedValue), "Expect to get back value42");
+
+    parcBuffer_Release(&value42);
+
+    size_t testCapacity = 1024;
+    testRunSize = ((testCapacity * 3)/4) + 1;
+    for (uint32_t i = 0; i < testRunSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000+i);
+        parcHashMap_Put(instance, parcBuffer_Flip(key), value);
+        parcBuffer_Release(&value);
+    }
+    assertTrue(instance->capacity == (2 * testCapacity),
+               "Expect capacity to be %zu got %zu", (2 * testCapacity), instance->capacity);
+
+    for (uint32_t i = 8; i < testRunSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        parcBuffer_Flip(key);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000+i);
+        const PARCBuffer *storedValue = parcHashMap_Get(instance, key);
+        assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
+        parcBuffer_Release(&value);
+
+        assertTrue(parcHashMap_Remove(instance, key), "Expect Remove to suceed");
+    }
+
+    assertTrue(instance->capacity == 16, "Expect capacity to be 16, got %zu", instance->capacity);
+
+    parcBuffer_Release(&key);
     parcHashMap_Release(&instance);
 }
 
