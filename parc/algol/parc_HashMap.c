@@ -463,6 +463,8 @@ parcHashMap_Remove(PARCHashMap *hashMap, const PARCObject *key)
     return result;
 }
 
+#include <stdio.h>
+
 PARCHashMap *
 parcHashMap_Put(PARCHashMap *hashMap, const PARCObject *key, const PARCObject *value)
 {
@@ -517,6 +519,21 @@ parcHashMap_Size(const PARCHashMap *hashMap)
 {
     parcHashMap_OptionalAssertValid(hashMap);
     return hashMap->size;
+}
+
+double
+parcHashMap_AverageBucketSize(const PARCHashMap *hashMap)
+{
+    size_t usedBuckets = 0;
+    size_t totalLength = 0;
+    for (size_t i = 0; i < hashMap->capacity; ++i) {
+        if (hashMap->buckets[i] != NULL) {
+            ++usedBuckets;
+            totalLength += parcLinkedList_Size(hashMap->buckets[i]);
+        }
+    }
+
+    return (double)totalLength/(double)usedBuckets;
 }
 
 typedef struct {

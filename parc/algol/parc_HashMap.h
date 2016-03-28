@@ -552,6 +552,19 @@ bool parcHashMap_Remove(PARCHashMap *hashMap, const PARCObject *key);
  */
 size_t parcHashMap_Size(const PARCHashMap *hashMap);
 
+
+/**
+ * Computes the average number of elements per bucket. This is the the total
+ * length of all buckets divided by the number of occupied buckets. A high number
+ * means there is something wrong with the hash function being use by the keys.
+ *
+ * @param [in] hashMap A pointer ot a valid PARCHashMap instance.
+ *
+ * @return A the average length of buckets in the hashMap
+ */
+double parcHashMap_AverageBucketSize(const PARCHashMap *hashMap);
+
+
 /**
  * <#One Line Description#>
  *
