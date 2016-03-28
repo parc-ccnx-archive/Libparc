@@ -342,7 +342,12 @@ parcObject_IsValid(const PARCObject *object)
 static inline void
 _parcObjectHeader_AssertValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
+    trapIllegalValueIf(header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER, "PARCObject@%p is corrupt.", object);
     trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
+    trapIllegalValueIf(header->descriptor == NULL, "PARCObject@%p descriptor cannot be NULL.", object);
+    if (header->descriptor->isLockable) {
+        trapIllegalValueIf(header->locking == NULL, "PARCObject@%p is corrupt. Is Lockable but no locking structure", object);
+    }
 }
 
 static inline void
@@ -531,6 +536,23 @@ _parcObject_InitializeLocking(_PARCObjectLocking *locking)
     }
 }
 
+static inline _PARCObjectHeader *
+_parcObjectHeader_Init(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
+{
+    header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
+    header->references = 1;
+    header->descriptor = (PARCObjectDescriptor *) descriptor;
+    
+    if (header->descriptor->isLockable) {
+        header->locking = &header->lock;
+        _parcObject_InitializeLocking(header->locking);
+    } else {
+        header->locking = NULL;
+    }
+    
+    return header;
+}
+
 PARCObject *
 parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
 {
@@ -548,14 +570,8 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
     // This abuts the prefix to the user accessible memory,
     // it does not start at the beginning of the aligned prefix region.
     _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
-    header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
-    header->references = 1;
-    header->descriptor = (PARCObjectDescriptor *) descriptor;
 
-    if (header->descriptor->isLockable) {
-        header->locking = &header->lock;
-        _parcObject_InitializeLocking(header->locking);
-    }
+    _parcObjectHeader_Init(header, descriptor);
 
     errno = 0;
     void *result = _pointerAdd(origin, prefixLength);
@@ -587,7 +603,6 @@ parcObject_Release(PARCObject **objectPointer)
         if (_parcObjectType_Destructor(header->descriptor, objectPointer)) {
             if (header->locking != NULL) {
                 pthread_cond_destroy(&header->locking->notification);
-//                pthread_cond_destroy(&header->lock.notification);
             }
             void *origin = _parcObject_Origin(object);
             parcMemory_Deallocate(&origin);
@@ -611,10 +626,21 @@ parcObject_GetReferenceCount(const PARCObject *object)
     return header->references;
 }
 
-PARCObjectDescriptor *
+const PARCObjectDescriptor *
+parcObject_GetDescriptor(const PARCObject *object)
+{
+    parcObject_OptionalAssertValid(object);
+    
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    return header->descriptor;
+}
+
+const PARCObjectDescriptor *
 parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *descriptor)
 {
     parcObject_OptionalAssertValid(object);
+    assertNotNull(descriptor, "PARCObjectDescriptor cannot be NULL.");
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
@@ -679,7 +705,6 @@ parcObject_Unlock(const PARCObject *object)
         _parcObjectHeader_AssertValid(header, object);
         
         if (object != NULL) {            
-//            _PARCObjectLocking *locking = &header->lock;
             header->locking->locker = (pthread_t) NULL;
             result = (pthread_mutex_unlock(&header->locking->lock) == 0);
             

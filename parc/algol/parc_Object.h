@@ -457,16 +457,23 @@ PARCReferenceCount parcObject_GetReferenceCount(const PARCObject *object);
 void parcObject_Display(const PARCObject *object, const int indentation);
 
 /**
- * <#One Line Description#>
+ * Get the `PARCObjectDescriptor` of the given `PARCObject`.
  *
- * <#Paragraphs Of Explanation#>
+ * @param [in] object A pointer to a valid `PARCObject` instance
  *
- * @param [in] object A pointer to a valid PARCObject instance
- * @param [in] objectType A pointer to a valid PARCObjectDescriptor instance
- *
- * @return The previous value of the given PARCObject's PARCObjectDescriptor.
+ * @return A pointer to the given PARCObject's `PARCObjectDescriptor`.
  */
-PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *objectType);
+const PARCObjectDescriptor * parcObject_GetDescriptor(const PARCObject *object);
+
+/**
+ * Set the `PARCObjectDescriptor` of the given `PARCObject`.
+ *
+ * @param [in] object A pointer to a valid `PARCObject` instance
+ * @param [in] objectType A pointer to a valid `PARCObjectDescriptor` instance
+ *
+ * @return The previous value of the given PARCObject's `PARCObjectDescriptor`.
+ */
+const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *objectType);
 
 /**
  * @def parcObject_MetaInitialize
