@@ -360,6 +360,8 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
     PARCBuffer *key = parcBuffer_Allocate(sizeof(uint32_t));
     PARCBuffer *value42 = parcBuffer_WrapCString("value42");
     double maxLoadFactor = instance->maxLoadFactor;
+
+    // Load a hash map up to its load-factor
     size_t testRunSize = initialSize * maxLoadFactor;
     for (uint32_t i = 0; i < testRunSize; ++i) {
         parcBuffer_PutUint32(key, i);
@@ -371,6 +373,7 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
     assertTrue(parcHashMap_Size(instance) == testRunSize, "Expect the size to be %zu", testRunSize);
     assertTrue(instance->capacity == initialSize, "Expect to have the original capacity");
 
+    // Test for expected values
     for (uint32_t i = 0; i < testRunSize; ++i) {
         parcBuffer_PutUint32(key, i);
         PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
@@ -380,12 +383,13 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
         parcBuffer_Release(&value);
     }
 
-
+    // Add one more item to the the hash map, this should trigger an expansion
     parcBuffer_PutUint32(key, 42);
     parcHashMap_Put(instance, parcBuffer_Flip(key), value42);
     assertTrue(parcHashMap_Size(instance) == testRunSize+1, "Expect the size to be %zu", testRunSize);
     assertTrue(instance->capacity == 2*initialSize, "Expect to have the original capacity");
 
+    // Re-test value look ups to make sure the new hash map still maps correctly
     for (uint32_t i = 0; i < testRunSize; ++i) {
         parcBuffer_PutUint32(key, i);
         PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
@@ -394,15 +398,15 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
         assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
         parcBuffer_Release(&value);
     }
-
     parcBuffer_PutUint32(key, 42);
     const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
     assertTrue(parcBuffer_Equals(value42, storedValue), "Expect to get back value42");
-
     parcBuffer_Release(&value42);
 
+    // Now test multiple expansions to make sure they happened are result in a valid hash map
     size_t testCapacity = 1024;
-    testRunSize = ((testCapacity * 3)/4) + 1;
+    // If we load up to (maxLoadFactor * testCapacity) + 1, the capacity should expand to 2 * testCapacity
+    testRunSize = (testCapacity * maxLoadFactor) + 1;
     for (uint32_t i = 0; i < testRunSize; ++i) {
         parcBuffer_PutUint32(key, i);
         PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
@@ -413,7 +417,14 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
     assertTrue(instance->capacity == (2 * testCapacity),
                "Expect capacity to be %zu got %zu", (2 * testCapacity), instance->capacity);
 
-    for (uint32_t i = 8; i < testRunSize; ++i) {
+    // Now test multiple contractions.
+    // If we remove all elements from index "smallSize" (eg. 8) up we will be left with a map of size smallSize,
+    // the map capacity should be contracting and, because the minimum load factor is 0.25 and the contraction
+    // is a divide by 2, the last contraction should be from capacity of "smallSize * 4" (32) to one
+    // of "smallSize * 2" (16) when size goes from "smallSize +1" (9) to "smallSize" (8).
+    //
+    size_t smallSize = 8;
+    for (uint32_t i = smallSize; i < testRunSize; ++i) {
         parcBuffer_PutUint32(key, i);
         parcBuffer_Flip(key);
         PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
@@ -424,8 +435,20 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
 
         assertTrue(parcHashMap_Remove(instance, key), "Expect Remove to suceed");
     }
+    assertTrue(instance->size == smallSize,
+               "Expect the hash map to have size %zu, got %zu", smallSize, instance->size)
+    assertTrue(instance->capacity == (smallSize * 2),
+               "Expect capacity to be %zu, got %zu", (smallSize * 2), instance->capacity);
 
-    assertTrue(instance->capacity == 16, "Expect capacity to be 16, got %zu", instance->capacity);
+    // Re-test value look ups to make sure the new hash map still maps correctly
+    for (uint32_t i = 0; i < smallSize; ++i) {
+        parcBuffer_PutUint32(key, i);
+        PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
+        parcBuffer_PutUint32(value, 1000 + i);
+        const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
+        assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
+        parcBuffer_Release(&value);
+    }
 
     parcBuffer_Release(&key);
     parcHashMap_Release(&instance);
