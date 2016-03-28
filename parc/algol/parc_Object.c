@@ -650,7 +650,7 @@ parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *descrip
     return result;
 }
 
-PARCObjectDescriptor *
+const PARCObjectDescriptor *
 parcObjectDescriptor_Create(const char *name,
                             size_t objectSize,
                             unsigned int objectAlignment,
@@ -700,15 +700,19 @@ bool
 parcObject_Unlock(const PARCObject *object)
 {
     bool result = false;
+    
     _PARCObjectHeader *header = _parcObject_Header(object);
     if (header->references > 0) {
         _parcObjectHeader_AssertValid(header, object);
         
-        if (object != NULL) {            
-            header->locking->locker = (pthread_t) NULL;
-            result = (pthread_mutex_unlock(&header->locking->lock) == 0);
-            
-            assertTrue(result, "Attempted to unlock an unowned lock.");
+        if (object != NULL) {
+            _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
+            if (locking != NULL) {
+                locking->locker = (pthread_t) NULL;
+                result = (pthread_mutex_unlock(&locking->lock) == 0);
+                
+                assertTrue(result, "Attempted to unlock an unowned lock.");
+            }
         }
     }
     return result;
@@ -721,16 +725,19 @@ parcObject_Lock(const PARCObject *object)
     
     bool result = false;
     
-    if (object != NULL) {        
-        parcObject_OptionalAssertValid(object);
-        
+    parcObject_OptionalAssertValid(object);
+    
+    if (object != NULL) {
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
-        trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
-        
-        errno = pthread_mutex_lock(&locking->lock);
-        if (errno == 0) {
-            locking->locker = pthread_self();
-            result = true;
+        if (locking != NULL) {
+           
+            errno = pthread_mutex_lock(&locking->lock);
+            trapCannotObtainLockIf(errno == EDEADLK, "Recursive locks are not supported.");
+
+            if (errno == 0) {
+                locking->locker = pthread_self();
+                result = true;
+            }
         }
     }
     

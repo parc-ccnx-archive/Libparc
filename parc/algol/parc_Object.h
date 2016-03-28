@@ -502,6 +502,8 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
  * Create an allocated instance of `PARCObjectDescriptor`.
  *
  * @param [in] name    A nul-terminated, C string containing the name of the object descriptor.
+ * @param [in] objectSize The number of bytes necessary to contain the object.
+ * @param [in] objectAlignment The alignment boundary necessary for the object, a power of 2 greater than or equal to `sizeof(void *)`
  * @param [in] destructor The callback function to call when the last `parcObject_Release()` is invoked (replaces @p destroy).
  * @param [in] release The callback function to call when `parcObject_Release()` is invoked.
  * @param [in] copy The callback function to call when parcObject_Copy() is invoked.
@@ -516,7 +518,7 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
  * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
  * @return non-NULL Successfully created the implementation
  */
-PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
+const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                   size_t objectSize,
                                                   unsigned int objectAligment,
                                                   bool isLockable,
@@ -640,7 +642,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 #define parcObject_Override(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = {          \
+    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
         .objectSize = sizeof(_subtype), \
         .objectAlignment = sizeof(void *), \
         .destroy = NULL,    \

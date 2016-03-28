@@ -892,8 +892,9 @@ LONGBOW_TEST_CASE(Subclasses, parcObject_Copy)
 LONGBOW_TEST_FIXTURE(Locking)
 {
     LONGBOW_RUN_TEST_CASE(Locking, parcObject_TryLock_Unlock);
-    LONGBOW_RUN_TEST_CASE(Locking, parcObject_TryLock_AlreadyLockedSameThread);
     LONGBOW_RUN_TEST_CASE(Locking, parcObject_Lock_Unlock);
+    LONGBOW_RUN_TEST_CASE(Locking, parcObject_TryLock_AlreadyLockedSameThread);
+    LONGBOW_RUN_TEST_CASE(Locking, parcObject_Lock_AlreadyLocked);    
 }
 static uint32_t initialAllocations;
 
