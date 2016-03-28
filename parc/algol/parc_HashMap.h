@@ -562,7 +562,7 @@ size_t parcHashMap_Size(const PARCHashMap *hashMap);
  *
  * @return A the average length of buckets in the hashMap
  */
-double parcHashMap_AverageBucketSize(const PARCHashMap *hashMap);
+double parcHashMap_GetAverageBucketSize(const PARCHashMap *hashMap);
 
 
 /**

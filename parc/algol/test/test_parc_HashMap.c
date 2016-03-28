@@ -303,7 +303,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Remove);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Remove_False);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_Resize);
-    LONGBOW_RUN_TEST_CASE(Global, parcHashMap_AverageBucketSize);
+    LONGBOW_RUN_TEST_CASE(Global, parcHashMap_GetAverageBucketSize);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator_HasNext);
     LONGBOW_RUN_TEST_CASE(Global, parcHashMap_CreateValueIterator_Next);
@@ -353,7 +353,7 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Put)
     parcHashMap_Release(&instance);
 }
 
-LONGBOW_TEST_CASE(Global, parcHashMap_AverageBucketSize) {
+LONGBOW_TEST_CASE(Global, parcHashMap_GetAverageBucketSize) {
     size_t minimumSize = 100;
     PARCHashMap *instance = parcHashMap_CreateCapacity(minimumSize);
 
@@ -369,7 +369,7 @@ LONGBOW_TEST_CASE(Global, parcHashMap_AverageBucketSize) {
         parcBuffer_PutUint32(value, 1000 + i);
         parcHashMap_Put(instance, parcBuffer_Flip(key), value);
         parcBuffer_Release(&value);
-        double currentABS = parcHashMap_AverageBucketSize(instance);
+        double currentABS = parcHashMap_GetAverageBucketSize(instance);
         assertTrue (currentABS >= previousABS, "Expect average bucket size to increase monotonically");
         assertTrue (currentABS < 2.0, "Expect average bucket size to not exceed 2.0");
         previousABS = currentABS;
@@ -425,12 +425,12 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
         assertTrue(parcBuffer_Equals(value, storedValue), "Expect looked up values to match");
         parcBuffer_Release(&value);
     }
-    double averageBucketSize = parcHashMap_AverageBucketSize(instance);
+    double averageBucketSize = parcHashMap_GetAverageBucketSize(instance);
     parcBuffer_PutUint32(key, 42);
     const PARCBuffer *storedValue = parcHashMap_Get(instance, parcBuffer_Flip(key));
     assertTrue(parcBuffer_Equals(value42, storedValue), "Expect to get back value42");
     parcBuffer_Release(&value42);
-    assertTrue(parcHashMap_AverageBucketSize(instance) <= averageBucketSize,
+    assertTrue(parcHashMap_GetAverageBucketSize(instance) <= averageBucketSize,
                "Expect the average bucket size to be less then it was");
 
     // Now test multiple expansions to make sure they happened are result in a valid hash map
@@ -444,12 +444,12 @@ LONGBOW_TEST_CASE(Global, parcHashMap_Resize)
         parcHashMap_Put(instance, parcBuffer_Flip(key), value);
         parcBuffer_Release(&value);
         if (i == (testRunSize - 2)) {
-            averageBucketSize = parcHashMap_AverageBucketSize(instance);
+            averageBucketSize = parcHashMap_GetAverageBucketSize(instance);
         }
     }
     assertTrue(instance->capacity == (2 * testCapacity),
                "Expect capacity to be %zu got %zu", (2 * testCapacity), instance->capacity);
-    assertTrue(parcHashMap_AverageBucketSize(instance) < averageBucketSize,
+    assertTrue(parcHashMap_GetAverageBucketSize(instance) < averageBucketSize,
                "Expect the average bucket size to be less then it was");
 
     // Now test multiple contractions.
