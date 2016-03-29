@@ -213,9 +213,9 @@ static inline PARCObject *
 _parcLinkedListNode_Delete(PARCLinkedList *list, _PARCLinkedListNode *node)
 {
     PARCObject *result = node->object;
-    
+
     list->size--;
-    
+
     if (node == list->head) {
         list->head = node->next;
     }
@@ -228,9 +228,9 @@ _parcLinkedListNode_Delete(PARCLinkedList *list, _PARCLinkedListNode *node)
     if (node->next) {
         node->next->previous = node->previous;
     }
-    
+
     parcMemory_Deallocate((void **) &node);
-    
+
     return result;
 }
 
@@ -338,7 +338,6 @@ parcLinkedList_IsValid(const PARCLinkedList *list)
                         result = true;
                     }
                 }
-
             }
         }
     }
@@ -450,7 +449,7 @@ PARCObject *
 parcLinkedList_RemoveFirst(PARCLinkedList *list)
 {
     PARCObject *result = NULL;
-    
+
     if (list->head != NULL) {
         _PARCLinkedListNode *node = list->head;
         result = _parcLinkedListNode_Delete(list, node);
@@ -480,16 +479,16 @@ parcLinkedList_Remove(PARCLinkedList *list, const PARCObject *element)
 {
     assertTrue(element != NULL, "Element must not be NULL");
     bool result = false;
-    
+
     _PARCLinkedListNode *node = _parcLinkedListNode_getByValue(list, element);
     if (node != NULL) {
         PARCObject *e = _parcLinkedListNode_Delete(list, node);
         parcObject_Release(&e);
         result = true;
     }
-    
+
     parcLinkedList_OptionalAssertValid(list);
-    
+
     return result;
 }
 
@@ -497,12 +496,12 @@ PARCObject *
 parcLinkedList_RemoveAtIndex(PARCLinkedList *list, size_t index)
 {
     PARCObject *result = NULL;
-    
+
     _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
     if (node != NULL) {
         result = _parcLinkedListNode_Delete(list, node);
     }
-    
+
     return result;
 }
 
@@ -591,7 +590,7 @@ parcLinkedList_InsertAtIndex(PARCLinkedList *list, size_t index, const PARCObjec
         while (index-- && node->next != NULL) {
             node = node->next;
         }
-         _PARCLinkedListNode *newNode = _parcLinkedListNode_Create(element, node->previous, node);
+        _PARCLinkedListNode *newNode = _parcLinkedListNode_Create(element, node->previous, node);
 
         node->previous->next = newNode;
         node->previous = newNode;
@@ -606,11 +605,11 @@ PARCObject *
 parcLinkedList_SetAtIndex(PARCLinkedList *list, size_t index, PARCObject *element)
 {
     PARCObject *result = NULL;
-    
+
     if (index > (parcLinkedList_Size(list) - 1)) {
         trapOutOfBounds(index, "[0, %zd]", parcLinkedList_Size(list) - 1);
     }
-    
+
     _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
     if (node != NULL) {
         result = node->object;
@@ -625,7 +624,7 @@ parcLinkedList_GetAtIndex(const PARCLinkedList *list, size_t index)
     if (index > (parcLinkedList_Size(list) - 1)) {
         trapOutOfBounds(index, "[0, %zd]", parcLinkedList_Size(list) - 1);
     }
-    
+
     _PARCLinkedListNode *node = _parcLinkedListNode_getByIndex(list, index);
     return (node == NULL) ? NULL : node->object;
 }

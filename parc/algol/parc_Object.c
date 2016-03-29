@@ -133,7 +133,7 @@ static inline bool
 _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     bool result = true;
-    
+
     if ((intptr_t) header >= (intptr_t) object) {
         result = false;
     } else if (header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER) {
@@ -141,7 +141,7 @@ _parcObjectHeader_IsValid(const _PARCObjectHeader *header, const PARCObject *obj
     } else if (header->references == 0) {
         result = false;
     }
-    
+
     return result;
 }
 
@@ -196,7 +196,7 @@ _parcObject_ResolveToJSON(const PARCObjectDescriptor *descriptor)
 }
 
 static bool
-_parcObjectType_Destructor(const PARCObjectDescriptor *descriptor, PARCObject **object)
+_parcObject_Destructor(const PARCObjectDescriptor *descriptor, PARCObject **object)
 {
     if (descriptor != NULL) {
         if (descriptor->destructor != NULL) {
@@ -408,13 +408,13 @@ bool
 parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *descriptor)
 {
     bool result = false;
-    
+
     if (object != NULL) {
         _PARCObjectHeader *header = _parcObject_Header(object);
-        
+
         if (_parcObjectHeader_IsValid(header, object)) {
             PARCObjectDescriptor *d = _parcObject_Descriptor(object);
-            
+
             while (result == false) {
                 if (d == descriptor) {
                     result = true;
@@ -423,7 +423,7 @@ parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *de
             }
         }
     }
-    
+
     return result;
 }
 
@@ -528,14 +528,14 @@ _parcObjectHeader_Init(_PARCObjectHeader *header, const PARCObjectDescriptor *de
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
-    
+
     if (header->descriptor->isLockable) {
         header->locking = &header->lock;
         _parcObject_InitializeLocking(header->locking);
     } else {
         header->locking = NULL;
     }
-    
+
     return header;
 }
 
@@ -586,7 +586,7 @@ parcObject_Release(PARCObject **objectPointer)
     PARCReferenceCount result = parcAtomicUint64_Decrement(&header->references);
 
     if (result == 0) {
-        if (_parcObjectType_Destructor(header->descriptor, objectPointer)) {
+        if (_parcObject_Destructor(header->descriptor, objectPointer)) {
             if (header->locking != NULL) {
                 pthread_cond_destroy(&header->locking->notification);
             }
@@ -616,9 +616,9 @@ const PARCObjectDescriptor *
 parcObject_GetDescriptor(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
-    
+
     _PARCObjectHeader *header = _parcObject_Header(object);
-    
+
     return header->descriptor;
 }
 
@@ -686,19 +686,19 @@ bool
 parcObject_Unlock(const PARCObject *object)
 {
     bool result = false;
-    
+
     parcObject_OptionalAssertValid(object);
-    
+
     _PARCObjectHeader *header = _parcObject_Header(object);
     if (header->references > 0) {
         _parcObjectHeader_AssertValid(header, object);
-        
+
         if (object != NULL) {
             _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
             if (locking != NULL) {
                 locking->locker = (pthread_t) NULL;
                 result = (pthread_mutex_unlock(&locking->lock) == 0);
-                
+
                 assertTrue(result, "Attempted to unlock an unowned lock.");
             }
         }
@@ -710,16 +710,17 @@ bool
 parcObject_Lock(const PARCObject *object)
 {
     extern int errno;
-    
+
     bool result = false;
-    
+
     parcObject_OptionalAssertValid(object);
-    
+
     if (object != NULL) {
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         if (locking != NULL) {
+            trapCannotObtainLockIf(pthread_equal(locking->locker, pthread_self()), "Recursive locks are not supported.");
+
             errno = pthread_mutex_lock(&locking->lock);
-            trapCannotObtainLockIf(errno == EDEADLK, "Recursive locks are not supported.");
 
             if (errno == 0) {
                 locking->locker = pthread_self();
@@ -727,7 +728,7 @@ parcObject_Lock(const PARCObject *object)
             }
         }
     }
-    
+
     return result;
 }
 
@@ -735,23 +736,23 @@ bool
 parcObject_TryLock(const PARCObject *object)
 {
     bool result = false;
-    
+
     if (object != NULL) {
         parcObject_OptionalAssertValid(object);
-        
+
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         if (locking != NULL) {
-            trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
-            
+            trapCannotObtainLockIf(pthread_equal(locking->locker, pthread_self()), "Recursive locks are not supported.");
+
             int lockStatus = pthread_mutex_trylock(&locking->lock);
-           
+
             if (lockStatus == 0) {
                 result = true;
                 locking->locker = pthread_self();
             }
         }
     }
-    
+
     return result;
 }
 
@@ -777,16 +778,16 @@ bool
 parcObject_WaitUntil(const PARCObject *object, const struct timespec *time)
 {
     parcObject_OptionalAssertValid(object);
-    
+
     bool result = true;
-    
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     int waitResult = pthread_cond_timedwait(&locking->notification, &locking->lock, time);
-    
+
     if (waitResult == ETIMEDOUT) {
         result = false;
     }
-    
+
     return result;
 }
 
@@ -794,9 +795,9 @@ bool
 parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
 {
     parcObject_OptionalAssertValid(object);
-    
+
     bool result = true;
-    
+
     struct timeval now;
     gettimeofday(&now, NULL);
 
@@ -808,15 +809,15 @@ parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
     time.tv_nsec += nanoSeconds;
     time.tv_sec += time.tv_nsec / 1000000000;
     time.tv_nsec = time.tv_nsec % 1000000000;
-    
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
-    
+
     int waitResult = pthread_cond_timedwait(&locking->notification, &locking->lock, &time);
-    
+
     if (waitResult == ETIMEDOUT) {
         result = false;
     }
-    
+
     return result;
 }
 
@@ -834,8 +835,8 @@ void
 parcObject_NotifyAll(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
-    
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
-        
+
     pthread_cond_broadcast(&locking->notification);
 }

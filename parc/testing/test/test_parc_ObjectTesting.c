@@ -376,7 +376,7 @@ typedef struct {
     PARCObjectDescriptor *descriptor;
 } TestData_t;
 
-static PARCObjectDescriptor *
+static const PARCObjectDescriptor *
 _copyDescriptor(const PARCObjectDescriptor *orig)
 {
     return parcObjectDescriptor_Create("Name",
@@ -402,8 +402,8 @@ LONGBOW_TEST_FIXTURE_SETUP(Conformance)
     data->lesser = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8 }, 10));
     data->greater = parcBuffer_Flip(parcBuffer_CreateFromArray((uint8_t [10]) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }, 10));
 
-    PARCObjectDescriptor *d = parcObject_GetDescriptor(data->inst1);
-    data->descriptor = _copyDescriptor(d);
+    PARCObjectDescriptor *d = (PARCObjectDescriptor *) parcObject_GetDescriptor(data->inst1);
+    data->descriptor = (PARCObjectDescriptor *) _copyDescriptor(d);
 
     longBowTestCase_SetClipBoardData(testCase, data);
 

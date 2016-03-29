@@ -173,7 +173,7 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_ToJSON)
 
     PARCJSON *json = parcRandomAccessFile_ToJSON(instance);
 
-    PARCJSONPair *pair = parcJSON_GetPairByName(json, "fname");
+    const PARCJSONPair *pair = parcJSON_GetPairByName(json, "fname");
     PARCJSONValue *value = parcJSONPair_GetValue(pair);
     PARCBuffer *buffer = parcJSONValue_GetString(value);
 

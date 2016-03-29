@@ -505,7 +505,7 @@ LONGBOW_TEST_CASE(Global, parcObject_Compare_Default)
 
 LONGBOW_TEST_CASE(Global, parcObject_Compare_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override",
                                     sizeof(struct timeval), sizeof(void*),
                                     true,
@@ -529,7 +529,7 @@ LONGBOW_TEST_CASE(Global, parcObject_Compare_NoOverride)
 
     parcObject_Release((PARCObject *) &time1);
     parcObject_Release((PARCObject *) &time2);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_Compare)
@@ -596,7 +596,7 @@ LONGBOW_TEST_CASE(Global, parcObject_Equals_Default)
 
 LONGBOW_TEST_CASE(Global, parcObject_Equals_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override", sizeof(struct timeval), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
 
@@ -631,7 +631,7 @@ LONGBOW_TEST_CASE(Global, parcObject_Equals_NoOverride)
     parcObject_Release((PARCObject *) &z);
     parcObject_Release((PARCObject *) &unequal1);
     parcObject_Release((PARCObject *) &unequal2);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_Equals)
@@ -682,7 +682,7 @@ LONGBOW_TEST_CASE(Global, parcObject_HashCode_Default)
 
 LONGBOW_TEST_CASE(Global, parcObject_HashCode_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override", sizeof(struct timeval), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
     struct timeval *time = parcObject_CreateAndClearInstanceImpl(descriptor);
@@ -696,7 +696,7 @@ LONGBOW_TEST_CASE(Global, parcObject_HashCode_NoOverride)
     assertTrue(hashCode == expected, "Hash codes do not match. Got %" PRIPARCHashCode ", expected %" PRIPARCHashCode ".", hashCode, expected);
 
     parcObject_Release((PARCObject *) &time);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_HashCode)
@@ -732,7 +732,7 @@ LONGBOW_TEST_CASE(Global, parcObject_ToString_Default)
 
 LONGBOW_TEST_CASE(Global, parcObject_ToString_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override", sizeof(struct timeval), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
     _DummyObject *dummy = parcObject_CreateAndClearInstanceImpl(descriptor);
@@ -741,7 +741,7 @@ LONGBOW_TEST_CASE(Global, parcObject_ToString_NoOverride)
 
     parcMemory_Deallocate((void **) &strRep);
     parcObject_Release((PARCObject **) &dummy);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_ToJSON_Default)
@@ -783,7 +783,7 @@ LONGBOW_TEST_CASE(Global, parcObject_ToJSON)
 
 LONGBOW_TEST_CASE(Global, parcObject_ToJSON_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override", sizeof(struct timeval), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
 
@@ -806,7 +806,7 @@ LONGBOW_TEST_CASE(Global, parcObject_ToJSON_NoOverride)
 
     parcJSON_Release(&json);
     parcObject_Release(&memory);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_GetReferenceCount)
@@ -826,14 +826,14 @@ LONGBOW_TEST_CASE(Global, parcObject_Display_Default)
 
 LONGBOW_TEST_CASE(Global, parcObject_Display_NoOverride)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("override", sizeof(struct timeval), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
 
     _DummyObject *dummy = parcObject_CreateAndClearInstanceImpl(descriptor);
     parcObject_Display(dummy, 0);
     parcObject_Release((PARCObject **) &dummy);
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Global, parcObject_Display)
@@ -869,7 +869,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Subclasses)
 
 LONGBOW_TEST_CASE(Subclasses, parcObject_Copy)
 {
-    PARCObjectDescriptor *objectType =
+    const PARCObjectDescriptor *objectType =
         parcObjectDescriptor_Create("Dummy", sizeof(_DummyObject), sizeof(void*), true,
                                     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &PARCObject_Descriptor);
 
@@ -885,9 +885,8 @@ LONGBOW_TEST_CASE(Subclasses, parcObject_Copy)
 
     parcObject_Release((PARCObject **) &dummy);
     parcObject_Release((PARCObject **) &dummy2);
-    parcMemory_Deallocate((void **) &objectType);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &objectType);
 }
-
 
 LONGBOW_TEST_FIXTURE(Locking)
 {
@@ -1312,56 +1311,58 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Meta)
 
 LONGBOW_TEST_CASE(Meta, parcObjectDescriptor_Create)
 {
-    PARCObjectDescriptor *interface = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*),
-                                                                  true,
-                                                                  _meta_destructor_true, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL,
-                                                                  &PARCObject_Descriptor);
-
+    const PARCObjectDescriptor *interface = parcObjectDescriptor_Create("Meta",
+                                                                        sizeof(struct timeval), sizeof(void*),
+                                                                        true,
+                                                                        _meta_destructor_true, NULL, _meta_copy, _meta_toString,
+                                                                        _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL,
+                                                                        &PARCObject_Descriptor);
+    
     assertNotNull(interface, "Expected interface instance to be allocated correctly.");
-
-    parcObjectDescriptor_Destroy(&interface);
+    
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &interface);
     assertNull(interface, "Expected parcObjectDescriptor_Destroy to NULL the input pointer");
 }
 
 LONGBOW_TEST_CASE(Meta, _metaDestructor_True)
 {
-    PARCObjectDescriptor *interface =
+    const PARCObjectDescriptor *interface =
         parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                     _meta_destructor_true, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL,
                                     &PARCObject_Descriptor);
     _DummyObject *data = longBowTestCase_GetClipBoardData(testCase);
-    bool actual = _parcObjectType_Destructor(interface, (PARCObject **) &data);
+    bool actual = _parcObject_Destructor(interface, (PARCObject **) &data);
 
     assertTrue(actual, "Expected destructor to return true.");
 
-    parcObjectDescriptor_Destroy(&interface);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &interface);
 }
 
 LONGBOW_TEST_CASE(Meta, _metaDestructor_False)
 {
-    PARCObjectDescriptor *descriptor =
+    const PARCObjectDescriptor *descriptor =
         parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                     _meta_destructor_false, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL,
                                     &PARCObject_Descriptor);
     _DummyObject *data = longBowTestCase_GetClipBoardData(testCase);
-    bool actual = _parcObjectType_Destructor(descriptor, (PARCObject **) &data);
+    bool actual = _parcObject_Destructor(descriptor, (PARCObject **) &data);
 
     assertNull(data, "Expected destructor function to have been called to nullify the reference.");
     assertFalse(actual, "Expected destructor to return false.");
 
-    parcObjectDescriptor_Destroy(&descriptor);
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
 LONGBOW_TEST_CASE(Meta, _metaDestructor_None)
 {
-    PARCObjectDescriptor *interface = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
+    const PARCObjectDescriptor *interface = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                                                   NULL, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL, &PARCObject_Descriptor);
     _DummyObject *data = longBowTestCase_GetClipBoardData(testCase);
-    _parcObjectType_Destructor(interface, (void **) &data);
+    _parcObject_Destructor(interface, (void **) &data);
 
     assertNotNull(data, "Expected destructor function to have been called to nullify the reference.");
-
-    parcMemory_Deallocate((void **) &interface);
+    
+    parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &interface);
 }
 
 int
