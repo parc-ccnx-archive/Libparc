@@ -554,15 +554,20 @@ size_t parcHashMap_Size(const PARCHashMap *hashMap);
 
 
 /**
- * Computes the average number of elements per bucket. This is the the total
- * length of all buckets divided by the number of occupied buckets. A high number
- * means there is something wrong with the hash function being use by the keys.
+ * Computes the standard deviation of the PARCHashMap's bucket sizes from a value of 1.0
+ * (as opposed to the mean) and weighs the result by in inverse of the current load
+ * factor. The deviation from 1.0 is used because the hash-map's max load factor is < 1.0
+ * and thus the ideal average chain-length is 1.0.
  *
- * @param [in] hashMap A pointer ot a valid PARCHashMap instance.
+ * A result of 0.0 equates to an idea distribution, a result of ~1.0 should represent
+ * a fairly normal or random distribution, and a result > 1.5 or so implies some amount
+ * of undesirable clumping may be happening.
  *
- * @return A the average length of buckets in the hashMap
+ * @param [in] hashMap A pointer to a valid PARCHashMap instance.
+ *
+ * @return The clustering number
  */
-double parcHashMap_GetAverageBucketSize(const PARCHashMap *hashMap);
+double parcHashMap_GetClusteringNumber(const PARCHashMap *hashMap);
 
 
 /**

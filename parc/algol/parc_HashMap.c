@@ -38,6 +38,8 @@
 #include "parc_HashMap.h"
 #include "parc_LinkedList.h"
 
+#include <math.h>
+
 static const uint32_t DEFAULT_CAPACITY = 43;
 
 typedef struct PARCHashMapEntry {
@@ -522,18 +524,38 @@ parcHashMap_Size(const PARCHashMap *hashMap)
 }
 
 double
-parcHashMap_GetAverageBucketSize(const PARCHashMap *hashMap)
+parcHashMap_GetClusteringNumber(const PARCHashMap *hashMap)
 {
+    // This function compute the standard deviation of the chain-lengths
+    // from a value of 1.0 (as opposed to the mean) and weights the
+    // result by in inverse of the current load factor. The deviation
+    // from 1.0 is used because the hashmap's max load factor is < 1.0 and
+    // thus the ideal average chain-length is 1.0
+    //
+    // A result of 0.0 equates to an idea distribution, a result of ~1.0 should
+    // represent a fairly normal or random distribution, and a result > 1.5 or so
+    // implies some amount of undesirable clumping may be happening.
+
     size_t usedBuckets = 0;
     size_t totalLength = 0;
+    double variance = 0;
+
+    // Compute the variance vs 1.0
     for (size_t i = 0; i < hashMap->capacity; ++i) {
         if (hashMap->buckets[i] != NULL) {
             ++usedBuckets;
-            totalLength += parcLinkedList_Size(hashMap->buckets[i]);
+            size_t bucketSize = parcLinkedList_Size(hashMap->buckets[i]);
+            totalLength += bucketSize;
+            variance += (bucketSize - 1) * (bucketSize - 1); //Variance relative to 1
         }
     }
+    variance /= ((double)totalLength);
 
-    return (double)totalLength/(double)usedBuckets;
+    // Compute the standard deviation
+    double standardDeviation = sqrt(variance);
+
+    // Weight the standard deviation by the inverse of the current load factor
+    return standardDeviation * ((double)hashMap->capacity/(double)totalLength);
 }
 
 typedef struct {
