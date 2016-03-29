@@ -51,13 +51,8 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
-//#define PEROBJECTLOCKATTRIBUTES 1
-
 typedef struct parc_object_locking {
     pthread_mutex_t lock;
-#ifdef PEROBJECTLOCKATTRIBUTES
-    pthread_mutexattr_t lockAttributes;
-#endif
     pthread_cond_t notification;
     pthread_t locker;
 } _PARCObjectLocking;
@@ -521,17 +516,8 @@ static inline void
 _parcObject_InitializeLocking(_PARCObjectLocking *locking)
 {
     if (locking != NULL) {
-#ifdef PEROBJECTLOCKATTRIBUTES
-        pthread_mutexattr_init(&locking->lockAttributes);
-        pthread_mutexattr_settype(&locking->lockAttributes, PTHREAD_MUTEX_NORMAL);
-        pthread_mutex_init(&locking->lock, &locking->lockAttributes);
-#else
-        //        locking->lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
         locking->lock = (pthread_mutex_t) PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
-#endif
-        
         locking->locker = (pthread_t) NULL;
-        //        pthread_cond_init(&locking->notification, NULL);
         locking->notification = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     }
 }
@@ -701,6 +687,8 @@ parcObject_Unlock(const PARCObject *object)
 {
     bool result = false;
     
+    parcObject_OptionalAssertValid(object);
+    
     _PARCObjectHeader *header = _parcObject_Header(object);
     if (header->references > 0) {
         _parcObjectHeader_AssertValid(header, object);
@@ -730,7 +718,6 @@ parcObject_Lock(const PARCObject *object)
     if (object != NULL) {
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         if (locking != NULL) {
-           
             errno = pthread_mutex_lock(&locking->lock);
             trapCannotObtainLockIf(errno == EDEADLK, "Recursive locks are not supported.");
 
@@ -753,14 +740,18 @@ parcObject_TryLock(const PARCObject *object)
         parcObject_OptionalAssertValid(object);
         
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
-        
-        trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
-        
-        result = (pthread_mutex_trylock(&locking->lock) == 0);
-        if (result == true) {
-            locking->locker = pthread_self();
+        if (locking != NULL) {
+            trapCannotObtainLockIf(locking->locker == pthread_self(), "Recursive locks are not supported.");
+            
+            int lockStatus = pthread_mutex_trylock(&locking->lock);
+           
+            if (lockStatus == 0) {
+                result = true;
+                locking->locker = pthread_self();
+            }
         }
     }
+    
     return result;
 }
 
