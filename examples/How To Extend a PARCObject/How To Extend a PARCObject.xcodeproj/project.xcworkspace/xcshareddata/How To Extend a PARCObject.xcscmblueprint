@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A512C09A2213917FFD674D4097A69D732DF93245",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A512C09A2213917FFD674D4097A69D732DF93245" : 0,
+    "D745905DC1E5F427E85035915283E46C8FCCB225" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C5798193-F355-463A-9077-C2646BE8F217",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A512C09A2213917FFD674D4097A69D732DF93245" : "Libparc\/",
+    "D745905DC1E5F427E85035915283E46C8FCCB225" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "How To Extend a PARCObject",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "examples\/How To Extend a PARCObject\/How To Extend a PARCObject.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "githubenterprise.parc.com:gscott\/Libparc",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A512C09A2213917FFD674D4097A69D732DF93245"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/githubenterprise.parc.com\/gscott\/CCNx_Distillery",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D745905DC1E5F427E85035915283E46C8FCCB225"
+    }
+  ]
+}
