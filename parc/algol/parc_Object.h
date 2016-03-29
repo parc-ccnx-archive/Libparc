@@ -147,9 +147,10 @@ typedef struct PARCObjectDescriptor {
     PARCObjectToJSON *toJSON;
     PARCObjectDisplay *display;
     struct PARCObjectDescriptor *super;
-    bool isLockable;
     size_t objectSize;
     unsigned objectAlignment;
+    bool isLockable;
+    pthread_once_t initLock;
 } PARCObjectDescriptor;
 
 /*!
