@@ -53,6 +53,10 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
+ *
+ * This example shows a simple extention of an existing PARC Object implementation
+ * (PARCString) to replace the default implementation of the Compare() function with another.
+ *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
