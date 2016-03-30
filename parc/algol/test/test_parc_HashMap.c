@@ -361,8 +361,7 @@ static char *
 _int_toString(const _Int *anInt)
 {
     char *result = parcMemory_AllocateAndClear(22);
-    sprintf(result, "%lld", anInt->number);
-
+    sprintf(result, "%" PRIi64 "", anInt->number);
     return result;
 }
 
@@ -398,7 +397,7 @@ LONGBOW_TEST_CASE(Global, parcHashMap_GetClusteringNumber) {
 
     // Load a hash map up to its load-factor
     size_t testRunSize = minimumSize * maxLoadFactor - 20;
-    sranddev();
+    srand(time(NULL));
     for (int i = 0; i < testRunSize; ++i) {
         _Int *key = _int_Create(rand());
         PARCBuffer *value = parcBuffer_Allocate(sizeof(uint32_t));
