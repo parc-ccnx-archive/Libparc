@@ -134,6 +134,10 @@ typedef void (PARCObjectDisplay)(const PARCObject *object, const int indentation
  */
 typedef PARCJSON *(PARCObjectToJSON)(const PARCObject *);
 
+/**
+ * Every PARC Object instance contains a pointer to an instance of this structure defining
+ * the canonical meta-data for the object.
+ */
 typedef struct PARCObjectDescriptor {
     char name[32];
     PARCObjectDestroy *destroy;
@@ -150,7 +154,6 @@ typedef struct PARCObjectDescriptor {
     size_t objectSize;
     unsigned objectAlignment;
     bool isLockable;
-    pthread_once_t initLock;
 } PARCObjectDescriptor;
 
 /*!
@@ -168,6 +171,9 @@ typedef struct PARCObjectDescriptor {
  */
 #define parcObject_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
 
+/**
+ * The globally available PARCObject descriptor.
+ */
 extern parcObject_Declaration(PARCObject);
 
 /**
@@ -648,6 +654,9 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 /** \endcond */
 
+/**
+ * Extend an existing PARCObjectDescriptor by composing a new one, which references the old.
+ */
 #define parcObject_Extends(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
     parcObject_Declaration(_subtype) = { \
@@ -671,6 +680,10 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
     LongBowCompiler_WarnInitializerOverrides \
     const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
 
+/**
+ * Define a new PARC Object implementation, by composing a new PARC Object Descriptor referencing an old one.
+ * The new PARC Object implementation must be accompanied by the corresponding `typedef` of the type containing the object's data.
+ */
 #define parcObject_Override(_subtype, _superType, ...) \
     parcObject_Extends(_subtype, _superType, \
         .objectSize      = sizeof(_subtype), \
@@ -680,6 +693,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 /**
  * @define parcObject_ExtendPARCObject
+ * @deprecated Use parcObject_Override instead;
  *
  * @discussion parcObject_ExtendPARCObject is a helper macro for constructing a PARCObjectDescriptor Structure of
  * function pointers pointing to a subtype's overriding functions. This struct serves the same
