@@ -328,7 +328,10 @@ void parcBasicStats_Release(PARCBasicStats **instancePtr);
  *
  *     PARCJSON *json = parcBasicStats_ToJSON(a);
  *
- *     printf("JSON representation: %s\n", parcJSON_ToString(json));
+ *     char *cString = parcJSON_ToString(json);
+ *     printf("JSON representation: %s\n", cString);
+ *
+ *     parcMemory_Deallocate(&cString);
  *     parcJSON_Release(&json);
  *
  *     parcBasicStats_Release(&a);

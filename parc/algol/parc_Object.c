@@ -129,7 +129,7 @@ _parcObject_Descriptor(const PARCObject *object)
 static inline _PARCObjectLocking *
 _parcObjectHeader_Locking(const PARCObject *object)
 {
-    return &(_parcObject_Header(object)->lock);
+    return _parcObject_Header(object)->locking;
 }
 
 static inline bool

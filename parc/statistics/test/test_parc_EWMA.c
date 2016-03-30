@@ -230,7 +230,7 @@ LONGBOW_TEST_CASE(Specialization, parcEWMA_Update)
 
     for (int64_t i = 0; i < 100; i++) {
         int64_t value = parcEWMA_Update(instance, i);
-        printf("%lld %lld %lld\n", value, i, value-i);
+        printf("%" PRId64 " %" PRId64 " %" PRId64 "\n", value, i, value-i);
     }
 
     parcEWMA_Release(&instance);
