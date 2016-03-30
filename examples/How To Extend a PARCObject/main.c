@@ -65,6 +65,9 @@
 #include <parc/algol/parc_SortedList.h>
 #include <parc/algol/parc_String.h>
 
+/*
+ * This is the default behaviour of the PARCSortedList implementation.
+ */
 void
 forwardOrder(void)
 {
@@ -84,6 +87,9 @@ forwardOrder(void)
     parcString_Release(&aac);
 }
 
+/*
+ * This is a function that will be substituted for the default Compare implementation in the PARCString object.
+ */
 int
 parcString_ReverseCompare(const PARCString *string, const PARCString *other)
 {
@@ -94,7 +100,7 @@ parcObject_Extends(PARCReverseString, PARCString,
                     .compare = (PARCObjectCompare *) parcString_ReverseCompare);
 
 PARCString *
-parcReverseString_Create(char *string)
+parcMyString_Create(const char *string)
 {
     PARCString *result = parcString_Create(string);
     parcObject_SetDescriptor(result, &parcObject_DescriptorName(PARCReverseString));
@@ -106,9 +112,9 @@ reverseOrder(void)
 {
     PARCSortedList *sortedList = parcSortedList_Create();
     
-    PARCString *aaa = parcReverseString_Create("aaa");
-    PARCString *aab = parcReverseString_Create("aab");
-    PARCString *aac = parcReverseString_Create("aac");
+    PARCString *aaa = parcMyString_Create("aaa");
+    PARCString *aab = parcMyString_Create("aab");
+    PARCString *aac = parcMyString_Create("aac");
     
     parcSortedList_Add(sortedList, aaa);
     parcSortedList_Add(sortedList, aab);
