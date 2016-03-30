@@ -29,6 +29,10 @@
  * @ingroup statistics
  * @brief A simple exponential moving average smoothing filter for integers.
  *
+ * An exponentially weighted moving average (EWMA) is a type of infinite impulse response filter that
+ * applies weighting factors which decrease exponentially. The weighting for each older datum decreases
+ * exponentially, never reaching zero.
+ *
  * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
@@ -96,7 +100,10 @@ void parcEWMA_AssertValid(const PARCEWMA *instance);
 /**
  * Create an instance of PARCEWMA
  *
- * <#Paragraphs Of Explanation#>
+ * The coefficient represents  a constant smoothing factor affecting
+ * the degree of prior samples to be applied upon each new update.
+ * Typically the the coefficient is _0 < coefficient < 1.0_.
+ * A higher coefficient discounts older observations faster.
  *
  * @return non-NULL A pointer to a valid PARCEWMA instance.
  * @return NULL An error occurred.
@@ -328,7 +335,10 @@ void parcEWMA_Release(PARCEWMA **instancePtr);
  *
  *     PARCJSON *json = parcEWMA_ToJSON(a);
  *
- *     printf("JSON representation: %s\n", parcJSON_ToString(json));
+ *     char *cString = parcJSON_ToString(json);
+ *     printf("JSON representation: %s\n", cString);
+ *
+ *     parcMemory_Deallocate(&string);
  *     parcJSON_Release(&json);
  *
  *     parcEWMA_Release(&a);
@@ -365,7 +375,7 @@ PARCJSON *parcEWMA_ToJSON(const PARCEWMA *instance);
 char *parcEWMA_ToString(const PARCEWMA *instance);
 
 /**
- * Update the given `PRACEWMA` filter.
+ * Update the given `PARCEWMA` filter.
  *
  * The value of the filter is modified by the input of an updated value
  *

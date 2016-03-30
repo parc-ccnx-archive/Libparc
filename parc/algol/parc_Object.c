@@ -51,8 +51,6 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
-#define old 1
-
 typedef struct parc_object_locking {
     pthread_mutex_t lock;
     pthread_cond_t notification;
@@ -67,8 +65,10 @@ typedef struct object_header {
     uint32_t magicGuardNumber;
     PARCReferenceCount references;
     PARCObjectDescriptor *descriptor;
+    
+    // Currently every object is lockable, but at some point in the future this will be controlled by the descriptor.
+    // The locking member points to the locking structure or is NULL if the object does not support locking.
     _PARCObjectLocking *locking;
-
     _PARCObjectLocking lock;
 } _PARCObjectHeader;
 
@@ -129,7 +129,7 @@ _parcObject_Descriptor(const PARCObject *object)
 static inline _PARCObjectLocking *
 _parcObjectHeader_Locking(const PARCObject *object)
 {
-    return &(_parcObject_Header(object)->lock);
+    return _parcObject_Header(object)->locking;
 }
 
 static inline bool
@@ -251,7 +251,8 @@ _parcObject_ToString(const PARCObject *object)
     char *string;
     int nwritten = asprintf(&string,
                             "Object@%p { .references=%" PRId64 ", .objectLength = %zd, .objectAlignment=%u } data %p\n",
-                            (void *) header, header->references, header->descriptor->objectSize, header->descriptor->objectAlignment, object);
+                            (void *) header,
+                            header->references, header->descriptor->objectSize, header->descriptor->objectAlignment, object);
     assertTrue(nwritten >= 0, "Error calling asprintf");
     char *result = parcMemory_StringDuplicate(string, strlen(string));
     free(string);
