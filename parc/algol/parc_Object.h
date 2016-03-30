@@ -648,11 +648,13 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 /** \endcond */
 
-#define parcObject_Override(_subtype, _superType, ...) \
+#define parcObject_Extends(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
-    const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
-        .objectSize      = sizeof(_subtype), \
-        .objectAlignment = sizeof(void *), \
+    parcObject_Declaration(_subtype) = { \
+        .super           = &parcObject_DescriptorName(_superType), \
+        .name            = #_subtype, \
+        .objectSize      = 0, \
+        .objectAlignment = 0, \
         .destroy         = NULL,    \
         .destructor      = NULL, \
         .release         = NULL,   \
@@ -664,12 +666,17 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         .toJSON          = NULL,   \
         .display         = NULL,   \
         .isLockable      = true, \
-        .super           = &parcObject_DescriptorName(_superType),    \
-        .name            = #_subtype,     \
-        __VA_ARGS__         \
+        __VA_ARGS__  \
     }; \
     LongBowCompiler_WarnInitializerOverrides \
     const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
+
+#define parcObject_Override(_subtype, _superType, ...) \
+    parcObject_Extends(_subtype, _superType, \
+        .objectSize      = sizeof(_subtype), \
+        .objectAlignment = sizeof(void *), \
+        __VA_ARGS__         \
+    )
 
 /**
  * @define parcObject_ExtendPARCObject
