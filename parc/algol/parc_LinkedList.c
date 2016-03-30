@@ -666,11 +666,15 @@ parcLinkedList_Display(const PARCLinkedList *list, const int indentation)
         _PARCLinkedListNode *node = list->head;
 
         while (node != NULL) {
+//            parcDisplayIndented_PrintLine(indentation + 1,
+//                                          "%4s %11p { .previous=%11p, %11p=%11p, .next=%11p } %4s",
+//                                          (list->head == node) ? "head" : "    ",
+//                                          node, node->previous, node, node->object, node->next,
+//                                          (list->tail == node) ? "tail" : "    ");
             parcDisplayIndented_PrintLine(indentation + 1,
-                                          "%4s %11p { .previous=%11p, %11p=%11p, .next=%11p } %4s",
-                                          (list->head == node) ? "head" : "    ",
-                                          node, node->previous, node, node->object, node->next,
-                                          (list->tail == node) ? "tail" : "    ");
+                                          "%016p { .previous=%016p, %016p, .next=%016p }",
+                                          node, node->previous, node->object, node->next);
+            parcObject_Display(node->object, indentation + 2);
             node = node->next;
         }
 

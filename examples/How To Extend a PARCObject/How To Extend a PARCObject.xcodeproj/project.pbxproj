@@ -201,6 +201,14 @@
 		5C0F21201CAB23A500A01225 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				OTHER_LDFLAGS = (
+					"-lparc",
+					"-llongbow",
+					"-llongbow-textplain",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -208,6 +216,14 @@
 		5C0F21211CAB23A500A01225 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				OTHER_LDFLAGS = (
+					"-lparc",
+					"-llongbow",
+					"-llongbow-textplain",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

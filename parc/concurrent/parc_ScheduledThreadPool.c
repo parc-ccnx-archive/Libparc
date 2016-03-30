@@ -64,18 +64,15 @@ _workerThread(PARCThread *thread, PARCScheduledThreadPool *pool)
                 if (task != NULL && executionDelay <= 0) {
                     parcSortedList_RemoveFirst(pool->workQueue);
                     parcSortedList_Unlock(pool->workQueue);
-                    printf("move to threadpool references=%lld\n", parcObject_GetReferenceCount(task));
                     parcThreadPool_Execute(pool->threadPool, parcScheduledTask_GetTask(task));
                     parcScheduledTask_Release(&task);
                     parcSortedList_Lock(pool->workQueue);
 
                     parcSortedList_Notify(pool->workQueue);
                 } else {
-                    printf("wait for %lld\n", executionDelay);
                     parcSortedList_WaitFor(pool->workQueue, executionDelay);
                 }
             } else {
-                printf("wait until something to do\n");
                 parcSortedList_Wait(pool->workQueue);
             }
         }

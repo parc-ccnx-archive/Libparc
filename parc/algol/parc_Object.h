@@ -146,21 +146,29 @@ typedef struct PARCObjectDescriptor {
     PARCObjectHashCode *hashCode;
     PARCObjectToJSON *toJSON;
     PARCObjectDisplay *display;
-    struct PARCObjectDescriptor *super;
-    bool isLockable;
+    const struct PARCObjectDescriptor *super;
     size_t objectSize;
     unsigned objectAlignment;
+    bool isLockable;
+    pthread_once_t initLock;
 } PARCObjectDescriptor;
 
 /*!
  * @define parcObject_DescriptorName(_type)
+ *
  * Creates a subtype specific name for a subtype's PARCObjectDescriptor
- * struct which is a parameter to parcObject_Create.
+ * which is a parameter to parcObject_Create.
  */
-#define parcObject_MetaName(_type) parcCMacro_Cat(_type, _Descriptor)
 #define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
 
-extern PARCObjectDescriptor parcObject_DescriptorName(PARCObject);
+/*!
+ * @define parcObject_Declaration(_type_)
+ *
+ * Create a declaration of a PARC Object implementation.
+ */
+#define parcObject_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
+
+extern parcObject_Declaration(PARCObject);
 
 /**
  * Assert that an instance of PARC Object is valid.
@@ -531,7 +539,7 @@ const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                         PARCObjectHashCode *hashCode,
                                                         PARCObjectToJSON *toJSON,
                                                         PARCObjectDisplay *display,
-                                                        PARCObjectDescriptor *super);
+                                                        const PARCObjectDescriptor *super);
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
@@ -642,7 +650,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 #define parcObject_Override(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
+    const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
         .objectSize      = sizeof(_subtype), \
         .objectAlignment = sizeof(void *), \
         .destroy         = NULL,    \
@@ -661,7 +669,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
         __VA_ARGS__         \
     }; \
     LongBowCompiler_WarnInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
+    const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
 
 /**
  * @define parcObject_ExtendPARCObject

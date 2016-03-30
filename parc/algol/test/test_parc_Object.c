@@ -39,7 +39,7 @@
 #include <parc/testing/parc_MemoryTesting.h>
 
 #include <parc/algol/parc_SafeMemory.h>
-#include <parc/algol/parc_StdLibMemory.h>
+#include <parc/algol/parc_StdlibMemory.h>
 
 typedef struct {
     int calledCount;

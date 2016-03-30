@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2015, 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  * <#Detailed Description#>
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2015, 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_String
 #define PARCLibrary_parc_String
@@ -43,6 +43,7 @@
 
 struct PARCString;
 typedef struct PARCString PARCString;
+extern parcObject_Declaration(PARCString);
 
 /**
  * Increase the number of references to a `PARCString` instance.

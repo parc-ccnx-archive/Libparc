@@ -51,6 +51,8 @@
 #include <parc/algol/parc_Hash.h>
 #include <parc/concurrent/parc_AtomicUint64.h>
 
+#define old 1
+
 typedef struct parc_object_locking {
     pthread_mutex_t lock;
     pthread_cond_t notification;
@@ -87,8 +89,9 @@ _pointerAdd(const void *base, const size_t increment)
 
 /*
  * Compute the size of the prefix as the number of bytes necessary
- * to fit the object header (with padding) into allocated memory,
- * such that the first address after the header is aligned according to the value of the alignment parameter.
+ * to fit the object header (with padding), and any additional per-object data, into allocated memory,
+ * such that the first address after the header and any additional per-object data,
+ * is aligned according to the value of the alignment parameter.
  *
  * For example, if the object header is 5 bytes long, and the alignment is 4 (bytes),
  * then the necessary number of bytes to fit the header
@@ -289,12 +292,11 @@ _parcObject_Display(const PARCObject *object, const int indentation)
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
-    parcDisplayIndented_PrintLine(indentation,
-                                  "PARCObject@%p @%p={ .references=%zd .objectAlignment=%zd .objectLength=%zd }\n",
-                                  object, header, header->references, header->descriptor->objectAlignment, header->descriptor->objectSize);
+    parcDisplayIndented_PrintLine(indentation, "PARCObject@%p @%p={ .name=%s .references=%zd }\n",
+                                  object, header, header->descriptor->name, header->references);
 }
 
-PARCObjectDescriptor parcObject_DescriptorName(PARCObject) = {
+const PARCObjectDescriptor parcObject_DescriptorName(PARCObject) = {
     .name       = "PARCObject",
     .destroy    = NULL,
     .destructor = NULL,
@@ -413,7 +415,7 @@ parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *de
         _PARCObjectHeader *header = _parcObject_Header(object);
 
         if (_parcObjectHeader_IsValid(header, object)) {
-            PARCObjectDescriptor *d = _parcObject_Descriptor(object);
+            const PARCObjectDescriptor *d = _parcObject_Descriptor(object);
 
             while (result == false) {
                 if (d == descriptor) {
@@ -512,13 +514,26 @@ parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor)
     return result;
 }
 
+static pthread_once_t _parcObject_GlobalLockAttributesInitialized = PTHREAD_ONCE_INIT;
+static pthread_mutexattr_t _parcObject_GlobalLockAttributes;
+
+void
+_parcObject_InitializeGobalLockAttributes(void)
+{
+    pthread_mutexattr_init(&_parcObject_GlobalLockAttributes);
+    pthread_mutexattr_settype(&_parcObject_GlobalLockAttributes, PTHREAD_MUTEX_ERRORCHECK);
+}
+
 static inline void
 _parcObject_InitializeLocking(_PARCObjectLocking *locking)
 {
     if (locking != NULL) {
-        locking->lock = (pthread_mutex_t) PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
+        pthread_once(&_parcObject_GlobalLockAttributesInitialized, _parcObject_InitializeGobalLockAttributes);
+        
+        pthread_mutex_init(&locking->lock, &_parcObject_GlobalLockAttributes);
+        pthread_cond_init(&locking->notification, NULL);
+
         locking->locker = (pthread_t) NULL;
-        locking->notification = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     }
 }
 
@@ -650,7 +665,7 @@ parcObjectDescriptor_Create(const char *name,
                             PARCObjectHashCode *hashCode,
                             PARCObjectToJSON *toJSON,
                             PARCObjectDisplay *display,
-                            PARCObjectDescriptor *super)
+                            const PARCObjectDescriptor *super)
 {
     assertNotNull(super, "Supertype descriptor cannot be NULL.");
 
