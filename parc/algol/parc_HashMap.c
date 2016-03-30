@@ -532,18 +532,16 @@ parcHashMap_GetClusteringNumber(const PARCHashMap *hashMap)
     // from 1.0 is used because the hashmap's max load factor is < 1.0 and
     // thus the ideal average chain-length is 1.0
     //
-    // A result of 0.0 equates to an idea distribution, a result of ~1.0 should
+    // A result of 0.0 equates to an ideal distribution, a result of ~1.0 should
     // represent a fairly normal or random distribution, and a result > 1.5 or so
     // implies some amount of undesirable clumping may be happening.
 
-    size_t usedBuckets = 0;
     size_t totalLength = 0;
     double variance = 0;
 
     // Compute the variance vs 1.0
     for (size_t i = 0; i < hashMap->capacity; ++i) {
         if (hashMap->buckets[i] != NULL) {
-            ++usedBuckets;
             size_t bucketSize = parcLinkedList_Size(hashMap->buckets[i]);
             totalLength += bucketSize;
             variance += (bucketSize - 1) * (bucketSize - 1); //Variance relative to 1

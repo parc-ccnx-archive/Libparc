@@ -559,7 +559,7 @@ size_t parcHashMap_Size(const PARCHashMap *hashMap);
  * factor. The deviation from 1.0 is used because the hash-map's max load factor is < 1.0
  * and thus the ideal average chain-length is 1.0.
  *
- * A result of 0.0 equates to an idea distribution, a result of ~1.0 should represent
+ * A result of 0.0 equates to an ideal distribution, a result of ~1.0 should represent
  * a fairly normal or random distribution, and a result > 1.5 or so implies some amount
  * of undesirable clumping may be happening.
  *
