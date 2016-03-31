@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5C0F21251CAC6B9E00A01225 /* HowToExtendAPARCObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F21241CAC6B9E00A01225 /* HowToExtendAPARCObject.c */; };
+		5C0F21471CAC6F6D00A01225 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F21461CAC6F6D00A01225 /* main.c */; };
+		5C0F214A1CAC6FC800A01225 /* parc_StaticObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5C0F21161CAB23A400A01225 /* CopyFiles */ = {
+		5C0F212D1CAC6BDF00A01225 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -23,12 +24,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5C0F21181CAB23A400A01225 /* How To Extend a PARCObject */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "How To Extend a PARCObject"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5C0F21241CAC6B9E00A01225 /* HowToExtendAPARCObject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = HowToExtendAPARCObject.c; sourceTree = "<group>"; };
+		5C0F212F1CAC6BDF00A01225 /* How To Create A Static PARC Object */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "How To Create A Static PARC Object"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C0F21461CAC6F6D00A01225 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_StaticObject.c; sourceTree = "<group>"; };
+		5C0F21491CAC6FC800A01225 /* parc_StaticObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_StaticObject.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		5C0F21151CAB23A400A01225 /* Frameworks */ = {
+		5C0F212C1CAC6BDF00A01225 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -38,18 +41,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		5C0F210F1CAB23A400A01225 = {
+		5C0F21261CAC6BDF00A01225 = {
 			isa = PBXGroup;
 			children = (
-				5C0F21241CAC6B9E00A01225 /* HowToExtendAPARCObject.c */,
-				5C0F21191CAB23A400A01225 /* Products */,
+				5C0F21461CAC6F6D00A01225 /* main.c */,
+				5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */,
+				5C0F21491CAC6FC800A01225 /* parc_StaticObject.h */,
+				5C0F21301CAC6BDF00A01225 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		5C0F21191CAB23A400A01225 /* Products */ = {
+		5C0F21301CAC6BDF00A01225 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5C0F21181CAB23A400A01225 /* How To Extend a PARCObject */,
+				5C0F212F1CAC6BDF00A01225 /* How To Create A Static PARC Object */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -57,67 +62,68 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5C0F21171CAB23A400A01225 /* How To Extend a PARCObject */ = {
+		5C0F212E1CAC6BDF00A01225 /* How To Create A Static PARC Object */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5C0F211F1CAB23A500A01225 /* Build configuration list for PBXNativeTarget "How To Extend a PARCObject" */;
+			buildConfigurationList = 5C0F21361CAC6BDF00A01225 /* Build configuration list for PBXNativeTarget "How To Create A Static PARC Object" */;
 			buildPhases = (
-				5C0F21141CAB23A400A01225 /* Sources */,
-				5C0F21151CAB23A400A01225 /* Frameworks */,
-				5C0F21161CAB23A400A01225 /* CopyFiles */,
+				5C0F212B1CAC6BDF00A01225 /* Sources */,
+				5C0F212C1CAC6BDF00A01225 /* Frameworks */,
+				5C0F212D1CAC6BDF00A01225 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "How To Extend a PARCObject";
-			productName = "How To Extend a PARCObject";
-			productReference = 5C0F21181CAB23A400A01225 /* How To Extend a PARCObject */;
+			name = "How To Create A Static PARC Object";
+			productName = "How To Create A Static PARC Object";
+			productReference = 5C0F212F1CAC6BDF00A01225 /* How To Create A Static PARC Object */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		5C0F21101CAB23A400A01225 /* Project object */ = {
+		5C0F21271CAC6BDF00A01225 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = CSL;
 				TargetAttributes = {
-					5C0F21171CAB23A400A01225 = {
+					5C0F212E1CAC6BDF00A01225 = {
 						CreatedOnToolsVersion = 7.3;
 					};
 				};
 			};
-			buildConfigurationList = 5C0F21131CAB23A400A01225 /* Build configuration list for PBXProject "How To Extend a PARCObject" */;
+			buildConfigurationList = 5C0F212A1CAC6BDF00A01225 /* Build configuration list for PBXProject "How To Create A Static PARC Object" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 5C0F210F1CAB23A400A01225;
-			productRefGroup = 5C0F21191CAB23A400A01225 /* Products */;
+			mainGroup = 5C0F21261CAC6BDF00A01225;
+			productRefGroup = 5C0F21301CAC6BDF00A01225 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5C0F21171CAB23A400A01225 /* How To Extend a PARCObject */,
+				5C0F212E1CAC6BDF00A01225 /* How To Create A Static PARC Object */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		5C0F21141CAB23A400A01225 /* Sources */ = {
+		5C0F212B1CAC6BDF00A01225 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C0F21251CAC6B9E00A01225 /* HowToExtendAPARCObject.c in Sources */,
+				5C0F214A1CAC6FC800A01225 /* parc_StaticObject.c in Sources */,
+				5C0F21471CAC6F6D00A01225 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		5C0F211D1CAB23A500A01225 /* Debug */ = {
+		5C0F21341CAC6BDF00A01225 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -154,6 +160,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -161,7 +170,7 @@
 			};
 			name = Debug;
 		};
-		5C0F211E1CAB23A500A01225 /* Release */ = {
+		5C0F21351CAC6BDF00A01225 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -192,18 +201,20 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
 			name = Release;
 		};
-		5C0F21201CAB23A500A01225 /* Debug */ = {
+		5C0F21371CAC6BDF00A01225 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
-				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lparc",
 					"-llongbow",
@@ -213,12 +224,11 @@
 			};
 			name = Debug;
 		};
-		5C0F21211CAB23A500A01225 /* Release */ = {
+		5C0F21381CAC6BDF00A01225 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
-				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
-				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lparc",
 					"-llongbow",
@@ -231,25 +241,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5C0F21131CAB23A400A01225 /* Build configuration list for PBXProject "How To Extend a PARCObject" */ = {
+		5C0F212A1CAC6BDF00A01225 /* Build configuration list for PBXProject "How To Create A Static PARC Object" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5C0F211D1CAB23A500A01225 /* Debug */,
-				5C0F211E1CAB23A500A01225 /* Release */,
+				5C0F21341CAC6BDF00A01225 /* Debug */,
+				5C0F21351CAC6BDF00A01225 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5C0F211F1CAB23A500A01225 /* Build configuration list for PBXNativeTarget "How To Extend a PARCObject" */ = {
+		5C0F21361CAC6BDF00A01225 /* Build configuration list for PBXNativeTarget "How To Create A Static PARC Object" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5C0F21201CAB23A500A01225 /* Debug */,
-				5C0F21211CAB23A500A01225 /* Release */,
+				5C0F21371CAC6BDF00A01225 /* Debug */,
+				5C0F21381CAC6BDF00A01225 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 5C0F21101CAB23A400A01225 /* Project object */;
+	rootObject = 5C0F21271CAC6BDF00A01225 /* Project object */;
 }

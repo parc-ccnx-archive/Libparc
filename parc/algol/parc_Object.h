@@ -784,6 +784,62 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
 PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
+ * Compute the number of bytes necessary for a PARC Object header.
+ *
+ * The @p _alignment_ parameter specifies the required memory alignment of the object.
+ *
+ * @param [in] _alignment_ An unsigned integer value greater than `sizeof(void *)`
+ *
+ * @return The number of bytes necessary for a PARC Object header.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+// The constant value here must be greater than or equal to the size of the internal _PARCObjectHeader structure.
+#define parcObject_OpaquePrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
+
+/**
+ * Initialise a PARCObject.
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [in] origin A pointer to memory that will contain the object and its state.
+ * @param [in] descriptor A pointer to a valid PARCObjectDescriptor for the object.
+ *
+ * @return NULL An error occured.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+void *parcObject_Init(void *origin, const PARCObjectDescriptor *descriptor);
+
+/**
+ * Wrap a static definition of a `PARCObject` producing a valid pointer to the static `PARCObject`.
+ *
+ * @param [in] origin A instance to static definition of a `PARCObject` that will contain the object and its state.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` for the object.
+ *
+ * @return NULL An error occured.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+PARCObject *parcObject_Wrap(void *instance, const PARCObjectDescriptor *descriptor);
+
+
+/**
  * @def parcObject_ImplementAcquire
  *
  * parcObject_ImplementAcquire is a helper C-macro that creates a canonical subtype specific

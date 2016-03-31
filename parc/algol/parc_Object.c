@@ -59,6 +59,7 @@ typedef struct parc_object_locking {
 
 /*
  * This is the per-object header.
+ * The size of this structure must be less than or equal to the value used in the parcObject_OpaquePrefixLength macro.
  */
 typedef struct object_header {
 #define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x12345678
@@ -70,6 +71,8 @@ typedef struct object_header {
     // The locking member points to the locking structure or is NULL if the object does not support locking.
     _PARCObjectLocking *locking;
     _PARCObjectLocking lock;
+
+    void *data[];
 } _PARCObjectHeader;
 
 /*
@@ -102,9 +105,9 @@ _pointerAdd(const void *base, const size_t increment)
  * @return The size of the object header as the number of bytes necessary to fit the header (with padding) into allocated memory.
  */
 static inline size_t
-_parcObject_PrefixLength(const size_t alignment)
+_parcObject_PrefixLength(const PARCObjectDescriptor *descriptor)
 {
-    return (sizeof(_PARCObjectHeader) + (alignment - 1)) & - alignment;
+    return parcObject_OpaquePrefixLength(descriptor->objectAlignment);
 }
 
 /*
@@ -159,7 +162,7 @@ _parcObject_Origin(const PARCObject *object)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
 
-    return _pointerAdd(object, -_parcObject_PrefixLength(header->descriptor->objectAlignment));
+    return _pointerAdd(object, -_parcObject_PrefixLength(header->descriptor));
 }
 
 static inline PARCObjectEquals *
@@ -555,10 +558,31 @@ _parcObjectHeader_Init(_PARCObjectHeader *header, const PARCObjectDescriptor *de
     return header;
 }
 
+void *
+parcObject_Init(void *origin, const PARCObjectDescriptor *descriptor)
+{
+    size_t prefixLength = _parcObject_PrefixLength(descriptor);
+    // This abuts the prefix to the user accessible memory,
+    // it does not start at the beginning of the aligned prefix region.
+    _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
+    
+    _parcObjectHeader_Init(header, descriptor);
+    void *result = _pointerAdd(origin, prefixLength);
+    return result;
+}
+
+PARCObject *
+parcObject_Wrap(void *instance, const PARCObjectDescriptor *descriptor)
+{
+    PARCObject *result = parcObject_Init(instance, descriptor);
+    
+    return result;
+}
+
 PARCObject *
 parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
 {
-    size_t prefixLength = _parcObject_PrefixLength(sizeof(void *));
+    size_t prefixLength = _parcObject_PrefixLength(descriptor);
     size_t totalMemoryLength = prefixLength + descriptor->objectSize;
 
     void *origin = NULL;
@@ -568,15 +592,19 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
         errno = ENOMEM;
         return NULL;
     }
+#if 0
 
     // This abuts the prefix to the user accessible memory,
     // it does not start at the beginning of the aligned prefix region.
     _PARCObjectHeader *header = (_PARCObjectHeader *) &((char *) origin)[prefixLength - sizeof(_PARCObjectHeader)];
 
     _parcObjectHeader_Init(header, descriptor);
+    void *result = _pointerAdd(origin, prefixLength);
+#else
+    void *result = parcObject_Init(origin, descriptor);
+#endif
 
     errno = 0;
-    void *result = _pointerAdd(origin, prefixLength);
     return result;
 }
 
