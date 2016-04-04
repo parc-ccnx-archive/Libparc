@@ -57,6 +57,9 @@
  * This example shows a simple extention of an existing PARC Object implementation
  * (PARCString) to replace the default implementation of the Compare() function with another.
  *
+ * The demonstration shows how to reverse the sort order of a PARCSortedList
+ * containing a list of PARCString instances without changing PARCSortedList nor PARCString.
+ *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */

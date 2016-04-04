@@ -6,10 +6,10 @@
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
+ *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -55,34 +55,48 @@
 #include <stdio.h>
 
 #include <parc/algol/parc_Memory.h>
-#include "parc_StaticObject.h"
+#include "parc_MyObject.h"
 
+#define parcObject_Define(_type_, _size_) \
+    (_type_ *)(&(char[parcObject_OpaquePrefixLength(sizeof(void *)) + _size_]) { }[parcObject_OpaquePrefixLength(sizeof(void *))])
+
+#define PARCMyObjectSizeOf 24
+
+static PARCMyObject *staticallyDefinedObject = parcObject_Define(PARCMyObject, PARCMyObjectSizeOf);
 
 void
 a()
 {
-    PARCStaticObject *dynamicObject;
-    PARCStaticObject staticObject;
     int x = 1;
     int y = 2;
     double z = 3.14;
     
-    dynamicObject = parcStaticObject_Create(x, y, z);
-    PARCStaticObject *alias = parcStaticObject_Init(parcStaticObject_Wrap(&staticObject), x, y, z);
+    char *p = &(char[]) { 0, 1, 2, 3, 4, 5 }[4];
+    printf("p %d\n", *p);
     
-    char *dynamicString = parcStaticObject_ToString(dynamicObject);
+    PARCMyObject *dynamicObject = parcMyObject_Create(x, y, z);
     
-    char *staticString = parcStaticObject_ToString(alias);
+    PARCMyObject *staticObject = parcMyObject_Wrap((char[parcObject_OpaquePrefixLength(sizeof(void *)) + 24]) { });
     
-    printf("%s %s\n", dynamicString, staticString);
+    PARCMyObject *alias = parcMyObject_Init(staticObject, x, y, z);
+    
+    parcMyObject_Init(staticallyDefinedObject, x, y, z);
+    
+    char *dynamicString = parcMyObject_ToString(dynamicObject);
+    
+    char *staticString = parcMyObject_ToString(staticObject);
+    char *staticallyDefinedString = parcMyObject_ToString(staticallyDefinedObject);
+    
+    printf("%s\n%s\n%s\n", dynamicString, staticString, staticallyDefinedString);
     
     parcMemory_Deallocate(&dynamicString);
     parcMemory_Deallocate(&staticString);
     
-    parcStaticObject_Acquire(alias);
+    parcMyObject_Acquire(alias);
     
-    parcStaticObject_Release(&dynamicObject);
-    parcStaticObject_Release(&alias);
+    parcMyObject_Release(&dynamicObject);
+    parcMyObject_Release(&alias);
+    parcMyObject_Release(&staticObject);
 }
 
 int

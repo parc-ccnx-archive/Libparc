@@ -165,16 +165,16 @@ typedef struct PARCObjectDescriptor {
 #define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
 
 /*!
- * @define parcObject_Declaration(_type_)
+ * @define parcObjectDescriptor_Declaration(_type_)
  *
  * Create a declaration of a PARC Object implementation.
  */
-#define parcObject_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
+#define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
 
 /**
  * The globally available PARCObject descriptor.
  */
-extern parcObject_Declaration(PARCObject);
+extern parcObjectDescriptor_Declaration(PARCObject);
 
 /**
  * Assert that an instance of PARC Object is valid.
@@ -659,7 +659,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
  */
 #define parcObject_Extends(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
-    parcObject_Declaration(_subtype) = { \
+    parcObjectDescriptor_Declaration(_subtype) = { \
         .super           = &parcObject_DescriptorName(_superType), \
         .name            = #_subtype, \
         .objectSize      = 0, \
@@ -803,9 +803,9 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
 #define parcObject_OpaquePrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
 
 /**
- * Initialise a PARCObject.
+ * Initialise an allocated PARC Object.
  *
- * <#Paragraphs Of Explanation#>
+ * An allocated PARC Object requires a deallocation on the last `parcObject_Release`.
  *
  * @param [in] origin A pointer to memory that will contain the object and its state.
  * @param [in] descriptor A pointer to a valid PARCObjectDescriptor for the object.
@@ -819,10 +819,31 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
  * }
  * @endcode
  */
-void *parcObject_Init(void *origin, const PARCObjectDescriptor *descriptor);
+void *parcObject_InitAllocated(void *origin, const PARCObjectDescriptor *descriptor);
 
 /**
- * Wrap a static definition of a `PARCObject` producing a valid pointer to the static `PARCObject`.
+ * Initialise an unallocated PARC Object.
+ *
+ * An unallocated PARC Object requires no deallocation on the last `parcObject_Release`.
+ *
+ * @param [in] origin A pointer to memory that will contain the object and its state.
+ * @param [in] descriptor A pointer to a valid PARCObjectDescriptor for the object.
+ *
+ * @return NULL An error occured.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+void *parcObject_InitUnallocated(void *origin, const PARCObjectDescriptor *descriptor);
+
+/**
+ * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.
+ *
+ * Note that the return value will not be equal to the value of @p origin.
  *
  * @param [in] origin A instance to static definition of a `PARCObject` that will contain the object and its state.
  * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` for the object.
@@ -836,8 +857,7 @@ void *parcObject_Init(void *origin, const PARCObjectDescriptor *descriptor);
  * }
  * @endcode
  */
-PARCObject *parcObject_Wrap(void *instance, const PARCObjectDescriptor *descriptor);
-
+PARCObject *parcObject_Wrap(void *origin, const PARCObjectDescriptor *descriptor);
 
 /**
  * @def parcObject_ImplementAcquire
@@ -864,7 +884,6 @@ PARCObject *parcObject_Wrap(void *instance, const PARCObjectDescriptor *descript
  */
 #define parcObject_ImplementRelease(_namespace, _type) \
     inline void _namespace##_Release(_type **pObject) { \
-        assertNotNull(pObject, "NULL pointer passed to Release.  Double free?"); \
         parcObject_Release((PARCObject **) pObject);     \
     } extern void _namespace##_Release(_type **pObject)
 
@@ -908,7 +927,7 @@ PARCObject *parcObject_Wrap(void *instance, const PARCObjectDescriptor *descript
  * @param [in] object A pointer to a valid `PARCObject` instance.
  *
  * @return true The lock was obtained successfully.
- * @return false The lock is already held by the current thread, or the `PARCObject` is invalid.
+ * @return false The lock is already held by the current thread, the `PARCObject` is invalid, or does not support locking.
  *
  * Example:
  * @code
@@ -926,8 +945,8 @@ bool parcObject_Lock(const PARCObject *object);
  *
  * parcObject_ImplementLock is a helper C-macro that defines a static, inline facade for the `parcObject_Lock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementLock(_namespace, _type)              \
     static inline bool _namespace##_Lock(const _type *pObject) { \
@@ -942,7 +961,7 @@ bool parcObject_Lock(const PARCObject *object);
  * @param [in] object A pointer to a valid `PARCObject` instance.
  *
  * @return true The `PARCObject` is locked.
- * @return false The `PARCObject` is unlocked.
+ * @return false The `PARCObject` is unlocked, or does not support locking.
  *
  * Example:
  * @code
@@ -959,8 +978,8 @@ bool parcObject_TryLock(const PARCObject *object);
  *
  * parcObject_ImplementTryLock is a helper C-macro that defines a static, inline facade for the `parcObject_TryLock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementTryLock(_namespace, _type)              \
     static inline bool _namespace##_TryLock(const _type *pObject) { \
@@ -989,8 +1008,8 @@ bool parcObject_Unlock(const PARCObject *object);
  *
  * parcObject_ImplementUnlock is a helper C-macro that defines a static, inline facade for the `parcObject_Unlock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementUnlock(_namespace, _type)              \
     static inline bool _namespace##_Unlock(const _type *pObject) { \
@@ -1002,8 +1021,8 @@ bool parcObject_Unlock(const PARCObject *object);
  *
  * @param [in] object A pointer to a valid PARCObject instance.
  *
- * @return true The PARCObject is locked.
- * @return false The PARCObject is unlocked.
+ * @return true The `PARCObject` is locked.
+ * @return false The `PARCObject` is unlocked.
  * Example:
  * @code
  * {
@@ -1018,8 +1037,8 @@ bool parcObject_IsLocked(const PARCObject *object);
  *
  * parcObject_ImplementIsLocked is a helper C-macro that defines a static, inline facade for the `parcObject_IsLocked` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementIsLocked(_namespace, _type)              \
     static inline bool _namespace##_IsLocked(const _type *pObject) { \
@@ -1184,8 +1203,8 @@ void parcObject_Notify(const PARCObject *object);
  *
  * parcObject_ImplementNotify is a helper C-macro that defines a static, inline facade for the `parcObject_Notify` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementNotify(_namespace, _type)              \
     static inline void _namespace##_Notify(const _type *pObject) { \
@@ -1223,8 +1242,8 @@ void parcObject_NotifyAll(const PARCObject *object);
  *
  * parcObject_ImplementNotifyAll is a helper C-macro that defines a static, inline facade for the `parcObject_NotifyAll` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type  (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type  (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementNotifyAll(_namespace, _type)       \
     static inline void _namespace##_NotifyAll(const _type *pObject) { \

@@ -43,7 +43,7 @@
 
 struct PARCString;
 typedef struct PARCString PARCString;
-extern parcObject_Declaration(PARCString);
+extern parcObjectDescriptor_Declaration(PARCString);
 
 /**
  * Increase the number of references to a `PARCString` instance.

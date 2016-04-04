@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5C0F21471CAC6F6D00A01225 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F21461CAC6F6D00A01225 /* main.c */; };
-		5C0F214A1CAC6FC800A01225 /* parc_StaticObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */; };
+		5C0F214D1CB2D70800A01225 /* parc_MyObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C0F214B1CB2D70800A01225 /* parc_MyObject.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +26,8 @@
 /* Begin PBXFileReference section */
 		5C0F212F1CAC6BDF00A01225 /* How To Create A Static PARC Object */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "How To Create A Static PARC Object"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C0F21461CAC6F6D00A01225 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_StaticObject.c; sourceTree = "<group>"; };
-		5C0F21491CAC6FC800A01225 /* parc_StaticObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_StaticObject.h; sourceTree = "<group>"; };
+		5C0F214B1CB2D70800A01225 /* parc_MyObject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_MyObject.c; sourceTree = "<group>"; };
+		5C0F214C1CB2D70800A01225 /* parc_MyObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_MyObject.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,8 +45,8 @@
 			isa = PBXGroup;
 			children = (
 				5C0F21461CAC6F6D00A01225 /* main.c */,
-				5C0F21481CAC6FC800A01225 /* parc_StaticObject.c */,
-				5C0F21491CAC6FC800A01225 /* parc_StaticObject.h */,
+				5C0F214B1CB2D70800A01225 /* parc_MyObject.c */,
+				5C0F214C1CB2D70800A01225 /* parc_MyObject.h */,
 				5C0F21301CAC6BDF00A01225 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,7 +115,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C0F214A1CAC6FC800A01225 /* parc_StaticObject.c in Sources */,
+				5C0F214D1CB2D70800A01225 /* parc_MyObject.c in Sources */,
 				5C0F21471CAC6F6D00A01225 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

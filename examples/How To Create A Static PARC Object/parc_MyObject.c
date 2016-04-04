@@ -53,7 +53,7 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
- * @author <#__FULLUSERNAME___#>, Palo Alto Research Center (PARC)
+ * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 //#include <config.h>
@@ -62,64 +62,83 @@
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 
-#include "parc_StaticObject.h"
-
+#include "parc_MyObject.h"
 
 // Detect a compile time if a buffer is large enough to hold a structure.
-#define parcObject_DefinePrivate(_type_, ...) \
+#define parcObject_DefineXXX(_type_, ...) \
     typedef struct { __VA_ARGS__ } _##_type_; \
     enum { bytesCompileTimeAssertion = 1/!!(sizeof(_type_) >= sizeof(_##_type_)) }
 
-parcObject_DefinePrivate(PARCStaticObject,
-                         int x;
-                         double y;
-                         double z;
-                         );
+#if 0
+parcObject_Define(PARCMyObject,
+                  int x;
+                  double y;
+                  double z;
+                  );
+#else
+struct PARCMyObject {
+    int x;
+    double y;
+    double z;
+};
+#endif
 
 static bool
-_parcStaticObject_Destructor(PARCStaticObject **instancePtr)
+_parcMyObject_Destructor(PARCMyObject **instancePtr)
 {
-    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCStaticObject pointer.");
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCMyObject pointer.");
     
     
     /* cleanup the instance fields here */
     return true;
 }
 
-parcObject_ImplementAcquire(parcStaticObject, PARCStaticObject);
+parcObject_ImplementAcquire(parcMyObject, PARCMyObject);
 
-parcObject_ImplementRelease(parcStaticObject, PARCStaticObject);
+parcObject_ImplementRelease(parcMyObject, PARCMyObject);
 
 parcObject_Override(
-	PARCStaticObject, PARCObject,
-	.destructor = (PARCObjectDestructor *) _parcStaticObject_Destructor,
-	.copy = (PARCObjectCopy *) parcStaticObject_Copy,
-	.toString = (PARCObjectToString *)  parcStaticObject_ToString,
-	.equals = (PARCObjectEquals *)  parcStaticObject_Equals,
-	.compare = (PARCObjectCompare *)  parcStaticObject_Compare,
-	.hashCode = (PARCObjectHashCode *)  parcStaticObject_HashCode,
-	.toJSON = (PARCObjectToJSON *)  parcStaticObject_ToJSON);
+	PARCMyObject, PARCObject,
+	.destructor = (PARCObjectDestructor *) _parcMyObject_Destructor,
+	.copy = (PARCObjectCopy *) parcMyObject_Copy,
+	.toString = (PARCObjectToString *)  parcMyObject_ToString,
+	.equals = (PARCObjectEquals *)  parcMyObject_Equals,
+	.compare = (PARCObjectCompare *)  parcMyObject_Compare,
+	.hashCode = (PARCObjectHashCode *)  parcMyObject_HashCode,
+	.toJSON = (PARCObjectToJSON *)  parcMyObject_ToJSON);
 
 
 void
-parcStaticObject_AssertValid(const PARCStaticObject *instance)
+parcMyObject_AssertValid(const PARCMyObject *instance)
 {
-    assertTrue(parcStaticObject_IsValid(instance),
-               "PARCStaticObject is not valid.");
+    assertTrue(parcMyObject_IsValid(instance),
+               "PARCMyObject is not valid.");
 }
 
-PARCStaticObject *
-parcStaticObject_Wrap(PARCStaticObject *instance)
+PARCMyObject *
+parcMyObject_Wrap(void *origin)
 {
-    PARCStaticObject *result = parcObject_Wrap(instance, &parcObject_DescriptorName(PARCStaticObject));
+    PARCMyObject *result = parcObject_Wrap(origin, &parcObject_DescriptorName(PARCMyObject));
         
     return  result;
 }
 
-PARCStaticObject *
-parcStaticObject_Create(int x, double y, double z)
+PARCMyObject *
+parcMyObject_Init(PARCMyObject *object, int x, double y, double z)
 {
-    _PARCStaticObject *result = parcObject_CreateInstance(PARCStaticObject);
+    if (object != NULL) {
+        object->x = x;
+        object->y = y;
+        object->z = z;
+    }
+    
+    return object;
+}
+
+PARCMyObject *
+parcMyObject_Create(int x, double y, double z)
+{
+    PARCMyObject *result = parcObject_CreateInstance(PARCMyObject);
     
     if (result != NULL) {
         result->x = x;
@@ -127,35 +146,35 @@ parcStaticObject_Create(int x, double y, double z)
         result->z = z;
     }
     
-    return (PARCStaticObject *) result;
+    return (PARCMyObject *) result;
 }
 
 int
-parcStaticObject_Compare(const PARCStaticObject *instance, const PARCStaticObject *other)
+parcMyObject_Compare(const PARCMyObject *instance, const PARCMyObject *other)
 {
     int result = 0;
     
     return result;
 }
 
-PARCStaticObject *
-parcStaticObject_Copy(const PARCStaticObject *original)
+PARCMyObject *
+parcMyObject_Copy(const PARCMyObject *original)
 {
-    PARCStaticObject *result = NULL;
+    PARCMyObject *result = NULL;
     
     return result;
 }
 
 void
-parcStaticObject_Display(const PARCStaticObject *instance, int indentation)
+parcMyObject_Display(const PARCMyObject *instance, int indentation)
 {
-    parcDisplayIndented_PrintLine(indentation, "PARCStaticObject@%p {", instance);
+    parcDisplayIndented_PrintLine(indentation, "PARCMyObject@%p {", instance);
     /* Call Display() functions for the fields here. */
     parcDisplayIndented_PrintLine(indentation, "}");
 }
 
 bool
-parcStaticObject_Equals(const PARCStaticObject *x, const PARCStaticObject *y)
+parcMyObject_Equals(const PARCMyObject *x, const PARCMyObject *y)
 {
     bool result = false;
     
@@ -171,7 +190,7 @@ parcStaticObject_Equals(const PARCStaticObject *x, const PARCStaticObject *y)
 }
 
 PARCHashCode
-parcStaticObject_HashCode(const PARCStaticObject *instance)
+parcMyObject_HashCode(const PARCMyObject *instance)
 {
     PARCHashCode result = 0;
     
@@ -179,7 +198,7 @@ parcStaticObject_HashCode(const PARCStaticObject *instance)
 }
 
 bool
-parcStaticObject_IsValid(const PARCStaticObject *instance)
+parcMyObject_IsValid(const PARCMyObject *instance)
 {
     bool result = false;
     
@@ -191,7 +210,7 @@ parcStaticObject_IsValid(const PARCStaticObject *instance)
 }
 
 PARCJSON *
-parcStaticObject_ToJSON(const PARCStaticObject *instance)
+parcMyObject_ToJSON(const PARCMyObject *instance)
 {
     PARCJSON *result = parcJSON_Create();
     
@@ -203,11 +222,10 @@ parcStaticObject_ToJSON(const PARCStaticObject *instance)
 }
 
 char *
-parcStaticObject_ToString(const PARCStaticObject *instance)
+parcMyObject_ToString(const PARCMyObject *object)
 {
-    _PARCStaticObject *object = (_PARCStaticObject *) instance;
     
-    char *result = parcMemory_Format("PARCStaticObject@%p { .x=%d .y=%f .z=%f }", object, object->x, object->y, object->z);
+    char *result = parcMemory_Format("PARCMyObject@%p { .x=%d .y=%f .z=%f }", object, object->x, object->y, object->z);
 
     return result;
 }

@@ -58,92 +58,96 @@
  *
  * <#Detailed Description#>
  *
- * @author <#gscott#>, Palo Alto Research Center (PARC)
+ * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-#ifndef PARCLibrary_parc_StaticObject
-#define PARCLibrary_parc_StaticObject
+#ifndef PARCLibrary_parc_MyObject
+#define PARCLibrary_parc_MyObject
 #include <stdbool.h>
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
 
-struct PARCStaticObject { char header[parcObject_OpaquePrefixLength(sizeof(void *))]; char opaque[24]; };
-typedef struct PARCStaticObject PARCStaticObject;
+#define parcObject_Declare(_type_) \
+    struct _type_; \
+    typedef struct _type_ _type_; \
+    extern parcObjectDescriptor_Declaration(_type_)
+
+parcObject_Declare(PARCMyObject);
 
 /**
- * Increase the number of references to a `PARCStaticObject` instance.
+ * Increase the number of references to a `PARCMyObject` instance.
  *
- * Note that new `PARCStaticObject` is not created,
- * only that the given `PARCStaticObject` reference count is incremented.
- * Discard the reference by invoking `parcStaticObject_Release`.
+ * Note that new `PARCMyObject` is not created,
+ * only that the given `PARCMyObject` reference count is incremented.
+ * Discard the reference by invoking `parcMyObject_Release`.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * @return The same value as @p instance.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     PARCStaticObject *b = parcStaticObject_Acquire();
+ *     PARCMyObject *b = parcMyObject_Acquire();
 
- *     parcStaticObject_Release(&a);
- *     parcStaticObject_Release(&b);
+ *     parcMyObject_Release(&a);
+ *     parcMyObject_Release(&b);
  * }
  * @endcode
  */
-PARCStaticObject *parcStaticObject_Acquire(const PARCStaticObject *instance);
+PARCMyObject *parcMyObject_Acquire(const PARCMyObject *instance);
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
-#  define parcStaticObject_OptionalAssertValid(_instance_)
+#  define parcMyObject_OptionalAssertValid(_instance_)
 #else
-#  define parcStaticObject_OptionalAssertValid(_instance_) parcStaticObject_AssertValid(_instance_)
+#  define parcMyObject_OptionalAssertValid(_instance_) parcMyObject_AssertValid(_instance_)
 #endif
 
 /**
- * Assert that the given `PARCStaticObject` instance is valid.
+ * Assert that the given `PARCMyObject` instance is valid.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     parcStaticObject_AssertValid(a);
+ *     parcMyObject_AssertValid(a);
  *
  *     printf("Instance is valid.\n");
  *
- *     parcStaticObject_Release(&b);
+ *     parcMyObject_Release(&b);
  * }
  * @endcode
  */
-void parcStaticObject_AssertValid(const PARCStaticObject *instance);
+void parcMyObject_AssertValid(const PARCMyObject *instance);
 
 /**
- * Create an instance of PARCStaticObject
+ * Create an instance of PARCMyObject
  *
  * <#Paragraphs Of Explanation#>
  *
- * @return non-NULL A pointer to a valid PARCStaticObject instance.
+ * @return non-NULL A pointer to a valid PARCMyObject instance.
  * @return NULL An error occurred.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  */
-PARCStaticObject *parcStaticObject_Create(int x, double y, double z);
+PARCMyObject *parcMyObject_Create(int x, double y, double z);
 
-PARCStaticObject *parcStaticObject_Init(PARCStaticObject *instance, int x, double y, double z);
+PARCMyObject *parcMyObject_Init(PARCMyObject *instance, int x, double y, double z);
 
-PARCStaticObject *parcStaticObject_Wrap(PARCStaticObject *instance);
+PARCMyObject *parcMyObject_Wrap(void *origin);
 
 /**
  * Compares @p instance with @p other for order.
@@ -151,8 +155,8 @@ PARCStaticObject *parcStaticObject_Wrap(PARCStaticObject *instance);
  * Returns a negative integer, zero, or a positive integer as @p instance
  * is less than, equal to, or greater than @p other.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
- * @param [in] other A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
+ * @param [in] other A pointer to a valid PARCMyObject instance.
  *
  * @return <0 Instance is less than @p other.
  * @return 0 Instance a and instance b compare the same.
@@ -161,106 +165,106 @@ PARCStaticObject *parcStaticObject_Wrap(PARCStaticObject *instance);
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
- *     PARCStaticObject *b = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
+ *     PARCMyObject *b = parcMyObject_Create();
  *
- *     if (parcStaticObject_Compare(a, b) == 0) {
+ *     if (parcMyObject_Compare(a, b) == 0) {
  *         printf("Instances are equal.\n");
  *     }
  *
- *     parcStaticObject_Release(&a);
- *     parcStaticObject_Release(&b);
+ *     parcMyObject_Release(&a);
+ *     parcMyObject_Release(&b);
  * }
  * @endcode
  *
- * @see parcStaticObject_Equals
+ * @see parcMyObject_Equals
  */
-int parcStaticObject_Compare(const PARCStaticObject *instance, const PARCStaticObject *other);
+int parcMyObject_Compare(const PARCMyObject *instance, const PARCMyObject *other);
 
 /**
  * Create an independent copy the given `PARCBuffer`
  *
  * A new buffer is created as a complete copy of the original.
  *
- * @param [in] original A pointer to a valid PARCStaticObject instance.
+ * @param [in] original A pointer to a valid PARCMyObject instance.
  *
  * @return NULL Memory could not be allocated.
- * @return non-NULL A pointer to a new `PARCStaticObject` instance.
+ * @return non-NULL A pointer to a new `PARCMyObject` instance.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     PARCStaticObject *copy = parcStaticObject_Copy(&b);
+ *     PARCMyObject *copy = parcMyObject_Copy(&b);
  *
- *     parcStaticObject_Release(&b);
- *     parcStaticObject_Release(&copy);
+ *     parcMyObject_Release(&b);
+ *     parcMyObject_Release(&copy);
  * }
  * @endcode
  */
-PARCStaticObject *parcStaticObject_Copy(const PARCStaticObject *original);
+PARCMyObject *parcMyObject_Copy(const PARCMyObject *original);
 
 /**
- * Print a human readable representation of the given `PARCStaticObject`.
+ * Print a human readable representation of the given `PARCMyObject`.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  * @param [in] indentation The indentation level to use for printing.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     parcStaticObject_Display(a, 0);
+ *     parcMyObject_Display(a, 0);
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  */
-void parcStaticObject_Display(const PARCStaticObject *instance, int indentation);
+void parcMyObject_Display(const PARCMyObject *instance, int indentation);
 
 /**
- * Determine if two `PARCStaticObject` instances are equal.
+ * Determine if two `PARCMyObject` instances are equal.
  *
- * The following equivalence relations on non-null `PARCStaticObject` instances are maintained: *
- *   * It is reflexive: for any non-null reference value x, `parcStaticObject_Equals(x, x)` must return true.
+ * The following equivalence relations on non-null `PARCMyObject` instances are maintained: *
+ *   * It is reflexive: for any non-null reference value x, `parcMyObject_Equals(x, x)` must return true.
  *
- *   * It is symmetric: for any non-null reference values x and y, `parcStaticObject_Equals(x, y)` must return true if and only if
- *        `parcStaticObject_Equals(y x)` returns true.
+ *   * It is symmetric: for any non-null reference values x and y, `parcMyObject_Equals(x, y)` must return true if and only if
+ *        `parcMyObject_Equals(y x)` returns true.
  *
  *   * It is transitive: for any non-null reference values x, y, and z, if
- *        `parcStaticObject_Equals(x, y)` returns true and
- *        `parcStaticObject_Equals(y, z)` returns true,
- *        then `parcStaticObject_Equals(x, z)` must return true.
+ *        `parcMyObject_Equals(x, y)` returns true and
+ *        `parcMyObject_Equals(y, z)` returns true,
+ *        then `parcMyObject_Equals(x, z)` must return true.
  *
- *   * It is consistent: for any non-null reference values x and y, multiple invocations of `parcStaticObject_Equals(x, y)`
+ *   * It is consistent: for any non-null reference values x and y, multiple invocations of `parcMyObject_Equals(x, y)`
  *         consistently return true or consistently return false.
  *
- *   * For any non-null reference value x, `parcStaticObject_Equals(x, NULL)` must return false.
+ *   * For any non-null reference value x, `parcMyObject_Equals(x, NULL)` must return false.
  *
- * @param [in] x A pointer to a valid PARCStaticObject instance.
- * @param [in] y A pointer to a valid PARCStaticObject instance.
+ * @param [in] x A pointer to a valid PARCMyObject instance.
+ * @param [in] y A pointer to a valid PARCMyObject instance.
  *
  * @return true The instances x and y are equal.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
- *     PARCStaticObject *b = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
+ *     PARCMyObject *b = parcMyObject_Create();
  *
- *     if (parcStaticObject_Equals(a, b)) {
+ *     if (parcMyObject_Equals(a, b)) {
  *         printf("Instances are equal.\n");
  *     }
  *
- *     parcStaticObject_Release(&a);
- *     parcStaticObject_Release(&b);
+ *     parcMyObject_Release(&a);
+ *     parcMyObject_Release(&b);
  * }
  * @endcode
- * @see parcStaticObject_HashCode
+ * @see parcMyObject_HashCode
  */
-bool parcStaticObject_Equals(const PARCStaticObject *x, const PARCStaticObject *y);
+bool parcMyObject_Equals(const PARCMyObject *x, const PARCMyObject *y);
 
 /**
  * Returns a hash code value for the given instance.
@@ -272,37 +276,37 @@ bool parcStaticObject_Equals(const PARCStaticObject *x, const PARCStaticObject *
  * provided no information used in a corresponding comparisons on the instance is modified.
  *
  * This value need not remain consistent from one execution of an application to another execution of the same application.
- * If two instances are equal according to the {@link parcStaticObject_Equals} method,
- * then calling the {@link parcStaticObject_HashCode} method on each of the two instances must produce the same integer result.
+ * If two instances are equal according to the {@link parcMyObject_Equals} method,
+ * then calling the {@link parcMyObject_HashCode} method on each of the two instances must produce the same integer result.
  *
  * It is not required that if two instances are unequal according to the
- * {@link parcStaticObject_Equals} function,
- * then calling the `parcStaticObject_HashCode`
+ * {@link parcMyObject_Equals} function,
+ * then calling the `parcMyObject_HashCode`
  * method on each of the two objects must produce distinct integer results.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * @return The hashcode for the given instance.
  *
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     PARCHashCode hashValue = parcStaticObject_HashCode(buffer);
- *     parcStaticObject_Release(&a);
+ *     PARCHashCode hashValue = parcMyObject_HashCode(buffer);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  */
-PARCHashCode parcStaticObject_HashCode(const PARCStaticObject *instance);
+PARCHashCode parcMyObject_HashCode(const PARCMyObject *instance);
 
 /**
- * Determine if an instance of `PARCStaticObject` is valid.
+ * Determine if an instance of `PARCMyObject` is valid.
  *
  * Valid means the internal state of the type is consistent with its required current or future behaviour.
  * This may include the validation of internal instances of types.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * @return true The instance is valid.
  * @return false The instance is not valid.
@@ -310,21 +314,21 @@ PARCHashCode parcStaticObject_HashCode(const PARCStaticObject *instance);
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     if (parcStaticObject_IsValid(a)) {
+ *     if (parcMyObject_IsValid(a)) {
  *         printf("Instance is valid.\n");
  *     }
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  *
  */
-bool parcStaticObject_IsValid(const PARCStaticObject *instance);
+bool parcMyObject_IsValid(const PARCMyObject *instance);
 
 /**
- * Release a previously acquired reference to the given `PARCStaticObject` instance,
+ * Release a previously acquired reference to the given `PARCMyObject` instance,
  * decrementing the reference count for the instance.
  *
  * The pointer to the instance is set to NULL as a side-effect of this function.
@@ -338,18 +342,18 @@ bool parcStaticObject_IsValid(const PARCStaticObject *instance);
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  */
-void parcStaticObject_Release(PARCStaticObject **instancePtr);
+void parcMyObject_Release(PARCMyObject **instancePtr);
 
 /**
  * Create a `PARCJSON` instance (representation) of the given object.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * @return NULL Memory could not be allocated to contain the `PARCJSON` instance.
  * @return non-NULL An allocated C string that must be deallocated via parcMemory_Deallocate().
@@ -357,25 +361,25 @@ void parcStaticObject_Release(PARCStaticObject **instancePtr);
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     PARCJSON *json = parcStaticObject_ToJSON(a);
+ *     PARCJSON *json = parcMyObject_ToJSON(a);
  *
  *     printf("JSON representation: %s\n", parcJSON_ToString(json));
  *     parcJSON_Release(&json);
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  * }
  * @endcode
  */
-PARCJSON *parcStaticObject_ToJSON(const PARCStaticObject *instance);
+PARCJSON *parcMyObject_ToJSON(const PARCMyObject *instance);
 
 /**
- * Produce a null-terminated string representation of the specified `PARCStaticObject`.
+ * Produce a null-terminated string representation of the specified `PARCMyObject`.
  *
  * The result must be freed by the caller via {@link parcMemory_Deallocate}.
  *
- * @param [in] instance A pointer to a valid PARCStaticObject instance.
+ * @param [in] instance A pointer to a valid PARCMyObject instance.
  *
  * @return NULL Cannot allocate memory.
  * @return non-NULL A pointer to an allocated, null-terminated C string that must be deallocated via {@link parcMemory_Deallocate}.
@@ -383,18 +387,18 @@ PARCJSON *parcStaticObject_ToJSON(const PARCStaticObject *instance);
  * Example:
  * @code
  * {
- *     PARCStaticObject *a = parcStaticObject_Create();
+ *     PARCMyObject *a = parcMyObject_Create();
  *
- *     char *string = parcStaticObject_ToString(a);
+ *     char *string = parcMyObject_ToString(a);
  *
- *     parcStaticObject_Release(&a);
+ *     parcMyObject_Release(&a);
  *
  *     parcMemory_Deallocate(&string);
  * }
  * @endcode
  *
- * @see parcStaticObject_Display
+ * @see parcMyObject_Display
  */
-char *parcStaticObject_ToString(const PARCStaticObject *instance);
+char *parcMyObject_ToString(const PARCMyObject *instance);
 
 #endif
