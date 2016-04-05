@@ -37,8 +37,6 @@
 #ifndef libparc_parc_Chunker_h
 #define libparc_parc_Chunker_h
 
-#include <config.h>
-
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_Iterator.h>
 
@@ -61,9 +59,9 @@ typedef struct PARCChunkerInterface {
     void *(*ReverseIterator)(const void *original);
 
     /**
-     * @see parcChunker_Release
+     * @see parcChunker_GetChunkSize
      */
-    void (*Release)(void **originalP);
+    size_t (*GetChunkSize)(const void *original);
 } PARCChunkerInterface;
 
 /**
@@ -83,7 +81,7 @@ typedef struct PARCChunkerInterface {
  *     PARCChunker *chunker = parcChunker_Create(bufferCunker, &PARCBufferChunkerAsChunker);
  * }
  */
-PARCChunker *parcChunker_Create(void *instance, PARCChunkerInterface *interface);
+PARCChunker *parcChunker_Create(PARCObject *instance, PARCChunkerInterface *interface);
 
 /**
  * Create a new chunker to segment data contained in a file.
@@ -243,4 +241,23 @@ PARCIterator *parcChunker_ForwardIterator(const PARCChunker *chunker);
  * @endcode
  */
 PARCIterator *parcChunker_ReverseIterator(const PARCChunker *chunker);
+
+/**
+ * Get the chunk size of a `PARCChunker.`
+ *
+ * @param [in] chunker A `PARCChunker` instance.
+ *
+ * @return the chunk size
+ *
+ * Example
+ * @code
+ * {
+ *     PARCBuffer *dataToChunk = ...
+ *     PARCChunker *chunker = ...
+ *
+ *     size_t chunkSize = parcChunker_GetChunkSize(chunker);
+ * }
+ * @endcode
+ */
+size_t parcChunker_GetChunkSize(const PARCChunker *chunker);
 #endif // libparc_parc_Chunker_h

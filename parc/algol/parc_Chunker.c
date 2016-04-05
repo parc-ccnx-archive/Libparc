@@ -41,14 +41,14 @@
 #include <parc/algol/parc_Chunker.h>
 
 struct parc_chunker {
-    void *instance;
+    PARCObject *instance;
     const PARCChunkerInterface *interface;
 };
 
 static void
 _destroy(PARCChunker **chunkerP)
 {
-    (*chunkerP)->interface->Release(&(*chunkerP)->instance);
+    parcObject_Release(&(*chunkerP)->instance);
 }
 
 
@@ -57,12 +57,12 @@ parcObject_ImplementAcquire(parcChunker, PARCChunker);
 parcObject_ImplementRelease(parcChunker, PARCChunker);
 
 PARCChunker *
-parcChunker_Create(void *instance, PARCChunkerInterface *interface)
+parcChunker_Create(PARCObject *instance, PARCChunkerInterface *interface)
 {
     PARCChunker *chunker = parcObject_CreateInstance(PARCChunker);
 
     if (chunker != NULL) {
-        chunker->instance = instance;
+        chunker->instance = parcObject_Acquire(instance);
         chunker->interface = interface;
     }
 
@@ -79,4 +79,10 @@ PARCIterator *
 parcChunker_ReverseIterator(const PARCChunker *chunker)
 {
     return (chunker->interface)->ReverseIterator(chunker->instance);
+}
+
+size_t
+parcChunker_GetChunkSize(const PARCChunker *chunker)
+{
+    return (chunker->interface)->GetChunkSize(chunker->instance);
 }

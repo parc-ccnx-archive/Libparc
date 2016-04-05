@@ -65,6 +65,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_Buffer);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_BufferPartial);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_BufferSmall);
+    LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_GetChunkSize);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -323,6 +324,19 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ReverseIterator_BufferSmall)
 
     parcBufferChunker_Release(&chunker);
     parcBuffer_Release(&buffer);
+}
+
+LONGBOW_TEST_CASE(Global, parc_Chunker_GetChunkSize)
+{
+    size_t expectedChunkSize = 32;
+    PARCBuffer *buffer = parcBuffer_Allocate(16);
+    PARCBufferChunker *chunker = parcBufferChunker_Create(buffer, expectedChunkSize); // each chunk is 32 bytes
+    size_t actualChunkSize = parcBufferChunker_GetChunkSize(chunker);
+
+    assertTrue(actualChunkSize == expectedChunkSize, "Expected chunk size of %zu, got %zu", expectedChunkSize, actualChunkSize);
+
+    parcBuffer_Release(&buffer);
+    parcBufferChunker_Release(&chunker);
 }
 
 int

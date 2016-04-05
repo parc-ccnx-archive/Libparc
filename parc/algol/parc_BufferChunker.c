@@ -41,10 +41,10 @@
 
 #include <parc/algol/parc_BufferChunker.h>
 
-PARCChunkerInterface *PARCBufferChunkerAsBunker = &(PARCChunkerInterface) {
-    .ForwardIterator = (void *(*)(const void *))parcBufferChunker_ForwardIterator,
-    .ReverseIterator = (void *(*)(const void *))parcBufferChunker_ReverseIterator,
-    .Release = (void (*)(void **))parcBufferChunker_Release
+PARCChunkerInterface *PARCBufferChunkerAsChunker = &(PARCChunkerInterface) {
+    .ForwardIterator = (void *(*)(const void *)) parcBufferChunker_ForwardIterator,
+    .ReverseIterator = (void *(*)(const void *)) parcBufferChunker_ReverseIterator,
+    .GetChunkSize = (size_t (*)(const void *)) parcBufferChunker_GetChunkSize
 };
 
 struct _parc_chunker_state {
@@ -265,4 +265,10 @@ parcBufferChunker_ReverseIterator(const PARCBufferChunker *chunker)
                                                  (void (*)(const void *))_ccnxChunker_AssertValid);
 
     return iterator;
+}
+
+size_t
+parcBufferChunker_GetChunkSize(const PARCBufferChunker *chunker)
+{
+    return chunker->chunkSize;
 }
