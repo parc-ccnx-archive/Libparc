@@ -70,7 +70,7 @@
     enum { bytesCompileTimeAssertion = 1/!!(sizeof(_type_) >= sizeof(_##_type_)) }
 
 #if 0
-parcObject_Define(PARCMyObject,
+parcObject_DefineXXX(PARCMyObject,
                   int x;
                   double y;
                   double z;

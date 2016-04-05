@@ -755,6 +755,7 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
  */
 #define parcObject_CreateAndClearInstance(_subtype) \
     (_subtype *) parcObject_CreateAndClearInstanceImpl(&parcObject_DescriptorName(_subtype))
+
 /**
  * Create a reference counted segment of memory of at least @p objectLength long.
  *
@@ -784,6 +785,52 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
 PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
+ * @define parcObject_InitInstance
+ *
+ * `parcObject_InitInstance` is a helper C-macro that initializes a portion of memory to contain a PARCObject subtype
+ * using `parcObject_InitInstanceImpl`.
+ *
+ * @param [in] _object_ A pointer to memory that will contain the object and its meta-data.
+ * @param [in] _subtype A subtype's type string.
+ */
+#define parcObject_InitInstance(_object_, _subtype) \
+    parcObject_InitInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
+
+PARCObject *parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
+
+
+#define parcObject_InitAndClearInstance(_object_, _subtype) \
+    parcObject_InitAndClearInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
+
+/**
+ * Create a reference counted segment of memory of at least @p objectLength long.
+ *
+ * The implementation pointer, is either NULL or points to a valid `PARCObjectDescriptor` structure
+ * containing the callback functions that implement the object's life-cycle operations.
+ *
+ * The allocated memory is such that the memory's base address is aligned on a sizeof(void *) boundary,
+ * and filled with zero bytes.
+ *
+ * If memory cannot be allocated, `errno` is set to ENOMEM.
+ *
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
+ *
+ * @return NULL The memory could not be allocated.
+ * @return non-NULL A pointer to reference counted memory of at least length bytes.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ * }
+ * @endcode
+ *
+ * @see PARCObjectDescriptor
+ * @see parcObject_Create
+ */
+PARCObject *parcObject_InitAndClearInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
+
+/**
  * Compute the number of bytes necessary for a PARC Object header.
  *
  * The @p _alignment_ parameter specifies the required memory alignment of the object.
@@ -803,31 +850,12 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
 #define parcObject_OpaquePrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
 
 /**
- * Initialise an allocated PARC Object.
+ * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.
  *
- * An allocated PARC Object requires a deallocation on the last `parcObject_Release`.
+ * Note that the return value will not be equal to the value of @p origin.
  *
- * @param [in] origin A pointer to memory that will contain the object and its state.
- * @param [in] descriptor A pointer to a valid PARCObjectDescriptor for the object.
- *
- * @return NULL An error occured.
- *
- * Example:
- * @code
- * {
- *     <#example#>
- * }
- * @endcode
- */
-void *parcObject_InitAllocated(void *origin, const PARCObjectDescriptor *descriptor);
-
-/**
- * Initialise an unallocated PARC Object.
- *
- * An unallocated PARC Object requires no deallocation on the last `parcObject_Release`.
- *
- * @param [in] origin A pointer to memory that will contain the object and its state.
- * @param [in] descriptor A pointer to a valid PARCObjectDescriptor for the object.
+ * @param [in] memory A pointer to memory that will contain the object and its state.
+ * @param [in] descriptor The subtype name that will be used to compose the name of the `PARCObjectDescriptor` for the object.
  *
  * @return NULL An error occured.
  *
@@ -838,14 +866,15 @@ void *parcObject_InitAllocated(void *origin, const PARCObjectDescriptor *descrip
  * }
  * @endcode
  */
-void *parcObject_InitUnallocated(void *origin, const PARCObjectDescriptor *descriptor);
+#define parcObject_Wrap(_memory_, _subtype) \
+    parcObject_WrapImpl(_memory_, &parcObject_DescriptorName(_subtype))
 
 /**
  * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.
  *
  * Note that the return value will not be equal to the value of @p origin.
  *
- * @param [in] origin A instance to static definition of a `PARCObject` that will contain the object and its state.
+ * @param [in] memory A pointer to memory that will contain the object and its state.
  * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` for the object.
  *
  * @return NULL An error occured.
@@ -857,7 +886,7 @@ void *parcObject_InitUnallocated(void *origin, const PARCObjectDescriptor *descr
  * }
  * @endcode
  */
-PARCObject *parcObject_Wrap(void *origin, const PARCObjectDescriptor *descriptor);
+PARCObject *parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descriptor);
 
 /**
  * @def parcObject_ImplementAcquire

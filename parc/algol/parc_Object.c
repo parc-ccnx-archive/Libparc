@@ -522,7 +522,7 @@ parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor)
 static pthread_once_t _parcObject_GlobalLockAttributesInitialized = PTHREAD_ONCE_INIT;
 static pthread_mutexattr_t _parcObject_GlobalLockAttributes;
 
-void
+static void
 _parcObject_InitializeGobalLockAttributes(void)
 {
     pthread_mutexattr_init(&_parcObject_GlobalLockAttributes);
@@ -548,6 +548,7 @@ _parcObjectHeader_Init(_PARCObjectHeader *header, const PARCObjectDescriptor *de
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
+    header->isAllocated = false;
 
     if (header->descriptor->isLockable) {
         header->locking = &header->lock;
@@ -569,7 +570,7 @@ _parcObjectHeader_InitAllocated(_PARCObjectHeader *header, const PARCObjectDescr
 }
 
 PARCObject *
-parcObject_InitUnallocated(PARCObject *object, const PARCObjectDescriptor *descriptor)
+parcObject_InitWrappedObject(PARCObject *object, const PARCObjectDescriptor *descriptor)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
     
@@ -585,12 +586,12 @@ parcObject_InitAllocated(PARCObject *object, const PARCObjectDescriptor *descrip
 }
 
 PARCObject *
-parcObject_Wrap(void *origin, const PARCObjectDescriptor *descriptor)
+parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descriptor)
 {
     size_t prefixLength = _parcObject_PrefixLength(descriptor);
-    PARCObject *object = _pointerAdd(origin, prefixLength);
+    PARCObject *object = _pointerAdd(memory, prefixLength);
     
-    PARCObject *result = parcObject_InitUnallocated(object, descriptor);
+    PARCObject *result = parcObject_InitWrappedObject(object, descriptor);
     
     return result;
 }
@@ -614,6 +615,24 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
     parcObject_InitAllocated(object, descriptor);
 
     errno = 0;
+    return object;
+}
+
+PARCObject *
+parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor)
+{
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    _parcObjectHeader_Init(header, descriptor);
+    return object;
+}
+
+PARCObject *
+parcObject_InitAndClearInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor)
+{
+    parcObject_InitInstanceImpl(object, descriptor);
+
+    memset(object, 0, descriptor->objectSize);
     return object;
 }
 

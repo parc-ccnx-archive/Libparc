@@ -75,6 +75,7 @@
 
 parcObject_Declare(PARCMyObject);
 
+
 /**
  * Increase the number of references to a `PARCMyObject` instance.
  *
