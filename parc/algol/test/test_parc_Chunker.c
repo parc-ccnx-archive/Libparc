@@ -50,6 +50,7 @@ typedef struct {
     int start;
     int end;
     bool released;
+    size_t chunkSize;
 } _DummyChunker;
 
 static void *
@@ -84,12 +85,6 @@ _next(_DummyChunker *chunker, void *voidstate)
     return state;
 }
 
-//static void
-//_parcChunker_RemoveAt(CCNxBufferChunker *chunker, void **state)
-//{
-//    // pass
-//}
-
 static void *
 _get(_DummyChunker *chunker, void *voidstate)
 {
@@ -103,12 +98,6 @@ _finish(_DummyChunker *chunker, void *state)
     _DummyChunkerState *thestate = (_DummyChunkerState *) state;
     parcMemory_Deallocate(&thestate);
 }
-
-//static void
-//_parcChunker_AssertValid(const void *state)
-//{
-//    // pass
-//}
 
 static PARCIterator *
 _mock_ForwardIterator(const void *chunker)
@@ -140,6 +129,13 @@ _mock_ReverseIterator(const void *chunker)
     return iterator;
 }
 
+static size_t
+_mock_GetChunkSize(const void *chunker)
+{
+    _DummyChunker *dummy = (_DummyChunker *) chunker;
+    return dummy->chunkSize;
+}
+
 static void
 _dummyDestroy(_DummyChunker **chunkerP)
 {
@@ -149,7 +145,7 @@ _dummyDestroy(_DummyChunker **chunkerP)
 PARCChunkerInterface *_MockChunker = &(PARCChunkerInterface) {
     .ForwardIterator = (void *(*)(const void *))_mock_ForwardIterator,
     .ReverseIterator = (void *(*)(const void *))_mock_ReverseIterator,
-    .Release = (void (*)(void **))_dummyDestroy
+    .GetChunkSize = (size_t (*)(const void *))_mock_GetChunkSize
 };
 
 parcObject_ExtendPARCObject(_DummyChunker, _dummyDestroy, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -163,6 +159,7 @@ _dummy_Create(int val)
     chunker->start = 0;
     chunker->end = val;
     chunker->released = false;
+    chunker->chunkSize = val;
     return chunker;
 }
 
@@ -189,6 +186,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_Create);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ForwardIterator);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator);
+    LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_GetChunkSize);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -210,6 +208,7 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_Create)
 {
     _DummyChunker *dummy = _dummy_Create(10);
     PARCChunker *chunker = parcChunker_Create(dummy, _MockChunker);
+    _dummy_Release(&dummy);
 
     assertNotNull(chunker, "Expected non-NULL PARCChunker to be created from the dummy MockChunker");
     PARCChunker *copy = parcChunker_Acquire(chunker);
@@ -217,7 +216,6 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_Create)
 
     parcChunker_Release(&chunker);
     parcChunker_Release(&copy);
-    _dummy_Release(&dummy);
 }
 
 LONGBOW_TEST_CASE(Global, parc_Chunker_ForwardIterator)
@@ -226,6 +224,7 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ForwardIterator)
 
     _DummyChunker *dummy = _dummy_Create(n);
     PARCChunker *chunker = parcChunker_Create(dummy, _MockChunker);
+    _dummy_Release(&dummy);
     PARCIterator *itr = parcChunker_ForwardIterator(chunker);
 
     int targetSum = (n * (n + 1)) / 2;
@@ -238,7 +237,6 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ForwardIterator)
 
     parcIterator_Release(&itr);
     parcChunker_Release(&chunker);
-    _dummy_Release(&dummy);
 }
 
 LONGBOW_TEST_CASE(Global, parc_Chunker_ReverseIterator)
@@ -247,6 +245,7 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ReverseIterator)
 
     _DummyChunker *dummy = _dummy_Create(n);
     PARCChunker *chunker = parcChunker_Create(dummy, _MockChunker);
+    _dummy_Release(&dummy);
     PARCIterator *itr = parcChunker_ReverseIterator(chunker);
 
     int targetSum = (n * (n + 1)) / 2;
@@ -259,7 +258,20 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ReverseIterator)
 
     parcIterator_Release(&itr);
     parcChunker_Release(&chunker);
+}
+
+LONGBOW_TEST_CASE(Global, parc_Chunker_GetChunkSize)
+{
+    int n = 10;
+
+    _DummyChunker *dummy = _dummy_Create(n);
+    PARCChunker *chunker = parcChunker_Create(dummy, _MockChunker);
     _dummy_Release(&dummy);
+
+    size_t chunkSize = parcChunker_GetChunkSize(chunker);
+    assertTrue(chunkSize == n, "Expected the chunk size to be %d, got %zu\n", n, chunkSize);
+
+    parcChunker_Release(&chunker);
 }
 
 int
