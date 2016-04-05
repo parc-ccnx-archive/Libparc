@@ -36,8 +36,6 @@
 #ifndef libparc_parc_BufferChunker_h
 #define libparc_parc_BufferChunker_h
 
-#include <config.h>
-
 #include <parc/algol/parc_Chunker.h>
 
 struct parc_buffer_chunker;
@@ -211,4 +209,22 @@ PARCIterator *parcBufferChunker_ForwardIterator(const PARCBufferChunker *chunker
  */
 PARCIterator *parcBufferChunker_ReverseIterator(const PARCBufferChunker *chunker);
 
+/**
+ * Get the chunk size of a `PARCBufferChunker.`
+ *
+ * @param [in] chunker A `PARCBufferChunker` instance.
+ *
+ * @return the chunk size
+ *
+ * Example
+ * @code
+ * {
+ *     PARCBuffer *dataToChunk = ...
+ *     PARCBufferChunker *chunker = ...
+ *
+ *     size_t chunkSize = parcBufferChunker_GetChunkSize(chunker);
+ * }
+ * @endcode
+ */
+size_t parcBufferChunker_GetChunkSize(const PARCBufferChunker *chunker);
 #endif // libparc_parc_BufferChunker_h

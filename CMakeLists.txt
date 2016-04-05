@@ -44,7 +44,7 @@ set(PARC_BIN_LIBRARIES
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-add_custom_target(cleanup_profiling_data
+add_custom_target(${PROJECT_NAME}_cleanup_profiling_data
         "find" "." "-name" "*.gcda" "-delete"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Cleanup previous profiling data.")
@@ -54,7 +54,7 @@ macro(AddTest testFile)
   target_link_libraries(${ARGV0} ${PARC_BIN_LIBRARIES})
   add_test(NAME ${ARGV0} COMMAND ${ARGV0})
   set_target_properties(${ARGV0} PROPERTIES FOLDER Test)
-  add_dependencies(${ARGV0} cleanup_profiling_data)
+  add_dependencies(${ARGV0} ${PROJECT_NAME}_cleanup_profiling_data)
 
 
 endmacro(AddTest)
