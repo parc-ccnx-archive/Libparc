@@ -118,7 +118,7 @@ parcMyObject_AssertValid(const PARCMyObject *instance)
 PARCMyObject *
 parcMyObject_Wrap(void *origin)
 {
-    PARCMyObject *result = parcObject_Wrap(origin, &parcObject_DescriptorName(PARCMyObject));
+    PARCMyObject *result = parcObject_Wrap(origin, PARCMyObject);
         
     return  result;
 }

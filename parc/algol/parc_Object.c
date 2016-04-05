@@ -66,7 +66,7 @@ typedef struct object_header {
     uint32_t magicGuardNumber;
     bool isAllocated;
     PARCReferenceCount references;
-    PARCObjectDescriptor *descriptor;
+    const PARCObjectDescriptor *descriptor;
     
     // Currently every object is lockable, but at some point in the future this will be controlled by the descriptor.
     // The locking member points to the locking structure or is NULL if the object does not support locking.
@@ -124,7 +124,7 @@ _parcObject_Header(const PARCObject *object)
     return _pointerAdd(object, -sizeof(_PARCObjectHeader));
 }
 
-static inline PARCObjectDescriptor *
+static inline const PARCObjectDescriptor *
 _parcObject_Descriptor(const PARCObject *object)
 {
     return (_parcObject_Header(object)->descriptor);
@@ -543,46 +543,30 @@ _parcObject_InitializeLocking(_PARCObjectLocking *locking)
 }
 
 static inline _PARCObjectHeader *
-_parcObjectHeader_Init(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
+_parcObjectHeader_InitAllocated(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
 {
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
-    header->isAllocated = false;
-
+    header->isAllocated = true;
+    
     if (header->descriptor->isLockable) {
         header->locking = &header->lock;
         _parcObject_InitializeLocking(header->locking);
     } else {
         header->locking = NULL;
     }
-
+    
     return header;
 }
 
 static inline _PARCObjectHeader *
-_parcObjectHeader_InitAllocated(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
+_parcObjectHeader_InitUnallocated(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
 {
-    _parcObjectHeader_Init(header, descriptor);
-    header->isAllocated = true;
+    _parcObjectHeader_InitAllocated(header, descriptor);
+    header->isAllocated = false;
     
     return header;
-}
-
-PARCObject *
-parcObject_InitWrappedObject(PARCObject *object, const PARCObjectDescriptor *descriptor)
-{
-    _PARCObjectHeader *header = _parcObject_Header(object);
-    
-    _parcObjectHeader_Init(header, descriptor);
-    return object;
-}
-
-PARCObject *
-parcObject_InitAllocated(PARCObject *object, const PARCObjectDescriptor *descriptor)
-{
-    _parcObjectHeader_InitAllocated(_parcObject_Header(object), descriptor);
-    return object;
 }
 
 PARCObject *
@@ -591,9 +575,9 @@ parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descriptor)
     size_t prefixLength = _parcObject_PrefixLength(descriptor);
     PARCObject *object = _pointerAdd(memory, prefixLength);
     
-    PARCObject *result = parcObject_InitWrappedObject(object, descriptor);
+    _parcObjectHeader_InitUnallocated(_parcObject_Header(object), descriptor);
     
-    return result;
+    return object;
 }
 
 PARCObject *
@@ -612,7 +596,7 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
     
     PARCObject *object = _pointerAdd(origin, prefixLength);
     
-    parcObject_InitAllocated(object, descriptor);
+    _parcObjectHeader_InitAllocated(_parcObject_Header(object), descriptor);
 
     errno = 0;
     return object;
@@ -623,7 +607,7 @@ parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *desc
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
     
-    _parcObjectHeader_Init(header, descriptor);
+    _parcObjectHeader_InitUnallocated(header, descriptor);
     return object;
 }
 
@@ -704,7 +688,7 @@ parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *descrip
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
-    PARCObjectDescriptor *result = header->descriptor;
+    const PARCObjectDescriptor *result = header->descriptor;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
 
     return result;

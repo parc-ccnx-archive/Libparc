@@ -99,7 +99,7 @@ a()
     // constant expressions or string literals."
     //static PARCMyObject *localStaticObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
     
-//    static PARCMyObject *staticWrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
+    //static PARCMyObject *staticWrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
     PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
     PARCMyObject *alias = parcMyObject_Init(wrappedObject, x, y, z);
     
