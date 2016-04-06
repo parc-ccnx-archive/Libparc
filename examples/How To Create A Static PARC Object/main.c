@@ -57,11 +57,6 @@
 #include <parc/algol/parc_Memory.h>
 #include "parc_MyObject.h"
 
-#define parcObject_TotalSize(_alignment_, _size_) (parcObject_OpaquePrefixLength(_alignment_) + _size_)
-
-#define parcObject_Instance(_type_, _alignment_, _size_) \
-    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { }[parcObject_OpaquePrefixLength(sizeof(void *))])
-
 /*
  * Three kinds of static PARC Objects
  *

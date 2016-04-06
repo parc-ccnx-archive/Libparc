@@ -78,6 +78,9 @@ typedef void PARCObject;
 /**
  * A Function that performs the final cleanup and resource deallocation when
  * a PARC Object has no more references.
+ *
+ * This is deprecated and will be removed.
+ * Use `PARCObjectDestructor`
  */
 typedef void (PARCObjectDestroy)(PARCObject **);
 
@@ -785,20 +788,48 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
 PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
+ * Define a static PARCObject instance for the given type, alignment, per-object data.
+ *
+ * Once the instance has been defined, it must be initialised via `parcObject_InitInstance`
+ * or `parcObject_InitAndClearInstance` before it is used.
+ *
+ * @return A pointer to an invalid `PARCObject` instance that must be initialised .
+ */
+#define parcObject_Instance(_type_, _alignment_, _size_) \
+    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { }[parcObject_PrefixLength(sizeof(void *))])
+
+/**
  * @define parcObject_InitInstance
  *
- * `parcObject_InitInstance` is a helper C-macro that initializes a portion of memory to contain a PARCObject subtype
+ * `parcObject_InitInstance` is a helper C-macro that initializes a portion of memory to contain a `PARCObject` subtype
  * using `parcObject_InitInstanceImpl`.
  *
  * @param [in] _object_ A pointer to memory that will contain the object and its meta-data.
- * @param [in] _subtype A subtype's type string.
+ * @param [in] _subtype A subtype's type name.
  */
 #define parcObject_InitInstance(_object_, _subtype) \
     parcObject_InitInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
 
+/**
+ * @define parcObject_InitInstanceImpl
+ *
+ * Initialize a PARCObject instance given the `PARCObjectDescriptor`.
+ * Any previous state of the given PARCObject is destroyed.
+ *
+ * @param [in] object A pointer to an existing valid or invalid `PARCObject` instance.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
+ */
 PARCObject *parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
 
-
+/**
+ * @define parcObject_InitAndClearInstance
+ *
+ * `parcObject_InitAndClearInstance` is a helper C-macro that initializes a portion of memory to contain a PARCObject subtype
+ * using `parcObject_InitAndClearInstanceImpl`.
+ *
+ * @param [in] _object_ A pointer to memory that will contain the object and its meta-data.
+ * @param [in] _subtype A subtype's type name.
+ */
 #define parcObject_InitAndClearInstance(_object_, _subtype) \
     parcObject_InitAndClearInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
 
@@ -811,8 +842,9 @@ PARCObject *parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDesc
  * The allocated memory is such that the memory's base address is aligned on a sizeof(void *) boundary,
  * and filled with zero bytes.
  *
- * If memory cannot be allocated, `errno` is set to ENOMEM.
+ * If memory cannot be allocated, `errno` is set to `ENOMEM`.
  *
+ * @param [in] object A pointer to an existing valid or invalid `PARCObject` instance.
  * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
  *
  * @return NULL The memory could not be allocated.
@@ -831,7 +863,7 @@ PARCObject *parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDesc
 PARCObject *parcObject_InitAndClearInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
 
 /**
- * Compute the number of bytes necessary for a PARC Object header.
+ * Compute the number of bytes necessary for a PARC Object prefix.
  *
  * The @p _alignment_ parameter specifies the required memory alignment of the object.
  *
@@ -847,7 +879,17 @@ PARCObject *parcObject_InitAndClearInstanceImpl(PARCObject *object, const PARCOb
  * @endcode
  */
 // The constant value here must be greater than or equal to the size of the internal _PARCObjectHeader structure.
-#define parcObject_OpaquePrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
+#define parcObject_PrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
+
+/**
+ * Compute the number of bytes necessary for a PARC Object.
+ *
+ * The number of bytes consists of the number of bytes for the PARC Object header, padding, and the object's specific data.
+ *
+ * The @p _alignment_ parameter specifies the required memory alignment of the object.
+ * The @p _size_ parameter specifies the number of bytes necessary for the object specific data.
+ */
+#define parcObject_TotalSize(_alignment_, _size_) (parcObject_PrefixLength(_alignment_) + _size_)
 
 /**
  * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.

@@ -59,7 +59,7 @@ typedef struct parc_object_locking {
 
 /*
  * This is the per-object header.
- * The size of this structure must be less than or equal to the value used in the parcObject_OpaquePrefixLength macro.
+ * The size of this structure must be less than or equal to the value used in the parcObject_PrefixLength macro.
  */
 typedef struct object_header {
 #define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x0ddFadda
@@ -108,7 +108,7 @@ _pointerAdd(const void *base, const size_t increment)
 static inline size_t
 _parcObject_PrefixLength(const PARCObjectDescriptor *descriptor)
 {
-    return parcObject_OpaquePrefixLength(descriptor->objectAlignment);
+    return parcObject_PrefixLength(descriptor->objectAlignment);
 }
 
 /*
