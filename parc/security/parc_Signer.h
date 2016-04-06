@@ -29,53 +29,7 @@
  * @ingroup security
  * @brief The API a crytography provider must interfaceement.
  *
- * One concrete implementation is the parc_PublicKeySignerPcks12Store, which uses a PKCS #12 wrapper.
- * Another is parc_AesSignerFileStore, which uses an AES-256 key and HMAC-SHA256.
- *
  * A signer IS NOT THREAD-SAFE.
- *
- * Here's some typical use cases of the signer.
- *
- * <code>
- * // create the file
- * parcPublicKeySignerPkcs12Store_CreateFile(filename, password, "alice", key_bits, valid_days);
- *
- * // open it as an RSA provider for the signer
- * PARCSigner *signer = parcSigner_Create( parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256) );
- * PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
- * parcCryptoHasher_Init(hasher);
- * parcCryptoHasher_Update_Bytes(hasher, to_sign, sizeof(to_sign));
- * PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
- * PARCSignature *sig = parcSigner_SignDigest(signer, hash);
- *
- * char *s = parcSignature_ToString(sig);
- * printf("Signature: %s\n", s);
- * parcMemory_Deallocate((void **)&s);
- *
- * parcCryptoHash_Release(&hash);
- * parcSignature_Release(&sig);
- * parcSigner_Release(&signer);
- * </code>
- *
- *
- * If you want to use a HMAC, you could do something like this:
- *
- * <code>
- * // create the file
- * PARCBuffer *secret_key = parcAesSignerFileStore_CreateKey(256);
- * parcAesSignerFileStore_CreateFile(filename, password, secret_key);
- *
- * // open it as a symmetric key provider for the signer
- * PARCSigner *signer = parcSigner_Create( parcAesSignerFileStore_OpenFile(filename, password, PARC_HASH_SHA256) );
- * </code>
- *
- * and the rest of the code is the same.  Or you could skip the file part and have
- * just done this to use an in-memory hmac
- *
- * <code>
- * PARCSigner *signer = parcSigner_Create( parcAesSignerFileStore_Create(secret_key, PARC_HASH_SHA256) )
- * </code>
- *
  *
  * @author Marc Mosko, Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
  * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
@@ -117,7 +71,7 @@ typedef struct parc_signer PARCSigner;
  * This defines the contract that any concrete implementation provides.
  *
  */
-typedef struct parc_signer_interface {    
+typedef struct parc_signer_interface {
     /**
      * Returns a the hasher to use for the signature.  This is important for
      * symmetric key HMAC to use this hasher, not one from PARCCryptoHasher.
@@ -163,10 +117,15 @@ typedef struct parc_signer_interface {
      * @return A PARCCryptoHashType value.
      */
     PARCCryptoHashType (*GetCryptoHashType)(void *interfaceContext);
-    
+
+    /**
+     * Return the PARCKeyStore for this Signer.
+     *
+     * @param [in] interfaceContext A pointer to a concrete PARCSigner instance.
+     *
+     * @return A PARCKeyStore instance.
+     */
     PARCKeyStore *(*GetKeyStore)(void *interfaceContext);
-    
-    void (*Release)(void **instanceP);
 } PARCSigningInterface;
 
 /**
@@ -348,6 +307,26 @@ PARCCryptoHasher *parcSigner_GetCryptoHasher(const PARCSigner *signer);
  * @endcode
  */
 PARCSignature *parcSigner_SignDigest(const PARCSigner *signer, const PARCCryptoHash *hashToSign);
+
+/**
+ * Compute the signature of a given `PARCBuffer`.
+ *
+ * @param [in] signer A pointer to a PARCSigner instance.
+ * @param [in] buffer The input to be hashed and signed.
+ *
+ * @return A pointer to a PARCSignature instance that must be released via parcSignature_Release()
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+ *     PARCBuffer *inputBuffer = ...
+ *
+ *     PARCSignature signature = parcSigner_SignBuffer(signer, inputBuffer);
+ * }
+ * @endcode
+ */
+PARCSignature *parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
 
 /**
  * Return the PARSigningAlgorithm used for signing with the given `PARCSigner`

@@ -86,9 +86,24 @@ _GetKeyStore(_MockSigner *signer)
     return signer->keyStore;
 }
 
+static bool
+_releaseSigner(_MockSigner **signer)
+{
+    parcCryptoHasher_Release(&((*signer)->hasher));
+    parcKeyStore_Release(&((*signer)->keyStore));
+    return true;
+}
+
+parcObject_ImplementAcquire(_mockSigner, _MockSigner);
+parcObject_ImplementRelease(_mockSigner, _MockSigner);
+
+parcObject_Override(_MockSigner, PARCObject,
+    .destructor = (PARCObjectDestructor *) _releaseSigner);
+
 static _MockSigner *
 _createSigner()
 {
+    // TODO: CODO
     _MockSigner *signer = parcMemory_Allocate(sizeof(_MockSigner));
 
     signer->hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
@@ -98,15 +113,6 @@ _createSigner()
     signer->keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
 
     return signer;
-}
-
-static void
-_releaseSigner(_MockSigner **signer)
-{
-    parcCryptoHasher_Release(&((*signer)->hasher));
-    parcKeyStore_Release(&((*signer)->keyStore));
-
-    parcMemory_Deallocate(signer);
 }
 
 static PARCSigningInterface *_MockSignerInterface = &(PARCSigningInterface) {

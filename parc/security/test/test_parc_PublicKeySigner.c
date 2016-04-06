@@ -203,6 +203,7 @@ LONGBOW_TEST_CASE(Specialization, parcPkcs12KeyStore_SignBuffer)
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     assertNotNull(signer, "Got null result from opening openssl pkcs12 file");
 
@@ -266,6 +267,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
     parcCryptoHasher_Init(hasher);
@@ -312,6 +314,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
     parcCryptoHasher_Init(hasher);
@@ -356,6 +359,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     PARCKey *key = parcSigner_CreatePublicKey(signer);
     assertNotNull(key, "Expected a non NULL value");
@@ -386,6 +390,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
     parcCryptoHasher_Init(hasher);
