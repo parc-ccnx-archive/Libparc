@@ -75,6 +75,13 @@
 
 parcObject_Declare(PARCMyObject);
 
+/**
+ * The number of bytes sufficient to contain the MyObject data.
+ *
+ * This is dependant upon the definition of the underlying `struct MyObject`.
+ * If that definition changes, it may be necessary to change this constant.
+ */
+#define PARCMyObjectSizeOf 24
 
 /**
  * Increase the number of references to a `PARCMyObject` instance.

@@ -60,9 +60,8 @@
 #define parcObject_TotalSize(_alignment_, _size_) (parcObject_OpaquePrefixLength(_alignment_) + _size_)
 
 #define parcObject_Instance(_type_, _alignment_, _size_) \
-    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { 0, 0, 0, 0 }[parcObject_OpaquePrefixLength(sizeof(void *))])
+    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { }[parcObject_OpaquePrefixLength(sizeof(void *))])
 
-#define PARCMyObjectSizeOf 24
 /*
  * Three kinds of static PARC Objects
  *
@@ -70,7 +69,9 @@
  *
  * local objects defined within a function.
  *
- * A static local object defined within a function doesn't work because section 6.7.8/4 says, "All the expressions in an initializer for an object that has static storage duration shall be constant expressions or string literals."
+ * A static local object defined within a function's scope doesn't work because section 6.7.8/4 says,
+ * "All the expressions in an initializer for an object that has static storage duration shall
+ * be constant expressions or string literals." and the allocation of an array is not a constant expression.
  */
 
 PARCMyObject *globalObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
@@ -78,7 +79,7 @@ PARCMyObject *globalObject = parcObject_Instance(PARCMyObject, sizeof(void*), PA
 static PARCMyObject *staticModuleObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
 
 void
-a()
+howToUseAGlobalObject(void)
 {
     int x = 1;
     int y = 2;
@@ -87,48 +88,68 @@ a()
     parcObject_InitInstance(globalObject, PARCMyObject);
     parcMyObject_Init(globalObject, x, y, z);
     
+    parcMyObject_Display(globalObject, 0);
+
+    parcMyObject_Release(&globalObject);
+}
+
+void
+howToUseAStaticModuleObject(void)
+{
+    int x = 1;
+    int y = 2;
+    double z = 3.14;
+    
     parcObject_InitInstance(staticModuleObject, PARCMyObject);
     parcMyObject_Init(staticModuleObject, x, y, z);
     
+    parcMyObject_Display(staticModuleObject, 0);
+    
+    parcMyObject_Release(&staticModuleObject);
+}
+
+void
+howToUseALocalObject(void)
+{
+    int x = 1;
+    int y = 2;
+    double z = 3.14;
+    
     PARCMyObject *localObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
+    
     parcObject_InitInstance(localObject, PARCMyObject);
     parcMyObject_Init(localObject, x, y, z);
     
-    // A static local object defined within a function doesn't work because section 6.7.8/4 says,
-    // "All the expressions in an initializer for an object that has static storage duration shall be
-    // constant expressions or string literals."
-    //static PARCMyObject *localStaticObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
-    
-    //static PARCMyObject *staticWrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
-    PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
-    PARCMyObject *alias = parcMyObject_Init(wrappedObject, x, y, z);
-    
-    
-    PARCMyObject *allocatedObject = parcMyObject_Create(x, y, z);
-    char *allocatedObjectString = parcMyObject_ToString(allocatedObject);
-    
-    char *staticWrappedString = parcMyObject_ToString(wrappedObject);
-    char *staticModuleObjectString = parcMyObject_ToString(staticModuleObject);
-    char *localObjectString = parcMyObject_ToString(localObject);
-    
-    printf("%s\n%s\n%s\n%s\n", allocatedObjectString, staticWrappedString, staticModuleObjectString, localObjectString);
-    
-    parcMemory_Deallocate(&allocatedObjectString);
-    parcMemory_Deallocate(&staticWrappedString);
-    parcMemory_Deallocate(&localObjectString);
-    parcMemory_Deallocate(&staticModuleObjectString);
-    
-    parcMyObject_Acquire(alias);
-    
-    parcMyObject_Release(&allocatedObject);
-    parcMyObject_Release(&alias);
-    parcMyObject_Release(&wrappedObject);
+    parcMyObject_Display(localObject, 0);
+
     parcMyObject_Release(&localObject);
+}
+
+void
+howToUseAWrappedObject(void)
+{
+    int x = 1;
+    int y = 2;
+    double z = 3.14;
+    
+    PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
+    parcMyObject_Init(wrappedObject, x, y, z);
+    
+    parcMyObject_Display(wrappedObject, 0);
+
+    parcMyObject_Release(&wrappedObject);
 }
 
 int
 main(int argc, const char * argv[])
 {
-    a();
+    howToUseAGlobalObject();
+    
+    howToUseAStaticModuleObject();
+    
+    howToUseALocalObject();
+    
+    howToUseAWrappedObject();
+    
     return 0;
 }

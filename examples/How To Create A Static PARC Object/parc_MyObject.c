@@ -166,11 +166,9 @@ parcMyObject_Copy(const PARCMyObject *original)
 }
 
 void
-parcMyObject_Display(const PARCMyObject *instance, int indentation)
+parcMyObject_Display(const PARCMyObject *object, int indentation)
 {
-    parcDisplayIndented_PrintLine(indentation, "PARCMyObject@%p {", instance);
-    /* Call Display() functions for the fields here. */
-    parcDisplayIndented_PrintLine(indentation, "}");
+    parcDisplayIndented_PrintLine(indentation, "PARCMyObject@%p { .x=%d .y=%f .z=%f }", object, object->x, object->y, object->z);
 }
 
 bool
@@ -224,7 +222,6 @@ parcMyObject_ToJSON(const PARCMyObject *instance)
 char *
 parcMyObject_ToString(const PARCMyObject *object)
 {
-    
     char *result = parcMemory_Format("PARCMyObject@%p { .x=%d .y=%f .z=%f }", object, object->x, object->y, object->z);
 
     return result;
