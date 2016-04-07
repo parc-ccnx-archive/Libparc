@@ -396,7 +396,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open(filename, password, PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     parcPkcs12KeyStore_Release(&publicKeyStore);
-    
+
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&publicKeySigner);

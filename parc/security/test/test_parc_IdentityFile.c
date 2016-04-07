@@ -181,10 +181,15 @@ LONGBOW_TEST_CASE(Global, parcIdentityFile_CreateSigner)
 
     assertNotNull(identityFile, "Expected non-null");
 
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+        fprintf(stdout, "Current working dir: %s\n", cwd);
+    else
+        perror("getcwd() error");
     PARCSigner *signer = parcIdentityFile_CreateSigner(identityFile);
 
     assertNotNull(signer, "Expected non-null");
-    
+
     parcIdentityFile_Release(&identityFile);
     parcSigner_Release(&signer);
 
