@@ -18,4 +18,9 @@ if( ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
+
+if ( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm"  )
+    set(LEVEL1_DCACHE_LINESIZE 64)
+endif() 
+
 message("-- Cache line size: ${LEVEL1_DCACHE_LINESIZE}")
