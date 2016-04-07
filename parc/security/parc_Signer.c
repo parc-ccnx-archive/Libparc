@@ -153,11 +153,7 @@ parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
     parcCryptoHasher_Release(&hasher);
 
     PARCSignature *signature = parcSigner_SignDigest(signer, hash);
-    parcCryptoHash_Release(&hash);
-    PARCBuffer *signatureBuffer = parcBuffer_Acquire(parcSignature_GetSignature(signature));
-    parcSignature_Release(&signature);
-
-    return signatureBuffer;
+    return signature;
 }
 
 PARCSigningAlgorithm
