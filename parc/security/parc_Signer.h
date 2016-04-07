@@ -37,6 +37,7 @@
 #ifndef libparc_parc_Signer_h
 #define libparc_parc_Signer_h
 
+#include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_Buffer.h>
 #include <parc/security/parc_CryptoHasher.h>
 #include <parc/security/parc_Signature.h>
@@ -326,7 +327,7 @@ PARCSignature *parcSigner_SignDigest(const PARCSigner *signer, const PARCCryptoH
  * }
  * @endcode
  */
-PARCSignature *parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
+PARCSignature *parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer);
 
 /**
  * Return the PARSigningAlgorithm used for signing with the given `PARCSigner`

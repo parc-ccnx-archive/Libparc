@@ -148,13 +148,13 @@ parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
     PARCCryptoHashType hashType = parcSigner_GetCryptoHashType(signer);
     PARCCryptoHasher *hasher = parcCryptoHasher_Create(hashType);
     parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBuffer(hasher, cookieInputBuffer);
-    PARCCryptoHash *hash = parcCryptohasher_Finalize(hasher);
+    parcCryptoHasher_UpdateBuffer(hasher, buffer);
+    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
     parcCryptoHasher_Release(&hasher);
 
     PARCSignature *signature = parcSigner_SignDigest(signer, hash);
     parcCryptoHash_Release(&hash);
-    PARCBuffer *signatureBuffer = parcBuffer_Acquire(parcSignature_GetDigest(signature));
+    PARCBuffer *signatureBuffer = parcBuffer_Acquire(parcSignature_GetSignature(signature));
     parcSignature_Release(&signature);
 
     return signatureBuffer;

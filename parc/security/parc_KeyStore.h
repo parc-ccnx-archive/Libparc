@@ -40,6 +40,7 @@
 #ifndef libparc_parc_KeyStore_h
 #define libparc_parc_KeyStore_h
 
+#include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_Buffer.h>
 #include <parc/security/parc_CryptoHash.h>
 
@@ -64,7 +65,7 @@ typedef struct parc_keystore_interface {
      * @return A PARCCryptoHash value.
      */
     PARCCryptoHash *(*GetVerifierKeyDigest)(void *interfaceContext);
-    
+
     /**
      * Returns a copy of the the certificate digest.
      * Returns NULL for symmetric keystores.
@@ -80,7 +81,7 @@ typedef struct parc_keystore_interface {
      * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
      */
     PARCCryptoHash *(*GetCertificateDigest)(void *interfaceContext);
-    
+
     /**
      * Returns a copy of the DER encoded certificate.
      * Returns NULL for symmetric keystores.
@@ -93,7 +94,7 @@ typedef struct parc_keystore_interface {
      * @return A pointer to a PARCBuffer containing the encoded certificate.
      */
     PARCBuffer *(*GetDEREncodedCertificate)(void *interfaceContext);
-    
+
     /**
      * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
      *
@@ -105,7 +106,7 @@ typedef struct parc_keystore_interface {
      * @return A pointer to a PARCBuffer containing the encoded public key.
      */
     PARCBuffer *(*GetDEREncodedPublicKey)(void *interfaceContext);
-    
+
     /**
      * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
      *
@@ -117,8 +118,6 @@ typedef struct parc_keystore_interface {
      * @return A pointer to a PARCBuffer containing the encoded private key.
      */
     PARCBuffer *(*GetDEREncodedPrivateKey)(void *interfaceContext);
-    
-    void (*Release)(void **instanceP);
 } PARCKeyStoreInterface;
 
 /**
@@ -135,7 +134,7 @@ typedef struct parc_keystore_interface {
  * }
  * @endcode
  */
-PARCKeyStore *parcKeyStore_Create(void *instance, PARCKeyStoreInterface *interface);
+PARCKeyStore *parcKeyStore_Create(PARCObject *instance, PARCKeyStoreInterface *interface);
 
 /**
  * Increase the number of references to an instance of this object.

@@ -378,7 +378,6 @@ PARCKeyStoreInterface *PARCPkcs12KeyStoreAsKeyStore = &(PARCKeyStoreInterface) {
     .GetDEREncodedCertificate = (PARCBuffer *(*)(void *)) _GetDEREncodedCertificate,
     .GetDEREncodedPublicKey   = (PARCBuffer *(*)(void *)) _GetDEREncodedPublicKey,
     .GetDEREncodedPrivateKey  = (PARCBuffer *(*)(void *)) _GetDEREncodedPrivateKey,
-    .Release = (void (*)(void **)) parcPkcs12KeyStore_Release
 };
 
 // =============================================================

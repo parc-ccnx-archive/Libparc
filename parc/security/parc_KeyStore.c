@@ -38,7 +38,7 @@
 #include <parc/algol/parc_Object.h>
 
 struct parc_key_store {
-    void *instance;
+    PARCObject *instance;
     PARCKeyStoreInterface *interface;
 };
 
@@ -47,7 +47,7 @@ _finalize(PARCKeyStore **keyStorePtr)
 {
     PARCKeyStore *keyStore = *keyStorePtr;
     if (keyStore->interface != NULL && keyStore->instance != NULL) {
-        keyStore->interface->Release(&keyStore->instance);
+        parcObject_Release(&keyStore->instance);
     }
 }
 
@@ -56,12 +56,12 @@ parcObject_ImplementAcquire(parcKeyStore, PARCKeyStore);
 parcObject_ImplementRelease(parcKeyStore, PARCKeyStore);
 
 PARCKeyStore *
-parcKeyStore_Create(void *instance, PARCKeyStoreInterface *interface)
+parcKeyStore_Create(PARCObject *instance, PARCKeyStoreInterface *interface)
 {
     PARCKeyStore *keyStore = parcObject_CreateInstance(PARCKeyStore);
-    
+
     if (keyStore != NULL) {
-        keyStore->instance = instance;
+        keyStore->instance = parcObject_Acquire(instance);
         keyStore->interface = interface;
     }
 

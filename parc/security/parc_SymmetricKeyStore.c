@@ -93,7 +93,6 @@ PARCKeyStoreInterface *PARCSymmetricKeyStoreAsKeyStore = &(PARCKeyStoreInterface
     .GetDEREncodedCertificate = NULL,
     .GetDEREncodedPublicKey   = NULL,
     .GetDEREncodedPrivateKey  = NULL,
-    .Release                  = (void (*)(void **)) _parcSymmetricKeyStore_Finalize,
 };
 
 parcObject_ImplementAcquire(parcSymmetricKeyStore, PARCSymmetricKeyStore);

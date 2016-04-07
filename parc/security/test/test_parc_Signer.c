@@ -103,8 +103,7 @@ parcObject_Override(_MockSigner, PARCObject,
 static _MockSigner *
 _createSigner()
 {
-    // TODO: CODO
-    _MockSigner *signer = parcMemory_Allocate(sizeof(_MockSigner));
+    _MockSigner *signer = parcObject_CreateInstance(_MockSigner);
 
     signer->hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
 
@@ -121,7 +120,6 @@ static PARCSigningInterface *_MockSignerInterface = &(PARCSigningInterface) {
         .GetSigningAlgorithm = (PARCSigningAlgorithm (*)(void *)) _GetSigningAlgorithm,
         .GetCryptoHashType = (PARCCryptoHashType (*)(void *)) _GetCryptoHashType,
         .GetKeyStore = (PARCKeyStore *(*)(void *)) _GetKeyStore,
-        .Release = (void (*)(void **)) _releaseSigner
 };
 
 LONGBOW_TEST_RUNNER(parc_Signer)

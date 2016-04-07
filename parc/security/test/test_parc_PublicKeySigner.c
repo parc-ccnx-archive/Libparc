@@ -199,6 +199,7 @@ LONGBOW_TEST_CASE(Specialization, parcPkcs12KeyStore_SignBuffer)
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
     assertNotNull(publicKeyStore, "Got null result from opening openssl pkcs12 file");
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
 
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
@@ -265,6 +266,8 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
     // open it as an RSA provider for the signer
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open(filename, password, PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
+
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&publicKeySigner);
@@ -312,6 +315,8 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
     // open it as an RSA provider for the signer
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open(filename, password, PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
+
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&publicKeySigner);
@@ -357,6 +362,8 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
     // open it as an RSA provider for the signer
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open(filename, password, PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
+
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&publicKeySigner);
@@ -388,6 +395,8 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
     // open it as an RSA provider for the signer
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open(filename, password, PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
+    
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&publicKeySigner);
