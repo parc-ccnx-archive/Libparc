@@ -147,9 +147,10 @@ typedef struct PARCObjectDescriptor {
     PARCObjectToJSON *toJSON;
     PARCObjectDisplay *display;
     struct PARCObjectDescriptor *super;
-    bool isLockable;
     size_t objectSize;
     unsigned objectAlignment;
+    bool isLockable;
+    pthread_once_t initLock;
 } PARCObjectDescriptor;
 
 /*!
@@ -457,16 +458,23 @@ PARCReferenceCount parcObject_GetReferenceCount(const PARCObject *object);
 void parcObject_Display(const PARCObject *object, const int indentation);
 
 /**
- * <#One Line Description#>
+ * Get the `PARCObjectDescriptor` of the given `PARCObject`.
  *
- * <#Paragraphs Of Explanation#>
+ * @param [in] object A pointer to a valid `PARCObject` instance
  *
- * @param [in] object A pointer to a valid PARCObject instance
- * @param [in] objectType A pointer to a valid PARCObjectDescriptor instance
- *
- * @return The previous value of the given PARCObject's PARCObjectDescriptor.
+ * @return A pointer to the given PARCObject's `PARCObjectDescriptor`.
  */
-PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *objectType);
+const PARCObjectDescriptor *parcObject_GetDescriptor(const PARCObject *object);
+
+/**
+ * Set the `PARCObjectDescriptor` of the given `PARCObject`.
+ *
+ * @param [in] object A pointer to a valid `PARCObject` instance
+ * @param [in] objectType A pointer to a valid `PARCObjectDescriptor` instance
+ *
+ * @return The previous value of the given PARCObject's `PARCObjectDescriptor`.
+ */
+const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *objectType);
 
 /**
  * @def parcObject_MetaInitialize
@@ -495,6 +503,8 @@ PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObj
  * Create an allocated instance of `PARCObjectDescriptor`.
  *
  * @param [in] name    A nul-terminated, C string containing the name of the object descriptor.
+ * @param [in] objectSize The number of bytes necessary to contain the object.
+ * @param [in] objectAlignment The alignment boundary necessary for the object, a power of 2 greater than or equal to `sizeof(void *)`
  * @param [in] destructor The callback function to call when the last `parcObject_Release()` is invoked (replaces @p destroy).
  * @param [in] release The callback function to call when `parcObject_Release()` is invoked.
  * @param [in] copy The callback function to call when parcObject_Copy() is invoked.
@@ -509,19 +519,20 @@ PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const PARCObj
  * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
  * @return non-NULL Successfully created the implementation
  */
-PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
-                                                  size_t objectSize,
-                                                  unsigned int objectAligment,
-                                                  PARCObjectDestructor *destructor,
-                                                  PARCObjectRelease *release,
-                                                  PARCObjectCopy *copy,
-                                                  PARCObjectToString *toString,
-                                                  PARCObjectEquals *equals,
-                                                  PARCObjectCompare *compare,
-                                                  PARCObjectHashCode *hashCode,
-                                                  PARCObjectToJSON *toJSON,
-                                                  PARCObjectDisplay *display,
-                                                  PARCObjectDescriptor *super);
+const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
+                                                        size_t objectSize,
+                                                        unsigned int objectAligment,
+                                                        bool isLockable,
+                                                        PARCObjectDestructor *destructor,
+                                                        PARCObjectRelease *release,
+                                                        PARCObjectCopy *copy,
+                                                        PARCObjectToString *toString,
+                                                        PARCObjectEquals *equals,
+                                                        PARCObjectCompare *compare,
+                                                        PARCObjectHashCode *hashCode,
+                                                        PARCObjectToJSON *toJSON,
+                                                        PARCObjectDisplay *display,
+                                                        PARCObjectDescriptor *super);
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
@@ -632,22 +643,22 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 #define parcObject_Override(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = {          \
-        .objectSize = sizeof(_subtype), \
+    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
+        .objectSize      = sizeof(_subtype), \
         .objectAlignment = sizeof(void *), \
-        .destroy = NULL,    \
-        .destructor = NULL, \
-        .release  = NULL,   \
-        .copy     = NULL,   \
-        .toString = NULL,   \
-        .equals   = NULL,   \
-        .compare  = NULL,   \
-        .hashCode = NULL,   \
-        .toJSON   = NULL,   \
-        .display  = NULL,   \
-        .isLockable = true, \
-        .super = &parcObject_DescriptorName(_superType),    \
-        .name = #_subtype,     \
+        .destroy         = NULL,    \
+        .destructor      = NULL, \
+        .release         = NULL,   \
+        .copy            = NULL,   \
+        .toString        = NULL,   \
+        .equals          = NULL,   \
+        .compare         = NULL,   \
+        .hashCode        = NULL,   \
+        .toJSON          = NULL,   \
+        .display         = NULL,   \
+        .isLockable      = true, \
+        .super           = &parcObject_DescriptorName(_superType),    \
+        .name            = #_subtype,     \
         __VA_ARGS__         \
     }; \
     LongBowCompiler_WarnInitializerOverrides \
@@ -980,7 +991,7 @@ void parcObject_Wait(const PARCObject *object);
  * This function must only be called by a thread that is the owner of this object's lock.
  *
  * @param [in] object A pointer to a valid PARCObject instance.
- 
+ *
  * @returns false if the alloted time was exceeded.
  * @returns true if another thread invoked the `parcObject_Notify()` function
  *
@@ -1147,5 +1158,4 @@ void parcObject_NotifyAll(const PARCObject *object);
  * @return false @p object is not an instance of @p descriptor.
  */
 bool parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *descriptor);
-
 #endif // libparc_parc_Object_h

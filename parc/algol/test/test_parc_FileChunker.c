@@ -63,6 +63,7 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_File);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_FilePartial);
     LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_ReverseIterator_FileSmall);
+    LONGBOW_RUN_TEST_CASE(Global, parc_Chunker_GetChunkSize);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -395,6 +396,34 @@ LONGBOW_TEST_CASE(Global, parc_Chunker_ReverseIterator_FileSmall)
     }
     assertTrue(count == 1, "Expected to iterate over 1 content objects from the chunker, but for %zu", count);
     parcIterator_Release(&itr);
+
+    parcFile_Release(&file);
+    parcFileChunker_Release(&chunker);
+
+    _deleteFile("/tmp/file_chunker.tmp");
+
+    parcBuffer_Release(&buffer);
+}
+
+LONGBOW_TEST_CASE(Global, parc_Chunker_GetChunkSize)
+{
+    size_t expectedChunkSize = 32;
+    PARCBuffer *buffer = parcBuffer_Allocate(1030);
+
+    // Special 0xFF to mark the start...
+    for (int i = 0; i < 6; i++) {
+        parcBuffer_PutUint8(buffer, 0xFF);
+    }
+    parcBuffer_Flip(buffer);
+
+    _createFile("/tmp/file_chunker.tmp", buffer);
+
+    PARCFile *file = parcFile_Create("/tmp/file_chunker.tmp");
+    PARCFileChunker *chunker = parcFileChunker_Create(file, expectedChunkSize); // each chunk is 32 bytes
+
+    size_t actualChunkSize = parcBufferChunker_GetChunkSize(chunker);
+
+    assertTrue(actualChunkSize == expectedChunkSize, "Expected chunk size of %zu, got %zu", expectedChunkSize, actualChunkSize);
 
     parcFile_Release(&file);
     parcFileChunker_Release(&chunker);

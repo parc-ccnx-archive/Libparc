@@ -212,6 +212,7 @@ parcSecurity_Fini(void)
     parcSecurity_count--;
     if (parcSecurity_count == 0) {
         EVP_cleanup();
+        ERR_free_strings();
         parcSecurity_initialized = false;
         _finiLocks();
     }

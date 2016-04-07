@@ -49,6 +49,14 @@
  * Where '-' indicates padding, 'P' indicates the prefix data structure, 'm'
  * indicates contiguous memory for use by the caller, and 'S" indicates the suffix data structure.
  *
+ * To enable this facade, you must include the following line in your execution before any allocations are performed.
+ *
+ * @code
+ * {
+ *     parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+ * }
+ * @endcode
+ *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
@@ -256,6 +264,14 @@ uint32_t parcSafeMemory_Outstanding(void);
 /**
  * Display information about outstanding memory allocations.
  *
+ * To enable this function, you must include the following line in your execution before any allocations are performed.
+ *
+ * @code
+ * {
+ *     parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+ * }
+ * @endcode
+ *
  * @param [in] outputFd Output file descriptor.
  *
  * @return The number of currenly outstanding allocations.
@@ -263,7 +279,10 @@ uint32_t parcSafeMemory_Outstanding(void);
  * Example:
  * @code
  * {
+ *     parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+ *
  *     ...
+ *
  *     FILE *fd = fopen ("log.txt", "w");
  *     size_t outstandingAllocations = parcSafeMemory_ReportAllocation(fd);
  * }
@@ -275,6 +294,14 @@ uint32_t parcSafeMemory_ReportAllocation(int outputFd);
  * Determine if a pointer to Safe Memory is valid.
  *
  * Invalid indicates the memory is overrun or underrun.
+ *
+ * To enable this function, you must include the following line in your execution before any allocations are performed.
+ *
+ * @code
+ * {
+ *     parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+ * }
+ * @endcode
  *
  * @param [in] memory A pointer to previously allocated Safe Memory.
  *
@@ -294,6 +321,14 @@ bool parcSafeMemory_IsValid(const void *memory);
 
 /**
  * Print a human readable representation of the given PARC Safe Memory array.
+ *
+ * To enable this function, you must include the following line in your execution before any allocations are performed.
+ *
+ * @code
+ * {
+ *     parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+ * }
+ * @endcode
  *
  * @param [in] indentation The level of indentation to use to pretty-print the output.
  * @param [in] memory A pointer to the memory to display.

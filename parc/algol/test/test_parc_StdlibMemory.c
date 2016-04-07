@@ -254,7 +254,7 @@ LONGBOW_TEST_CASE(Threads, Threads1000)
     pthread_t thread[NTHREADS];
     
     for (int i = 0; i < NTHREADS; i++) {
-        pthread_create(&thread[i], NULL, allocator, i);
+        pthread_create(&thread[i], NULL, allocator, NULL);
     }
     for (int i = 0; i < NTHREADS; i++) {
         pthread_join(thread[0], NULL);
