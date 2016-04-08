@@ -71,16 +71,18 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCKeyStore *keyStore = parcKeyStore_Create(NULL, PARCPkcs12KeyStoreAsKeyStore);
+    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
+    PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
+
     PARCPublicKeySigner *instance = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    parcKeyStore_Release(&keyStore);
     assertNotNull(instance, "Expected non-null result from parcPublicKeySigner_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcPublicKeySigner_Acquire, instance);
 
     parcPublicKeySigner_Release(&instance);
     assertNull(instance, "Expected null result from parcPublicKeySigner_Release();");
-
-    parcKeyStore_Release(&keyStore);
 }
 
 LONGBOW_TEST_FIXTURE(Object)
@@ -114,6 +116,7 @@ _createSigner(char *path)
     parcPkcs12KeyStore_CreateFile(path, "blueberry", "person", 1024, 365);
     PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(path, "blueberry", PARC_HASH_SHA256);
     PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&keyStore);
     PARCPublicKeySigner *pksigner = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&publicKeyStore);
 
@@ -290,6 +293,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
     assertNotNull(certDigest, "Expected a non NULL value");
     parcCryptoHash_Release(&certDigest);
 
+    parcKeyStore_Release(&keyStore);
     parcCryptoHash_Release(&hash);
     parcSignature_Release(&sig);
     parcSigner_Release(&signer);
@@ -339,6 +343,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
     assertNotNull(certificate_der, "Expected a non NULL value");
     parcBuffer_Release(&certificate_der);
 
+    parcKeyStore_Release(&keyStore);
     parcCryptoHash_Release(&hash);
     parcSignature_Release(&sig);
     parcSigner_Release(&signer);
@@ -371,6 +376,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
     PARCKey *key = parcSigner_CreatePublicKey(signer);
     assertNotNull(key, "Expected a non NULL value");
     parcKey_Release(&key);
+    parcKeyStore_Release(&keyStore);
 
     parcSigner_Release(&signer);
 }
@@ -419,6 +425,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
     assertNotNull(keyId, "Expected a non NULL value");
     parcKeyId_Release(&keyId);
 
+    parcKeyStore_Release(&keyStore);
     parcCryptoHash_Release(&hash);
     parcSignature_Release(&sig);
     parcSigner_Release(&signer);

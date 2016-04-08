@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,84 +29,168 @@
  * @ingroup security
  * @brief  Structures and functions to support verification.
  *
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @author Marc Mosko, Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_Verifier_h
 #define libparc_parc_Verifier_h
+
+#include <parc/algol/parc_Object.h>
 
 #include <parc/security/parc_CryptoHasher.h>
 #include <parc/security/parc_Signature.h>
 #include <parc/security/parc_CryptoHashType.h>
 #include <parc/security/parc_Key.h>
-#include <parc/algol/parc_ArrayList.h>
 
 struct parc_verifier;
-/**
- * @typedef PARCVerifier
- * @brief The structure for PARCVerifier
- */
-
 typedef struct parc_verifier PARCVerifier;
 
 /**
  * @typedef PARCVerifierInterface
  * @brief The interface for `PARCVerifier`
  */
-
 typedef struct parc_verifier_interface {
-    void *interfaceContext;
+    PARCCryptoHasher*(*GetCryptoHasher)(PARCObject *interfaceContext, PARCKeyId * keyid, PARCCryptoHashType hashType);
 
-    PARCCryptoHasher*(*GetCryptoHasher)(void *interfaceContext, PARCKeyId * keyid, PARCCryptoHashType hashType);
-
-    bool (*VerifyDigest)(void *interfaceContext, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
+    bool (*VerifyDigest)(PARCObject *interfaceContext, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
                          PARCCryptoSuite suite, PARCSignature *signatureToVerify);
 
-    void (*AddKey)(void *interfaceContext, PARCKey *key);
-    void (*RemoveKeyId)(void *interfaceContext, PARCKeyId *keyid);
+    void (*AddKey)(PARCObject *interfaceContext, PARCKey *key);
+    void (*RemoveKeyId)(PARCObject *interfaceContext, PARCKeyId *keyid);
 
-    bool (*AllowedCryptoSuite)(void *interfaceContext, PARCKeyId *keyid, PARCCryptoSuite suite);
-
-    void (*Destroy)(struct parc_verifier_interface **interfaceContextPtr);
+    bool (*AllowedCryptoSuite)(PARCObject *interfaceContext, PARCKeyId *keyid, PARCCryptoSuite suite);
 } PARCVerifierInterface;
 
 /**
+ * Create a verifier context based on a concrete implementation.
  *
+ * @param [in] instance A concrete implementation of a `PARCVerifier`
+ * @param [in] interfaceContext The interface of a concrete implementation of a `PARCVerifier`
+ *
+ * @return NULL A `PARCVerifier` could not be allocated
+ * @return PARCSigner A new `PARCVerifier` instance derived from the specified concrete signer context.
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCVerifier *verifier = parcVerifier_Create(verifierInstance, PARCInMemoryVerifierAsVerifier);
+ * }
  * @endcode
  */
-PARCVerifier *parcVerifier_Create(PARCVerifierInterface *interfaceContext);
+PARCVerifier *parcVerifier_Create(PARCObject *instance, PARCVerifierInterface *interfaceContext);
 
 /**
- * Destroys the signing context and the underlying interface
+ * Assert that an instance of `PARCVerifier` is valid.
+ *
+ * If the instance is not valid, terminate via {@link trapIllegalValue}
+ *
+ * Valid means the internal state of the type is consistent with its
+ * required current or future behaviour.
+ * This may include the validation of internal instances of types.
+ *
+ * @param [in] verifier A pointer to a PARCVerifier instance.
+ *
+ * Example
+ * @code
+ * {
+ *     PARCVerifier *verifier = parcVerifier_Create(verifierInstance, PARCInMemoryVerifierAsVerifier);
+ *
+ *     parcVerifier_AssertValid(signer);
+ * }
+ * @endcode
+ */
+void parcVerifier_AssertValid(const PARCVerifier *verifier);
+
+/**
+ * Increase the number of references to the given `PARCVerifier` instance.
+ *
+ * A new instance is not created,
+ * only that the given instance's reference count is incremented.
+ * Discard the acquired reference by invoking `parcVerifier_Release()`.
+ *
+ * @param [in] signer A pointer to a `PARCVerifier` instance.
+ *
+ * @return NULL An error occurred.
+ * @return non-NULL A pointer to a PARCVerifier instance.
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *      PARCVerifier *verifier = parcVerifier_Create(verifierInstance, PARCInMemoryVerifierAsVerifier);
+ *      PARCVerifier *handle = parcVerifier_Acquire(signer);
+ *      // use the handle instance as needed
+ * }
  * @endcode
  */
-void parcVerifier_Destroy(PARCVerifier **verifierPtr);
+PARCVerifier *parcVerifier_Acquire(const PARCVerifier *verifier);
+
+/**
+ * Release a previously acquired reference to the specified instance,
+ * decrementing the reference count for the instance.
+ *
+ * The pointer to the instance is set to NULL as a side-effect of this function.
+ *
+ * If the invocation causes the last reference to the instance to be released,
+ * the instance is deallocated and the instance's implementation will perform
+ * additional cleanup and release other privately held references.
+ *
+ * The contents of the dealloced memory used for the PARC object are undefined.
+ * Do not reference the object after the last release.
+ *
+ * @param [in,out] verifierPtr A pointer to a pointer to the instance to release.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCVerifier *verifier = parcVerifier_Create(verifierInstance, PARCInMemoryVerifierAsVerifier);
+ *
+ *     parcVerifier_Release(&verifier);
+ * }
+ * @endcode
+ */
+void parcVerifier_Release(PARCVerifier **verifierPtr);
 
 /**
  * Verify the signature against the provided digest with the specified key.
- * If we do not trust the key, the signature will be rejected.
+ * If we do not trust the key, the signature will be rejected. In this context,
+ * trusting a key means that it was previously added to this verifiers "store".
  *
- * Returns true if the signature is accepted,false if it is rejected
+ * Returns true if the signature is accepted,false if it is rejected.
+ *
+ * @param [in] verifier A `PARCVerifier` instance.
+ * @param [in] keyId A `PARCKeyId` which identifies the verification key.
+ * @param [in] hashDigest A `PARCCryptoHash` which stores the locally computed digest.
+ * @param [in] suite The `PARCCryptoSuite` in which verification is performed.
+ * @param [in] signature The `PARCSignature` which is to be verified.
+ *
+ * @retval true If the signature is valid
+ * @retval false Otherwise
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCVerifier *verifier = parcVerifier_Create(verifierInstance, PARCInMemoryVerifierAsVerifier);
+ *
+ *     PARCKeyId *keyId = ...
+ *     PARCCryptoHash *hash = ...
+ *     PARCCryptoSuite suite = PARCCryptoSuite_RSA_SHA256;
+ *     PARCSignature *signature = ...
+ *
+ *     bool valid = parcVerifier_VerifyDigestSignature(verifier, keyId, hash, suite, signature);
+ *     if (valid) {
+ *         // proceed
+ *     }
+ * }
  * @endcode
  */
 bool
-parcVerifier_VerifySignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
-                             PARCCryptoSuite suite, PARCSignature *signatureToVerify);
+parcVerifier_VerifyDigestSignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHash *hashDigest,
+                                   PARCCryptoSuite suite, PARCSignature *signatureToVerify);
 
 /**
- * Is the given crypto suite compatible with the key?
+ * Check to see if the specified `PARCKeyId` is allowed with the given `PARCCryptoSuite`.
+ *
+ * Since KeyId
  *
  * Example:
  * @code

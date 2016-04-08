@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @header <#Headline Name#>
- * <#Abstract#>
- *
- *     <#Discussion#>
- *
- * @author Marc Mosko
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
+ * @author Marc Mosko, Christopher A. Wood
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -58,7 +48,7 @@ static bool
 _parcSigner_FinalRelease(PARCSigner **signerPtr)
 {
     PARCSigner *signer = *signerPtr;
-    if (signer->interface != NULL) {
+    if (signer->instance != NULL) {
         parcObject_Release(&(signer->instance));
     }
     return true;
@@ -97,6 +87,7 @@ parcSigner_CreatePublicKey(PARCSigner *signer)
     PARCCryptoHash *hash = parcKeyStore_GetVerifierKeyDigest(keyStore);
 
     PARCKeyId *keyid = parcKeyId_Create(parcCryptoHash_GetDigest(hash));
+    parcCryptoHash_Release(&hash);
 
     PARCBuffer *derEncodedKey = parcKeyStore_GetDEREncodedPublicKey(keyStore);
 
@@ -107,7 +98,6 @@ parcSigner_CreatePublicKey(PARCSigner *signer)
     parcBuffer_Release(&derEncodedKey);
     parcKeyId_Release(&keyid);
 
-    parcCryptoHash_Release(&hash);
     return key;
 }
 
@@ -153,6 +143,8 @@ parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
     parcCryptoHasher_Release(&hasher);
 
     PARCSignature *signature = parcSigner_SignDigest(signer, hash);
+    parcCryptoHash_Release(&hash);
+
     return signature;
 }
 

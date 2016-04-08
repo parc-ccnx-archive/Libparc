@@ -306,6 +306,7 @@ LONGBOW_TEST_CASE(openssl_commandline, parcPkcs12KeyStore_GetPublicKeyDigest)
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     assertNotNull(signer, "parcPkcs12KeyStore_Open(\"test_rsa.p12\", \"blueberry\", PARC_HASH_SHA256) returned NULL");
 
@@ -346,6 +347,7 @@ LONGBOW_TEST_CASE(openssl_commandline, parcPkcs12KeyStore_GetCertificateDigest)
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     assertNotNull(signer, "Got null result from opening openssl pkcs12 file");
 
@@ -381,6 +383,7 @@ LONGBOW_TEST_CASE(openssl_commandline, parcPkcs12KeyStore_GetEncodedCertificate)
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     assertNotNull(signer, "Got null result from opening openssl pkcs12 file");
 
@@ -416,10 +419,11 @@ LONGBOW_TEST_CASE(openssl_commandline, parcPkcs12KeyStore_GetEncodedPublicKey)
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     parcPkcs12KeyStore_Release(&publicKeyStore);
-    
+
     PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     parcKeyStore_Release(&keyStore);
     PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
+    parcPublicKeySigner_Release(&publicKeySigner);
 
     assertNotNull(signer, "Got null result from opening openssl pkcs12 file");
 

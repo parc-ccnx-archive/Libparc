@@ -167,7 +167,7 @@ void parcSigner_AssertValid(const PARCSigner *signer);
  * }
  * @endcode
  */
-PARCSigner *parcSigner_Create(void *instance, PARCSigningInterface *interfaceContext);
+PARCSigner *parcSigner_Create(PARCObject *instance, PARCSigningInterface *interfaceContext);
 
 /**
  * Increase the number of references to the given `PARCSigner` instance.
@@ -184,13 +184,9 @@ PARCSigner *parcSigner_Create(void *instance, PARCSigningInterface *interfaceCon
  * Example:
  * @code
  * {
- *      ...
- *
  *      PARCSigner *signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
  *      PARCSigner *handle = parcSigner_Acquire(signer);
  *      // use the handle instance as needed
- *
- *      ...
  * }
  * @endcode
  */
