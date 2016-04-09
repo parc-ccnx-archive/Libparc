@@ -50,14 +50,20 @@ typedef struct parc_verifier PARCVerifier;
  * @brief The interface for `PARCVerifier`
  */
 typedef struct parc_verifier_interface {
-    PARCCryptoHasher*(*GetCryptoHasher)(PARCObject *interfaceContext, PARCKeyId * keyid, PARCCryptoHashType hashType);
+    /** @see parcVerifier_GetCryptoHasher */
+    PARCCryptoHasher *(*GetCryptoHasher)(PARCObject *interfaceContext, PARCKeyId *keyid, PARCCryptoHashType hashType);
 
+    /** @see parcVerifier_VerifyDigest */
     bool (*VerifyDigest)(PARCObject *interfaceContext, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
                          PARCCryptoSuite suite, PARCSignature *signatureToVerify);
 
+    /** @see parcVerifier_AddKey */
     void (*AddKey)(PARCObject *interfaceContext, PARCKey *key);
+
+    /** @see parcVerifier_RemoveKeyId */
     void (*RemoveKeyId)(PARCObject *interfaceContext, PARCKeyId *keyid);
 
+    /** @see parcVerifier_AllowedCryptoSuite */
     bool (*AllowedCryptoSuite)(PARCObject *interfaceContext, PARCKeyId *keyid, PARCCryptoSuite suite);
 } PARCVerifierInterface;
 
@@ -190,34 +196,89 @@ parcVerifier_VerifyDigestSignature(PARCVerifier *verifier, PARCKeyId *keyid, PAR
 /**
  * Check to see if the specified `PARCKeyId` is allowed with the given `PARCCryptoSuite`.
  *
- * Since KeyId
+ * A`PARCKey` identified by the given `PARCKeyId` can only be used for a particular algorithm.
+ *
+ * @param [in] verifier A `PARCVerifier` instance with a store of trusted `PARCKey` instances.
+ * @param [in] keyId A `PARCKeyId` referring to the key we will check against (for this verifier).
+ * @param [in] suite A `PARCCryptoSuite` to check against.
+ *
+ * @retval true If allowed
+ * @retval false Otherwise
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCVerifier *verifeir = ...
+ *     PARCKeyId *keyId = ...
+ *     bool isAllowed = parcVerifier_AllowedCryptoSuite(verifier, keyId, PARCCryptoSuite_RSA_SHA256);
+ *     // act accordingly
+ * }
  * @endcode
  */
-bool
-parcVerifier_AllowedCryptoSuite(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoSuite suite);
+bool parcVerifier_AllowedCryptoSuite(PARCVerifier *verifier, PARCKeyId *keyId, PARCCryptoSuite suite);
 
 /**
- * Returns a CyrptoHasher for use with the keyid.  The caller should have already
- * verified that the specified hashType is compatible with the keyid by checking the
- * AllowedCryptoSuite
+ * Returns a `PARCCryptoHasher` for use with the `PARCKeyId`. The caller should have already
+ * verified that the specified `PARCCryptoHashType` is compatible with the key ID by
+ * checking the AllowedCryptoSuite.
  *
- * Returns NULL if the hashType is not compatible with the key.
+ * @param [in] verifier A `PARCVerifier` instance with a store of trusted `PARCKey` instances.
+ * @param [in] keyId A `PARCKeyId` referring to the key we will check against (for this verifier).
+ * @param [in] suite A `PARCCryptoSuite` to check against.
+ *
+ * @retval non-NULL A `PARCCryptoHasher` instance.
+ * @retval NULL If the PARCCryptoHashType is not compatible with the key.
  *
  * Example:
  * @code
- * <#example#>
+ * {
+ *     PARCVerifier *verifeir = ...
+ *     PARCKeyId *keyId = ...
+ *     bool isAllowed = parcVerifier_AllowedCryptoSuite(verifier, keyId, PARC_HASH_SHA256);
+ *     // act accordingly
+ * }
  * @endcode
  */
-PARCCryptoHasher*
-parcVerifier_GetCryptoHasher(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHashType hashType);
+PARCCryptoHasher *parcVerifier_GetCryptoHasher(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHashType hashType);
 
-void
-parcVerifier_AddKey(PARCVerifier *verifier, PARCKey *key);
+/**
+ * Add the specified `PARCKey` to the trusted key store.
+ *
+ * @param [in] verifier A `PARCVerifier` instance with a store of trusted `PARCKey` instances.
+ * @param [in] key A `PARCKey` containing the new trusted key.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCVerifier *verifeir = ...
+ *     PARCKey *key = ...
+ *     parcVerifier_AddKey(verifier, key);
+ * }
+ * @endcode
+ */
+void parcVerifier_AddKey(PARCVerifier *verifier, PARCKey *key);
 
-void
-parcVerifier_RemoveKeyId(PARCVerifier *verifier, PARCKeyId *keyid);
+/**
+ * Remove the key associated with the given `PARCKeyId` from the trusted key store.
+ *
+ * @param [in] verifier A `PARCVerifier` instance with a store of trusted `PARCKey` instances.
+ * @param [in] keyId A `PARCKeyId` referencing the `PARCKey` to remove from the keystore.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCVerifier *verifeir = ...
+ *     PARCKey *key = ...
+ *     parcVerifier_AddKey(verifier, key);
+ *
+ *     // Use the verifier with the key...
+ *     ...
+ *
+ *     // Now remove it because we no longer need or trust it.
+ *     PARCKeyId *keyId = parcKey_GetKeyId(key);
+ *     parcVerifier_RemoveKeyId(verifier, keyId);
+ * }
+ * @endcode
+ */
+void parcVerifier_RemoveKeyId(PARCVerifier *verifier, PARCKeyId *keyid);
 #endif // libparc_parc_Verifier_h

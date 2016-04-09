@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @author Marc Mosko, Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -61,7 +61,7 @@ parcObject_ImplementAcquire(parcVerifier, PARCVerifier);
 parcObject_ImplementRelease(parcVerifier, PARCVerifier);
 
 parcObject_Override(PARCVerifier, PARCObject,
-    .destructor = (PARCObjectDestructor *) _parcVerifier_FinalRelease);
+                    .destructor = (PARCObjectDestructor *) _parcVerifier_FinalRelease);
 
 PARCVerifier *
 parcVerifier_Create(PARCObject *instance, PARCVerifierInterface *interfaceContext)
@@ -80,7 +80,7 @@ parcVerifier_Create(PARCObject *instance, PARCVerifierInterface *interfaceContex
 
 bool
 parcVerifier_VerifyDigestSignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
-                             PARCCryptoSuite suite, PARCSignature *signatureToVerify)
+                                   PARCCryptoSuite suite, PARCSignature *signatureToVerify)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
     assertNotNull(locallyComputedHash, "cryptoHash to verify must not be null");
