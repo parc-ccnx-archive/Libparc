@@ -159,23 +159,33 @@ typedef struct PARCObjectDescriptor {
     bool isLockable;
 } PARCObjectDescriptor;
 
-/*!
+/**
  * @define parcObject_DescriptorName(_type)
  *
- * Creates a subtype specific name for a subtype's PARCObjectDescriptor
- * which is a parameter to parcObject_Create.
+ * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
+ * which is a parameter to `parcObject_Create`.
  */
 #define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
 
-/*!
+/**
  * @define parcObjectDescriptor_Declaration(_type_)
  *
- * Create a declaration of a PARC Object implementation.
+ * Create a declaration of a `PARCObject` implementation.
  */
 #define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
 
 /**
- * The globally available PARCObject descriptor.
+ * @define parcObject_Declare(_type_)
+ *
+ * Create a declaration of a `PARCObject` implementation.
+ */
+#define parcObject_Declare(_type_) \
+    struct _type_; \
+    typedef struct _type_ _type_; \
+    extern parcObjectDescriptor_Declaration(_type_)
+
+/**
+ * The globally available `PARCObject` descriptor.
  */
 extern parcObjectDescriptor_Declaration(PARCObject);
 
@@ -518,9 +528,10 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
 /**
  * Create an allocated instance of `PARCObjectDescriptor`.
  *
- * @param [in] name    A nul-terminated, C string containing the name of the object descriptor.
+ * @param [in] name A nul-terminated, C string containing the name of the object descriptor.
  * @param [in] objectSize The number of bytes necessary to contain the object.
  * @param [in] objectAlignment The alignment boundary necessary for the object, a power of 2 greater than or equal to `sizeof(void *)`
+ * @param [in] isLockable True, if this object implementation supports locking.
  * @param [in] destructor The callback function to call when the last `parcObject_Release()` is invoked (replaces @p destroy).
  * @param [in] release The callback function to call when `parcObject_Release()` is invoked.
  * @param [in] copy The callback function to call when parcObject_Copy() is invoked.
@@ -530,14 +541,14 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
  * @param [in] hashCode The callback function to call when `parcObject_HashCode()` is invoked.
  * @param [in] toJSON The callback function to call when `parcObject_ToJSON()` is invoked.
  * @param [in] display The callback function to call when `parcObject_Display()` is invoked.
- * @param [in] descriptor A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
+ * @param [in] super A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
  *
  * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
  * @return non-NULL Successfully created the implementation
  */
 const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                         size_t objectSize,
-                                                        unsigned int objectAligment,
+                                                        unsigned int objectAlignment,
                                                         bool isLockable,
                                                         PARCObjectDestructor *destructor,
                                                         PARCObjectRelease *release,
@@ -552,113 +563,9 @@ const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
-
-/// Helper MACROS for PARCObject Normalization
-/** \cond */
 /**
- * parcObject_DestroyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * destroy operation. Intended for internal use.
- */
-#define parcObject_DestroyWrapper(_type, _fname)                \
-    static void _autowrap_destroy_##_type(PARCObject **object)  \
-    {                                                           \
-        _fname((_type **) object);                              \
-    }
-
-/**
- * parcObject_DestructorWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * destroy operation. Intended for internal use.
- */
-#define parcObject_DestructorWrapper(_type, _fname)               \
-    static bool _autowrap_destructor_##_type(PARCObject **object) \
-    {                                                             \
-        return _fname((_type **) object);                         \
-    }
-
-/**
- * parcObject_CopyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * copy operation. Intended for internal use.
- */
-#define parcObject_CopyWrapper(_type, _fname)                           \
-    static PARCObject *_autowrap_copy_##_type(const PARCObject *object) \
-    {                                                                   \
-        return (PARCObject *) _fname((const _type *) object);           \
-    }
-
-/**
- * parcObject_ToStringWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * ToString operation. Intended for internal use.
- */
-#define parcObject_ToStringWrapper(_type, _fname) \
-    static char *_autowrap_toString_##_type(const PARCObject * object)  \
-    {                                                                   \
-        return _fname((const _type *) object);                          \
-    }
-
-/**
- * parcObject_EqualsWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * equals operation. Intended for internal use.
- */
-#define parcObject_EqualsWrapper(_type, _fname)                         \
-    static bool _autowrap_equals_##_type(const PARCObject *a, const PARCObject *b) \
-    {                                                                   \
-        return _fname((const _type *) a, (const _type *) b);            \
-    }
-
-/**
- * parcObject_CompareWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * compare operation. Intended for internal use.
- */
-#define parcObject_CompareWrapper(_type, _fname) \
-    static int _autowrap_compare_##_type(const PARCObject *a, const PARCObject *b) \
-    {                                                                   \
-        return _fname((const _type *) a, (const _type *) b);                        \
-    }
-
-/**
- * parcObject_HashCodeWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * HashCode operation. Intended for internal use.
- */
-#define parcObject_HashCodeWrapper(_type, _fname) \
-    static PARCHashCode _autowrap_hashCode_##_type(const PARCObject *object) \
-    {                                                                   \
-        return _fname((const _type *) object);                                \
-    }
-
-/**
- * parcObject_CopyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * ToJSON operation. Intended for internal use.
- */
-#define parcObject_ToJSONWrapper(_type, _fname) \
-    static PARCJSON *_autowrap_toJSON_##_type(const PARCObject *object) \
-    {                                                                   \
-        return _fname((const _type *) object);                          \
-    }
-
-/**
- * parcObject_DisplayyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
- * Display operation. Intended for internal use.
- */
-#define parcObject_DisplayWrapper(_type, _fname) \
-    static void _autowrap_Display_##_type(const PARCObject *object, const int indentation) \
-    {                                                                                       \
-        _fname((const _type *) object, indentation);                                        \
-    }
-
-/**
- * _autowrap_NULL is a part of the c-macro trick for implement a macro If-Else switch.
- * If included as a macro parameter it inserts a comma into the parameter list for that macro.
- * This can be used by a switching macro that always resolves to the nth element and the
- * presence of a comma generating macro changes which element is the nth. When NULL is used
- * as a parameter in a call to "ExtendPARCObject", _autowrap_NULL will be the name generated which
- * expands to a comma.
- */
-#define _autowrap_NULL(...) ,
-
-/** \endcond */
-
-/**
- * Extend an existing PARCObjectDescriptor by composing a new one, which references the old.
+ * Create new `PARCObjectDescriptor` based on an existing `PARCObjectDescriptor.`
+ * The new `PARCObjectDescriptor` uses the existing `PARCObjectDescriptor` as the super-type of the new descriptor.
  */
 #define parcObject_Extends(_subtype, _superType, ...) \
     LongBowCompiler_IgnoreInitializerOverrides \
@@ -688,11 +595,116 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
  * The new PARC Object implementation must be accompanied by the corresponding `typedef` of the type containing the object's data.
  */
 #define parcObject_Override(_subtype, _superType, ...) \
-    parcObject_Extends(_subtype, _superType, \
-        .objectSize      = sizeof(_subtype), \
-        .objectAlignment = sizeof(void *), \
-        __VA_ARGS__         \
-    )
+    parcObject_Extends(_subtype, _superType,           \
+    .objectSize      = sizeof(_subtype),               \
+    .objectAlignment = sizeof(void *),                 \
+    __VA_ARGS__)
+
+
+/// Helper MACROS for PARCObject Normalization
+/** \cond */
+/**
+ * parcObject_DestroyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * destroy operation. Intended for internal use.
+ */
+#define parcObject_DestroyWrapper(_type, _fname)                \
+    static void _autowrap_destroy_##_type(PARCObject **object)  \
+    {                                                           \
+        _fname((_type **) object);                              \
+    }
+
+/**
+ * parcObject_DestructorWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * destroy operation. Intended for internal use.
+ */
+#define parcObject_DestructorWrapper(_type, _fname)               \
+    static bool _autowrap_destructor_##_type(PARCObject **object) \
+    {                                                             \
+        return _fname((_type **) object);                         \
+    }
+
+/**
+ * `parcObject_CopyWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
+ * copy operation. Intended for internal use.
+ */
+#define parcObject_CopyWrapper(_type, _fname)                           \
+    static PARCObject *_autowrap_copy_##_type(const PARCObject *object) \
+    {                                                                   \
+        return (PARCObject *) _fname((const _type *) object);           \
+    }
+
+/**
+ * parcObject_ToStringWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * ToString operation. Intended for internal use.
+ */
+#define parcObject_ToStringWrapper(_type, _fname) \
+    static char *_autowrap_toString_##_type(const PARCObject * object)  \
+    {                                                                   \
+        return _fname((const _type *) object);                          \
+    }
+
+/**
+ * `parcObject_EqualsWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
+ * equals operation. Intended for internal use.
+ */
+#define parcObject_EqualsWrapper(_type, _fname)                         \
+    static bool _autowrap_equals_##_type(const PARCObject *a, const PARCObject *b) \
+    {                                                                              \
+        return _fname((const _type *) a, (const _type *) b);                       \
+    }
+
+/**
+ * parcObject_CompareWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * compare operation. Intended for internal use.
+ */
+#define parcObject_CompareWrapper(_type, _fname) \
+    static int _autowrap_compare_##_type(const PARCObject *a, const PARCObject *b) \
+    {                                                                              \
+        return _fname((const _type *) a, (const _type *) b);                       \
+    }
+
+/**
+ * `parcObject_HashCodeWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
+ * HashCode operation. Intended for internal use.
+ */
+#define parcObject_HashCodeWrapper(_type, _fname) \
+    static PARCHashCode _autowrap_hashCode_##_type(const PARCObject *object) \
+    {                                                                        \
+        return _fname((const _type *) object);                               \
+    }
+
+/**
+ * `parcObject_CopyWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
+ * ToJSON operation. Intended for internal use.
+ */
+#define parcObject_ToJSONWrapper(_type, _fname) \
+    static PARCJSON *_autowrap_toJSON_##_type(const PARCObject *object) \
+    {                                                                   \
+        return _fname((const _type *) object);                          \
+    }
+
+/**
+ * `parcObject_DisplayWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
+ * Display operation. Intended for internal use.
+ */
+#define parcObject_DisplayWrapper(_type, _fname) \
+    static void _autowrap_Display_##_type(const PARCObject *object, const int indentation) \
+    {                                                                                      \
+        _fname((const _type *) object, indentation);                                       \
+    }
+
+/**
+ * _autowrap_NULL is a part of the c-macro trick for implement a macro If-Else switch.
+ * If included as a macro parameter it inserts a comma into the parameter list for that macro.
+ * This can be used by a switching macro that always resolves to the nth element and the
+ * presence of a comma generating macro changes which element is the nth. When NULL is used
+ * as a parameter in a call to "ExtendPARCObject", _autowrap_NULL will be the name generated which
+ * expands to a comma.
+ */
+#define _autowrap_NULL(...) ,
+
+/** \endcond */
+
 
 /**
  * @define parcObject_ExtendPARCObject
@@ -796,7 +808,7 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
  * @return A pointer to an invalid `PARCObject` instance that must be initialised .
  */
 #define parcObject_Instance(_type_, _alignment_, _size_) \
-    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { }[parcObject_PrefixLength(sizeof(void *))])
+    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { 0 }[parcObject_PrefixLength(sizeof(void *))])
 
 /**
  * @define parcObject_InitInstance

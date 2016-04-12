@@ -127,7 +127,7 @@ howToUseAWrappedObject(void)
     int y = 2;
     double z = 3.14;
     
-    PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { });
+    PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { 0 });
     parcMyObject_Init(wrappedObject, x, y, z);
     
     parcMyObject_Display(wrappedObject, 0);

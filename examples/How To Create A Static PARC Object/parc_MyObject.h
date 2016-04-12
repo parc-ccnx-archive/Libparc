@@ -53,10 +53,9 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
- * @file parc_StaticObject.h
- * @brief <#Brief Description#>
+ * @file parc_MyObject.h
+ * @brief A simple example of how to create static, not allocataed, PARC Objects.
  *
- * <#Detailed Description#>
  *
  * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
@@ -67,11 +66,6 @@
 
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
-
-#define parcObject_Declare(_type_) \
-    struct _type_; \
-    typedef struct _type_ _type_; \
-    extern parcObjectDescriptor_Declaration(_type_)
 
 parcObject_Declare(PARCMyObject);
 
@@ -137,8 +131,6 @@ void parcMyObject_AssertValid(const PARCMyObject *instance);
 /**
  * Create an instance of PARCMyObject
  *
- * <#Paragraphs Of Explanation#>
- *
  * @return non-NULL A pointer to a valid PARCMyObject instance.
  * @return NULL An error occurred.
  *
@@ -153,6 +145,12 @@ void parcMyObject_AssertValid(const PARCMyObject *instance);
  */
 PARCMyObject *parcMyObject_Create(int x, double y, double z);
 
+/**
+ * Set a PARCMyObject instance to it's initial, created state.
+ *
+ * @return non-NULL A pointer to a valid PARCMyObject instance.
+ * @return NULL An error occurred.
+ */
 PARCMyObject *parcMyObject_Init(PARCMyObject *instance, int x, double y, double z);
 
 PARCMyObject *parcMyObject_Wrap(void *origin);

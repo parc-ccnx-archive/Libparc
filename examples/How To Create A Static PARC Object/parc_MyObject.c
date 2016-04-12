@@ -69,19 +69,11 @@
     typedef struct { __VA_ARGS__ } _##_type_; \
     enum { bytesCompileTimeAssertion = 1/!!(sizeof(_type_) >= sizeof(_##_type_)) }
 
-#if 0
-parcObject_DefineXXX(PARCMyObject,
-                  int x;
-                  double y;
-                  double z;
-                  );
-#else
 struct PARCMyObject {
     int x;
     double y;
     double z;
 };
-#endif
 
 static bool
 _parcMyObject_Destructor(PARCMyObject **instancePtr)

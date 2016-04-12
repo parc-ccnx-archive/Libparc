@@ -102,6 +102,7 @@ parcString_ReverseCompare(const PARCString *string, const PARCString *other)
 parcObject_Extends(PARCReverseString, PARCString,
                     .compare = (PARCObjectCompare *) parcString_ReverseCompare);
 
+
 PARCString *
 parcMyString_Create(const char *string)
 {
