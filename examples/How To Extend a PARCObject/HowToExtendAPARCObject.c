@@ -91,7 +91,7 @@ forwardOrder(void)
 }
 
 /*
- * This is a function that will be substituted for the default Compare implementation in the PARCString object.
+ * This function will be substituted for the default Compare implementation in the PARCString object.
  */
 int
 parcString_ReverseCompare(const PARCString *string, const PARCString *other)
@@ -107,7 +107,11 @@ PARCString *
 parcMyString_Create(const char *string)
 {
     PARCString *result = parcString_Create(string);
+
+    // By setting the descriptor to our special descriptor here, we effectively
+    // substitute the default compare function with our parcString_ReverseCompare
     parcObject_SetDescriptor(result, &parcObject_DescriptorName(PARCReverseString));
+    
     return result;
 }
 
@@ -131,7 +135,7 @@ reverseOrder(void)
 }
 
 int
-main(int argc, const char * argv[])
+main(int argc, const char * argv[argc])
 {
     forwardOrder();
     reverseOrder();

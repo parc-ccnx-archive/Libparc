@@ -64,17 +64,12 @@
  *
  * local objects defined within a function.
  *
- * A static local object defined within a function's scope doesn't work because section 6.7.8/4 says,
- * "All the expressions in an initializer for an object that has static storage duration shall
- * be constant expressions or string literals." and the allocation of an array is not a constant expression.
  */
 
 PARCMyObject *globalObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
 
-static PARCMyObject *staticModuleObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
-
 void
-howToUseAGlobalObject(void)
+aGlobalObject(void)
 {
     int x = 1;
     int y = 2;
@@ -88,8 +83,10 @@ howToUseAGlobalObject(void)
     parcMyObject_Release(&globalObject);
 }
 
+static PARCMyObject *staticModuleObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
+
 void
-howToUseAStaticModuleObject(void)
+aStaticModuleObject(void)
 {
     int x = 1;
     int y = 2;
@@ -104,7 +101,7 @@ howToUseAStaticModuleObject(void)
 }
 
 void
-howToUseALocalObject(void)
+aLocalObject(void)
 {
     int x = 1;
     int y = 2;
@@ -121,7 +118,7 @@ howToUseALocalObject(void)
 }
 
 void
-howToUseAWrappedObject(void)
+aWrappedObject(void)
 {
     int x = 1;
     int y = 2;
@@ -136,15 +133,15 @@ howToUseAWrappedObject(void)
 }
 
 int
-main(int argc, const char * argv[])
+main(int argc, const char *argv[argc])
 {
-    howToUseAGlobalObject();
+    aGlobalObject();
     
-    howToUseAStaticModuleObject();
+    aStaticModuleObject();
     
-    howToUseALocalObject();
+    aLocalObject();
     
-    howToUseAWrappedObject();
+    aWrappedObject();
     
     return 0;
 }
