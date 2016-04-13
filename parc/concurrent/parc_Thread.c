@@ -51,6 +51,10 @@ _parcThread_Destructor(PARCThread **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCThread pointer.");
     PARCThread *thread = *instancePtr;
+    
+    if (thread->argument != NULL) {
+        parcObject_Release(&thread->argument);
+    }
 
     thread->isCancelled = true;
     parcThread_Join(thread);
@@ -107,7 +111,9 @@ parcThread_Compare(const PARCThread *instance, const PARCThread *other)
 PARCThread *
 parcThread_Copy(const PARCThread *original)
 {
-    PARCThread *result = NULL;
+    PARCThread *result = parcThread_Create(original->run, original->argument);
+    result->isCancelled = original->isCancelled;
+    result->isRunning = original->isRunning;
 
     return result;
 }
@@ -180,7 +186,7 @@ _parcThread_Run(PARCThread *thread)
     thread->isRunning = false;
 
     // The thread is done, release the reference to the argument acquired when this PARCThread was created.
-    // This prevents the reference from lingering leading to memory leaks.
+    // This prevents the reference from lingering leading to memory leaks if the thread is not properly joined.
     if (thread->argument != NULL) {
         parcObject_Release(&thread->argument);
     }

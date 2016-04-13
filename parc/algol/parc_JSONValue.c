@@ -364,8 +364,7 @@ _parseOptionalExponent(PARCJSONParser *parser, int64_t *value)
     return result;
 }
 
-
-static PARCJSONValue *
+static __attribute__ ((noinline))  PARCJSONValue *
 _parcJSONValue_CreateNumber(int sign, int64_t whole, int64_t fraction, int64_t fractionLog10, int64_t exponent)
 {
     PARCJSONValue *result = _createValue(PARCJSONValueType_Number);
