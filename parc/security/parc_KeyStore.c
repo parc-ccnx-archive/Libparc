@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,8 @@
  */
 /**
  * @author Glenn Scott , Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-
 #include <config.h>
 
 #include <LongBow/runtime.h>
@@ -39,24 +38,28 @@
 
 struct parc_key_store {
     PARCObject *instance;
-    PARCKeyStoreInterface *interface;
+    const PARCKeyStoreInterface *interface;
 };
 
-void static
-_finalize(PARCKeyStore **keyStorePtr)
+static bool
+_parcKeyStore_Destructor(PARCKeyStore **keyStorePtr)
 {
     PARCKeyStore *keyStore = *keyStorePtr;
     if (keyStore->interface != NULL && keyStore->instance != NULL) {
         parcObject_Release(&keyStore->instance);
     }
+
+    return true;
 }
 
-parcObject_ExtendPARCObject(PARCKeyStore, _finalize, NULL, NULL, NULL, NULL, NULL, NULL);
+parcObject_Override(PARCKeyStore, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcKeyStore_Destructor);
+
 parcObject_ImplementAcquire(parcKeyStore, PARCKeyStore);
 parcObject_ImplementRelease(parcKeyStore, PARCKeyStore);
 
 PARCKeyStore *
-parcKeyStore_Create(PARCObject *instance, PARCKeyStoreInterface *interface)
+parcKeyStore_Create(PARCObject *instance, const PARCKeyStoreInterface *interface)
 {
     PARCKeyStore *keyStore = parcObject_CreateInstance(PARCKeyStore);
 
@@ -69,46 +72,46 @@ parcKeyStore_Create(PARCObject *instance, PARCKeyStoreInterface *interface)
 }
 
 PARCCryptoHash *
-parcKeyStore_GetVerifierKeyDigest(PARCKeyStore *interfaceContext)
+parcKeyStore_GetVerifierKeyDigest(const PARCKeyStore *interfaceContext)
 {
     if (interfaceContext->interface != NULL) {
-        return interfaceContext->interface->GetVerifierKeyDigest(interfaceContext->instance);
+        return interfaceContext->interface->getVerifierKeyDigest(interfaceContext->instance);
     }
     return NULL;
 }
 
 PARCCryptoHash *
-parcKeyStore_GetCertificateDigest(PARCKeyStore *interfaceContext)
+parcKeyStore_GetCertificateDigest(const PARCKeyStore *interfaceContext)
 {
     if (interfaceContext->interface != NULL) {
-        return interfaceContext->interface->GetCertificateDigest(interfaceContext->instance);
+        return interfaceContext->interface->getCertificateDigest(interfaceContext->instance);
     }
     return NULL;
 }
 
 PARCBuffer *
-parcKeyStore_GetDEREncodedCertificate(PARCKeyStore *interfaceContext)
+parcKeyStore_GetDEREncodedCertificate(const PARCKeyStore *interfaceContext)
 {
     if (interfaceContext->interface != NULL) {
-        return interfaceContext->interface->GetDEREncodedCertificate(interfaceContext->instance);
+        return interfaceContext->interface->getDEREncodedCertificate(interfaceContext->instance);
     }
     return NULL;
 }
 
 PARCBuffer *
-parcKeyStore_GetDEREncodedPublicKey(PARCKeyStore *interfaceContext)
+parcKeyStore_GetDEREncodedPublicKey(const PARCKeyStore *interfaceContext)
 {
     if (interfaceContext->interface != NULL) {
-        return interfaceContext->interface->GetDEREncodedPublicKey(interfaceContext->instance);
+        return interfaceContext->interface->getDEREncodedPublicKey(interfaceContext->instance);
     }
     return NULL;
 }
 
 PARCBuffer *
-parcKeyStore_GetDEREncodedPrivateKey(PARCKeyStore *interfaceContext)
+parcKeyStore_GetDEREncodedPrivateKey(const PARCKeyStore *interfaceContext)
 {
     if (interfaceContext->interface != NULL) {
-        return interfaceContext->interface->GetDEREncodedPrivateKey(interfaceContext->instance);
+        return interfaceContext->interface->getDEREncodedPrivateKey(interfaceContext->instance);
     }
     return NULL;
 }

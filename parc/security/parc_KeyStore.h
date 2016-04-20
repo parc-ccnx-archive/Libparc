@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
  * gain access to a Key Store.
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_KeyStore_h
 #define libparc_parc_KeyStore_h
@@ -46,6 +46,78 @@
 
 struct parc_key_store;
 typedef struct parc_key_store PARCKeyStore;
+
+/**
+ * The hash of the signer's public key (or secret key for HMAC).
+ *
+ * Try using `parcSigner_CreateKeyId` for a sinterfaceer interface.
+ * You must destroy the returned PARCCryptoHash.
+ * For public key, its the SHA256 digest of the public key.
+ * For HMAC, its the SHA256 digest of the secret key.
+ *
+ * Equivalent of (for rsa/sha256):
+ *    openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der
+ *    openssl sha256 -out test_rsa_pub_sha256.bin -sha256 -binary < test_rsa_pub.der
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A PARCCryptoHash value.
+ */
+typedef PARCCryptoHash *(PARCKeyStoreGetVerifierKeyDigest)(const void *interfaceContext);
+
+/**
+ * Returns a copy of the the certificate digest.
+ * Returns NULL for symmetric keystores.
+ *
+ * Equivalent of (for rsa/sha256):
+ *    openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+ *    openssl sha256 -out test_rsa_crt_sha256.bin -sha256 -binary < test_rsa_crt.der
+ * Which is also the same as (but not in der format)
+ *    openssl x509 -in test_rsa.crt -fingerprint -sha256
+ *
+ * @param [in] interfaceContext A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
+ */
+typedef PARCCryptoHash *(PARCKeyStoreGetCertificateDigest)(const void *interfaceContext);
+
+/**
+ * Returns a copy of the DER encoded certificate.
+ * Returns NULL for symmetric keystores.
+ *
+ * Equivalent of:
+ *   openssl x509 -outform DER -out test_rsa_crt.der -in test_rsa.crt
+ *
+ * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded certificate.
+ */
+typedef PARCBuffer *(PARCKeyStoreGetDEREncodedCertificate)(const void *interfaceContext);
+
+/**
+ * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
+ *
+ * Equivalent of (for rsa/sha256):
+ *   `openssl rsa -in test_rsa_key.pem -outform DER -pubout -out test_rsa_pub.der`
+ *
+ * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded public key.
+ */
+typedef PARCBuffer *(PARCKeyStoreGetDEREncodedPublicKey)(const void *interfaceContext);
+
+/**
+ * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
+ *
+ * Equivalent of (for rsa/sha256):
+ *   `openssl rsa -in test_rsa_key.pem -outform DER -out test_rsa.der`
+ *
+ * @param [in] interfaceContextPtr A pointer to a concrete PARCKeyStore instance.
+ *
+ * @return A pointer to a PARCBuffer containing the encoded private key.
+ */
+typedef PARCBuffer *(PARCKeyStoreGetDEREncodedPrivateKey)(const void *interfaceContext);
+
 
 typedef struct parc_keystore_interface {
     /**
@@ -64,7 +136,7 @@ typedef struct parc_keystore_interface {
      *
      * @return A PARCCryptoHash value.
      */
-    PARCCryptoHash *(*GetVerifierKeyDigest)(void *interfaceContext);
+    PARCKeyStoreGetVerifierKeyDigest *getVerifierKeyDigest;
 
     /**
      * Returns a copy of the the certificate digest.
@@ -80,7 +152,7 @@ typedef struct parc_keystore_interface {
      *
      * @return A `PARCCryptoHash` instance which internally contains a hash digest of the certificate used by the signer.
      */
-    PARCCryptoHash *(*GetCertificateDigest)(void *interfaceContext);
+    PARCKeyStoreGetCertificateDigest *getCertificateDigest;
 
     /**
      * Returns a copy of the DER encoded certificate.
@@ -93,7 +165,7 @@ typedef struct parc_keystore_interface {
      *
      * @return A pointer to a PARCBuffer containing the encoded certificate.
      */
-    PARCBuffer *(*GetDEREncodedCertificate)(void *interfaceContext);
+    PARCKeyStoreGetDEREncodedCertificate *getDEREncodedCertificate;
 
     /**
      * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
@@ -105,7 +177,7 @@ typedef struct parc_keystore_interface {
      *
      * @return A pointer to a PARCBuffer containing the encoded public key.
      */
-    PARCBuffer *(*GetDEREncodedPublicKey)(void *interfaceContext);
+    PARCKeyStoreGetDEREncodedPublicKey *getDEREncodedPublicKey;
 
     /**
      * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
@@ -117,7 +189,7 @@ typedef struct parc_keystore_interface {
      *
      * @return A pointer to a PARCBuffer containing the encoded private key.
      */
-    PARCBuffer *(*GetDEREncodedPrivateKey)(void *interfaceContext);
+    PARCKeyStoreGetDEREncodedPrivateKey *getDEREncodedPrivateKey;
 } PARCKeyStoreInterface;
 
 /**
@@ -134,7 +206,7 @@ typedef struct parc_keystore_interface {
  * }
  * @endcode
  */
-PARCKeyStore *parcKeyStore_Create(PARCObject *instance, PARCKeyStoreInterface *interface);
+PARCKeyStore *parcKeyStore_Create(PARCObject *instance, const PARCKeyStoreInterface *interface);
 
 /**
  * Increase the number of references to an instance of this object.
@@ -208,7 +280,7 @@ void parcKeyStore_Release(PARCKeyStore **keyStorePtr);
  * }
  * @endcode
  */
-PARCCryptoHash *parcKeyStore_GetVerifierKeyDigest(PARCKeyStore *interfaceContext);
+PARCCryptoHash *parcKeyStore_GetVerifierKeyDigest(const PARCKeyStore *interfaceContext);
 
 /**
  * Returns a copy of the the certificate digest.
@@ -230,7 +302,7 @@ PARCCryptoHash *parcKeyStore_GetVerifierKeyDigest(PARCKeyStore *interfaceContext
  * }
  * @endcode
  */
-PARCCryptoHash *parcKeyStore_GetCertificateDigest(PARCKeyStore *interfaceContext);
+PARCCryptoHash *parcKeyStore_GetCertificateDigest(const PARCKeyStore *interfaceContext);
 
 /**
  * Returns a copy of the DER encoded certificate.
@@ -249,7 +321,7 @@ PARCCryptoHash *parcKeyStore_GetCertificateDigest(PARCKeyStore *interfaceContext
  * }
  * @endcode
  */
-PARCBuffer *parcKeyStore_GetDEREncodedCertificate(PARCKeyStore *interfaceContext);
+PARCBuffer *parcKeyStore_GetDEREncodedCertificate(const PARCKeyStore *interfaceContext);
 
 /**
  * Returns a copy of the encoded public key in Distinguished Encoding Rules (DER) form.
@@ -267,7 +339,7 @@ PARCBuffer *parcKeyStore_GetDEREncodedCertificate(PARCKeyStore *interfaceContext
  * }
  * @endcode
  */
-PARCBuffer *parcKeyStore_GetDEREncodedPublicKey(PARCKeyStore *interfaceContext);
+PARCBuffer *parcKeyStore_GetDEREncodedPublicKey(const PARCKeyStore *interfaceContext);
 
 /**
  * Returns a copy of the encoded private key in Distinguished Encoding Rules (DER) form.
@@ -285,5 +357,5 @@ PARCBuffer *parcKeyStore_GetDEREncodedPublicKey(PARCKeyStore *interfaceContext);
  * }
  * @endcode
  */
-PARCBuffer *parcKeyStore_GetDEREncodedPrivateKey(PARCKeyStore *interfaceContext);
+PARCBuffer *parcKeyStore_GetDEREncodedPrivateKey(const PARCKeyStore *interfaceContext);
 #endif // libparc_parc_KeyStore_h

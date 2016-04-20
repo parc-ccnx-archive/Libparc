@@ -373,11 +373,11 @@ _GetDEREncodedPrivateKey(PARCPkcs12KeyStore *keystore)
 }
 
 PARCKeyStoreInterface *PARCPkcs12KeyStoreAsKeyStore = &(PARCKeyStoreInterface) {
-    .GetVerifierKeyDigest     = (PARCCryptoHash *(*)(void *)) _GetPublickKeyDigest,
-    .GetCertificateDigest     = (PARCCryptoHash *(*)(void *)) _GetCertificateDigest,
-    .GetDEREncodedCertificate = (PARCBuffer *(*)(void *)) _GetDEREncodedCertificate,
-    .GetDEREncodedPublicKey   = (PARCBuffer *(*)(void *)) _GetDEREncodedPublicKey,
-    .GetDEREncodedPrivateKey  = (PARCBuffer *(*)(void *)) _GetDEREncodedPrivateKey,
+    .getVerifierKeyDigest     = (PARCKeyStoreGetVerifierKeyDigest *) _GetPublickKeyDigest,
+    .getCertificateDigest     = (PARCKeyStoreGetCertificateDigest *) _GetCertificateDigest,
+    .getDEREncodedCertificate = (PARCKeyStoreGetDEREncodedCertificate *) _GetDEREncodedCertificate,
+    .getDEREncodedPublicKey   = (PARCKeyStoreGetDEREncodedPublicKey *) _GetDEREncodedPublicKey,
+    .getDEREncodedPrivateKey  = (PARCKeyStoreGetDEREncodedPrivateKey *) _GetDEREncodedPrivateKey,
 };
 
 // =============================================================
