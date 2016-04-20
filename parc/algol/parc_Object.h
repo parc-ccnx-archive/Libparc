@@ -78,6 +78,9 @@ typedef void PARCObject;
 /**
  * A Function that performs the final cleanup and resource deallocation when
  * a PARC Object has no more references.
+ *
+ * This is deprecated and will be removed.
+ * Use `PARCObjectDestructor`
  */
 typedef void (PARCObjectDestroy)(PARCObject **);
 
@@ -134,6 +137,10 @@ typedef void (PARCObjectDisplay)(const PARCObject *object, const int indentation
  */
 typedef PARCJSON *(PARCObjectToJSON)(const PARCObject *);
 
+/**
+ * Every PARC Object instance contains a pointer to an instance of this structure defining
+ * the canonical meta-data for the object.
+ */
 typedef struct PARCObjectDescriptor {
     char name[32];
     PARCObjectDestroy *destroy;
@@ -146,22 +153,41 @@ typedef struct PARCObjectDescriptor {
     PARCObjectHashCode *hashCode;
     PARCObjectToJSON *toJSON;
     PARCObjectDisplay *display;
-    struct PARCObjectDescriptor *super;
+    const struct PARCObjectDescriptor *super;
     size_t objectSize;
     unsigned objectAlignment;
     bool isLockable;
-    pthread_once_t initLock;
 } PARCObjectDescriptor;
 
-/*!
+/**
  * @define parcObject_DescriptorName(_type)
- * Creates a subtype specific name for a subtype's PARCObjectDescriptor
- * struct which is a parameter to parcObject_Create.
+ *
+ * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
+ * which is a parameter to `parcObject_Create`.
  */
-#define parcObject_MetaName(_type) parcCMacro_Cat(_type, _Descriptor)
 #define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
 
-extern PARCObjectDescriptor parcObject_DescriptorName(PARCObject);
+/**
+ * @define parcObjectDescriptor_Declaration(_type_)
+ *
+ * Create a declaration of a `PARCObject` implementation.
+ */
+#define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
+
+/**
+ * @define parcObject_Declare(_type_)
+ *
+ * Create a declaration of a `PARCObject` implementation.
+ */
+#define parcObject_Declare(_type_) \
+    struct _type_; \
+    typedef struct _type_ _type_; \
+    extern parcObjectDescriptor_Declaration(_type_)
+
+/**
+ * The globally available `PARCObject` descriptor.
+ */
+extern parcObjectDescriptor_Declaration(PARCObject);
 
 /**
  * Assert that an instance of PARC Object is valid.
@@ -502,9 +528,10 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
 /**
  * Create an allocated instance of `PARCObjectDescriptor`.
  *
- * @param [in] name    A nul-terminated, C string containing the name of the object descriptor.
+ * @param [in] name A nul-terminated, C string containing the name of the object descriptor.
  * @param [in] objectSize The number of bytes necessary to contain the object.
  * @param [in] objectAlignment The alignment boundary necessary for the object, a power of 2 greater than or equal to `sizeof(void *)`
+ * @param [in] isLockable True, if this object implementation supports locking.
  * @param [in] destructor The callback function to call when the last `parcObject_Release()` is invoked (replaces @p destroy).
  * @param [in] release The callback function to call when `parcObject_Release()` is invoked.
  * @param [in] copy The callback function to call when parcObject_Copy() is invoked.
@@ -514,14 +541,14 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
  * @param [in] hashCode The callback function to call when `parcObject_HashCode()` is invoked.
  * @param [in] toJSON The callback function to call when `parcObject_ToJSON()` is invoked.
  * @param [in] display The callback function to call when `parcObject_Display()` is invoked.
- * @param [in] descriptor A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
+ * @param [in] super A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
  *
  * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
  * @return non-NULL Successfully created the implementation
  */
 const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                         size_t objectSize,
-                                                        unsigned int objectAligment,
+                                                        unsigned int objectAlignment,
                                                         bool isLockable,
                                                         PARCObjectDestructor *destructor,
                                                         PARCObjectRelease *release,
@@ -532,9 +559,46 @@ const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
                                                         PARCObjectHashCode *hashCode,
                                                         PARCObjectToJSON *toJSON,
                                                         PARCObjectDisplay *display,
-                                                        PARCObjectDescriptor *super);
+                                                        const PARCObjectDescriptor *super);
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
+
+/**
+ * Create new `PARCObjectDescriptor` based on an existing `PARCObjectDescriptor.`
+ * The new `PARCObjectDescriptor` uses the existing `PARCObjectDescriptor` as the super-type of the new descriptor.
+ */
+#define parcObject_Extends(_subtype, _superType, ...) \
+    LongBowCompiler_IgnoreInitializerOverrides \
+    parcObjectDescriptor_Declaration(_subtype) = { \
+        .super           = &parcObject_DescriptorName(_superType), \
+        .name            = #_subtype, \
+        .objectSize      = 0, \
+        .objectAlignment = 0, \
+        .destroy         = NULL,    \
+        .destructor      = NULL, \
+        .release         = NULL,   \
+        .copy            = NULL,   \
+        .toString        = NULL,   \
+        .equals          = NULL,   \
+        .compare         = NULL,   \
+        .hashCode        = NULL,   \
+        .toJSON          = NULL,   \
+        .display         = NULL,   \
+        .isLockable      = true, \
+        __VA_ARGS__  \
+    }; \
+    LongBowCompiler_WarnInitializerOverrides \
+    const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
+
+/**
+ * Define a new PARC Object implementation, by composing a new PARC Object Descriptor referencing an old one.
+ * The new PARC Object implementation must be accompanied by the corresponding `typedef` of the type containing the object's data.
+ */
+#define parcObject_Override(_subtype, _superType, ...) \
+    parcObject_Extends(_subtype, _superType,           \
+    .objectSize      = sizeof(_subtype),               \
+    .objectAlignment = sizeof(void *),                 \
+    __VA_ARGS__)
 
 
 /// Helper MACROS for PARCObject Normalization
@@ -560,7 +624,7 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
     }
 
 /**
- * parcObject_CopyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * `parcObject_CopyWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
  * copy operation. Intended for internal use.
  */
 #define parcObject_CopyWrapper(_type, _fname)                           \
@@ -580,13 +644,13 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
     }
 
 /**
- * parcObject_EqualsWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * `parcObject_EqualsWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
  * equals operation. Intended for internal use.
  */
 #define parcObject_EqualsWrapper(_type, _fname)                         \
     static bool _autowrap_equals_##_type(const PARCObject *a, const PARCObject *b) \
-    {                                                                   \
-        return _fname((const _type *) a, (const _type *) b);            \
+    {                                                                              \
+        return _fname((const _type *) a, (const _type *) b);                       \
     }
 
 /**
@@ -595,22 +659,22 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
  */
 #define parcObject_CompareWrapper(_type, _fname) \
     static int _autowrap_compare_##_type(const PARCObject *a, const PARCObject *b) \
-    {                                                                   \
-        return _fname((const _type *) a, (const _type *) b);                        \
+    {                                                                              \
+        return _fname((const _type *) a, (const _type *) b);                       \
     }
 
 /**
- * parcObject_HashCodeWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * `parcObject_HashCodeWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
  * HashCode operation. Intended for internal use.
  */
 #define parcObject_HashCodeWrapper(_type, _fname) \
     static PARCHashCode _autowrap_hashCode_##_type(const PARCObject *object) \
-    {                                                                   \
-        return _fname((const _type *) object);                                \
+    {                                                                        \
+        return _fname((const _type *) object);                               \
     }
 
 /**
- * parcObject_CopyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * `parcObject_CopyWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
  * ToJSON operation. Intended for internal use.
  */
 #define parcObject_ToJSONWrapper(_type, _fname) \
@@ -620,13 +684,13 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
     }
 
 /**
- * parcObject_DisplayyWrapper builds the boiler plate wrapper for PARCObject type conversion in the
+ * `parcObject_DisplayWrapper` builds the boiler plate wrapper for PARCObject type conversion in the
  * Display operation. Intended for internal use.
  */
 #define parcObject_DisplayWrapper(_type, _fname) \
     static void _autowrap_Display_##_type(const PARCObject *object, const int indentation) \
-    {                                                                                       \
-        _fname((const _type *) object, indentation);                                        \
+    {                                                                                      \
+        _fname((const _type *) object, indentation);                                       \
     }
 
 /**
@@ -641,31 +705,10 @@ bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 /** \endcond */
 
-#define parcObject_Override(_subtype, _superType, ...) \
-    LongBowCompiler_IgnoreInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype) = { \
-        .objectSize      = sizeof(_subtype), \
-        .objectAlignment = sizeof(void *), \
-        .destroy         = NULL,    \
-        .destructor      = NULL, \
-        .release         = NULL,   \
-        .copy            = NULL,   \
-        .toString        = NULL,   \
-        .equals          = NULL,   \
-        .compare         = NULL,   \
-        .hashCode        = NULL,   \
-        .toJSON          = NULL,   \
-        .display         = NULL,   \
-        .isLockable      = true, \
-        .super           = &parcObject_DescriptorName(_superType),    \
-        .name            = #_subtype,     \
-        __VA_ARGS__         \
-    }; \
-    LongBowCompiler_WarnInitializerOverrides \
-    static const PARCObjectDescriptor parcObject_DescriptorName(_subtype)
 
 /**
  * @define parcObject_ExtendPARCObject
+ * @deprecated Use parcObject_Override instead;
  *
  * @discussion parcObject_ExtendPARCObject is a helper macro for constructing a PARCObjectDescriptor Structure of
  * function pointers pointing to a subtype's overriding functions. This struct serves the same
@@ -727,6 +770,7 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
  */
 #define parcObject_CreateAndClearInstance(_subtype) \
     (_subtype *) parcObject_CreateAndClearInstanceImpl(&parcObject_DescriptorName(_subtype))
+
 /**
  * Create a reference counted segment of memory of at least @p objectLength long.
  *
@@ -756,6 +800,149 @@ PARCObject *parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor
 PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *descriptor);
 
 /**
+ * Define a static PARCObject instance for the given type, alignment, per-object data.
+ *
+ * Once the instance has been defined, it must be initialised via `parcObject_InitInstance`
+ * or `parcObject_InitAndClearInstance` before it is used.
+ *
+ * @return A pointer to an invalid `PARCObject` instance that must be initialised .
+ */
+#define parcObject_Instance(_type_, _alignment_, _size_) \
+    (_type_ *)(&(char[parcObject_TotalSize(_alignment_, _size_)]) { 0 }[parcObject_PrefixLength(sizeof(void *))])
+
+/**
+ * @define parcObject_InitInstance
+ *
+ * `parcObject_InitInstance` is a helper C-macro that initializes a portion of memory to contain a `PARCObject` subtype
+ * using `parcObject_InitInstanceImpl`.
+ *
+ * @param [in] _object_ A pointer to memory that will contain the object and its meta-data.
+ * @param [in] _subtype A subtype's type name.
+ */
+#define parcObject_InitInstance(_object_, _subtype) \
+    parcObject_InitInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
+
+/**
+ * @define parcObject_InitInstanceImpl
+ *
+ * Initialize a PARCObject instance given the `PARCObjectDescriptor`.
+ * Any previous state of the given PARCObject is destroyed.
+ *
+ * @param [in] object A pointer to an existing valid or invalid `PARCObject` instance.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
+ */
+PARCObject *parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
+
+/**
+ * @define parcObject_InitAndClearInstance
+ *
+ * `parcObject_InitAndClearInstance` is a helper C-macro that initializes a portion of memory to contain a PARCObject subtype
+ * using `parcObject_InitAndClearInstanceImpl`.
+ *
+ * @param [in] _object_ A pointer to memory that will contain the object and its meta-data.
+ * @param [in] _subtype A subtype's type name.
+ */
+#define parcObject_InitAndClearInstance(_object_, _subtype) \
+    parcObject_InitAndClearInstanceImpl(_object_, &parcObject_DescriptorName(_subtype))
+
+/**
+ * Create a reference counted segment of memory of at least @p objectLength long.
+ *
+ * The implementation pointer, is either NULL or points to a valid `PARCObjectDescriptor` structure
+ * containing the callback functions that implement the object's life-cycle operations.
+ *
+ * The allocated memory is such that the memory's base address is aligned on a sizeof(void *) boundary,
+ * and filled with zero bytes.
+ *
+ * If memory cannot be allocated, `errno` is set to `ENOMEM`.
+ *
+ * @param [in] object A pointer to an existing valid or invalid `PARCObject` instance.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` structure.
+ *
+ * @return NULL The memory could not be allocated.
+ * @return non-NULL A pointer to reference counted memory of at least length bytes.
+ *
+ * Example:
+ * @code
+ * {
+ *
+ * }
+ * @endcode
+ *
+ * @see PARCObjectDescriptor
+ * @see parcObject_Create
+ */
+PARCObject *parcObject_InitAndClearInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor);
+
+/**
+ * Compute the number of bytes necessary for a PARC Object prefix.
+ *
+ * The @p _alignment_ parameter specifies the required memory alignment of the object.
+ *
+ * @param [in] _alignment_ An unsigned integer value greater than `sizeof(void *)`
+ *
+ * @return The number of bytes necessary for a PARC Object header.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+// The constant value here must be greater than or equal to the size of the internal _PARCObjectHeader structure.
+#define parcObject_PrefixLength(_alignment_) ((152 + (_alignment_ - 1)) & - _alignment_)
+
+/**
+ * Compute the number of bytes necessary for a PARC Object.
+ *
+ * The number of bytes consists of the number of bytes for the PARC Object header, padding, and the object's specific data.
+ *
+ * The @p _alignment_ parameter specifies the required memory alignment of the object.
+ * The @p _size_ parameter specifies the number of bytes necessary for the object specific data.
+ */
+#define parcObject_TotalSize(_alignment_, _size_) (parcObject_PrefixLength(_alignment_) + _size_)
+
+/**
+ * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.
+ *
+ * Note that the return value will not be equal to the value of @p origin.
+ *
+ * @param [in] memory A pointer to memory that will contain the object and its state.
+ * @param [in] descriptor The subtype name that will be used to compose the name of the `PARCObjectDescriptor` for the object.
+ *
+ * @return NULL An error occured.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+#define parcObject_Wrap(_memory_, _subtype) \
+    parcObject_WrapImpl(_memory_, &parcObject_DescriptorName(_subtype))
+
+/**
+ * Wrap a static, unallocated region of memory producing a valid pointer to a `PARCObject` instance.
+ *
+ * Note that the return value will not be equal to the value of @p origin.
+ *
+ * @param [in] memory A pointer to memory that will contain the object and its state.
+ * @param [in] descriptor A pointer to a valid `PARCObjectDescriptor` for the object.
+ *
+ * @return NULL An error occured.
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+PARCObject *parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descriptor);
+
+/**
  * @def parcObject_ImplementAcquire
  *
  * parcObject_ImplementAcquire is a helper C-macro that creates a canonical subtype specific
@@ -780,7 +967,6 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
  */
 #define parcObject_ImplementRelease(_namespace, _type) \
     inline void _namespace##_Release(_type **pObject) { \
-        assertNotNull(pObject, "NULL pointer passed to Release.  Double free?"); \
         parcObject_Release((PARCObject **) pObject);     \
     } extern void _namespace##_Release(_type **pObject)
 
@@ -824,7 +1010,7 @@ PARCObject *parcObject_CreateAndClearInstanceImpl(const PARCObjectDescriptor *de
  * @param [in] object A pointer to a valid `PARCObject` instance.
  *
  * @return true The lock was obtained successfully.
- * @return false The lock is already held by the current thread, or the `PARCObject` is invalid.
+ * @return false The lock is already held by the current thread, the `PARCObject` is invalid, or does not support locking.
  *
  * Example:
  * @code
@@ -842,8 +1028,8 @@ bool parcObject_Lock(const PARCObject *object);
  *
  * parcObject_ImplementLock is a helper C-macro that defines a static, inline facade for the `parcObject_Lock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementLock(_namespace, _type)              \
     static inline bool _namespace##_Lock(const _type *pObject) { \
@@ -858,7 +1044,7 @@ bool parcObject_Lock(const PARCObject *object);
  * @param [in] object A pointer to a valid `PARCObject` instance.
  *
  * @return true The `PARCObject` is locked.
- * @return false The `PARCObject` is unlocked.
+ * @return false The `PARCObject` is unlocked, or does not support locking.
  *
  * Example:
  * @code
@@ -875,8 +1061,8 @@ bool parcObject_TryLock(const PARCObject *object);
  *
  * parcObject_ImplementTryLock is a helper C-macro that defines a static, inline facade for the `parcObject_TryLock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementTryLock(_namespace, _type)              \
     static inline bool _namespace##_TryLock(const _type *pObject) { \
@@ -905,8 +1091,8 @@ bool parcObject_Unlock(const PARCObject *object);
  *
  * parcObject_ImplementUnlock is a helper C-macro that defines a static, inline facade for the `parcObject_Unlock` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementUnlock(_namespace, _type)              \
     static inline bool _namespace##_Unlock(const _type *pObject) { \
@@ -918,8 +1104,8 @@ bool parcObject_Unlock(const PARCObject *object);
  *
  * @param [in] object A pointer to a valid PARCObject instance.
  *
- * @return true The PARCObject is locked.
- * @return false The PARCObject is unlocked.
+ * @return true The `PARCObject` is locked.
+ * @return false The `PARCObject` is unlocked.
  * Example:
  * @code
  * {
@@ -934,8 +1120,8 @@ bool parcObject_IsLocked(const PARCObject *object);
  *
  * parcObject_ImplementIsLocked is a helper C-macro that defines a static, inline facade for the `parcObject_IsLocked` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementIsLocked(_namespace, _type)              \
     static inline bool _namespace##_IsLocked(const _type *pObject) { \
@@ -1100,8 +1286,8 @@ void parcObject_Notify(const PARCObject *object);
  *
  * parcObject_ImplementNotify is a helper C-macro that defines a static, inline facade for the `parcObject_Notify` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type string (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementNotify(_namespace, _type)              \
     static inline void _namespace##_Notify(const _type *pObject) { \
@@ -1139,8 +1325,8 @@ void parcObject_NotifyAll(const PARCObject *object);
  *
  * parcObject_ImplementNotifyAll is a helper C-macro that defines a static, inline facade for the `parcObject_NotifyAll` function.
  *
- * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
- * @param [in] _type A subtype's type  (e.g. PARCBuffer)
+ * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
+ * @param [in] _type A subtype's type  (e.g. `PARCBuffer`)
  */
 #define parcObject_ImplementNotifyAll(_namespace, _type)       \
     static inline void _namespace##_NotifyAll(const _type *pObject) { \

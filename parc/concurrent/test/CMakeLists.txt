@@ -11,6 +11,7 @@ set(TestsExpectedToPass
 	test_parc_ScheduledTask
 	test_parc_ScheduledThreadPool
 	test_parc_Synchronizer
+	test_parc_Thread
 	test_parc_ThreadPool
 	test_parc_Timer
   )
@@ -22,5 +23,3 @@ set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} " --coverage")
 foreach(test ${TestsExpectedToPass})
    AddTest(${test})
 endforeach()
-
-

@@ -278,11 +278,13 @@ LONGBOW_TEST_CASE(Static, _parcObject_PrefixLength)
     while (v >>= 1) {
         r++;
     }
-
+    PARCObjectDescriptor descriptor;
+    
     for (int i = r; i < 20; i++) {
-        size_t alignment = 1 << i;
-        size_t actual = _parcObject_PrefixLength(alignment);
-        assertTrue((actual & (alignment - 1)) == 0, "Alignment needs to be a multiple of %zd", alignment);
+        descriptor.objectAlignment = 1 << i;
+        size_t actual = _parcObject_PrefixLength(&descriptor);
+        assertTrue((actual & (descriptor.objectAlignment - 1)) == 0,
+                   "Alignment needs to be a multiple of %u", descriptor.objectAlignment);
     }
 }
 
@@ -1203,7 +1205,6 @@ LONGBOW_TEST_FIXTURE_SETUP(Performance)
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Performance)
 {
-
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -1218,11 +1219,14 @@ LONGBOW_TEST_CASE(Performance, _parcObject_PrefixLength_10000000)
     while (v >>= 1) {
         r++;
     }
-
+    
+    PARCObjectDescriptor descriptor;
+    
     for (int i = r; i < 20; i++) {
-        size_t alignment = 1 << i;
-        size_t actual = _parcObject_PrefixLength(alignment);
-        assertTrue((actual & (alignment - 1)) == 0, "Alignment needs to be a multiple of %zd", alignment);
+        descriptor.objectAlignment = 1 << i;
+        size_t actual = _parcObject_PrefixLength(&descriptor);
+        assertTrue((actual & (descriptor.objectAlignment - 1)) == 0,
+                   "Alignment needs to be a multiple of %u", descriptor.objectAlignment);
     }
 }
 

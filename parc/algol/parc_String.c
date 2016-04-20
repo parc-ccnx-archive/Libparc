@@ -40,21 +40,30 @@ struct PARCString {
     char *string;
 };
 
-static void
-_parcString_Finalize(PARCString **instancePtr)
+static bool
+_parcString_Destructor(PARCString **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCString pointer.");
     PARCString *string = *instancePtr;
 
     parcMemory_Deallocate(&string->string);
+    return true;
 }
 
 parcObject_ImplementAcquire(parcString, PARCString);
 
 parcObject_ImplementRelease(parcString, PARCString);
 
-parcObject_ExtendPARCObject(PARCString, _parcString_Finalize, parcString_Copy, parcString_ToString, parcString_Equals, parcString_Compare, parcString_HashCode, parcString_ToJSON);
-
+parcObject_Override(PARCString, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcString_Destructor,
+                    .copy = (PARCObjectCopy *) parcString_Copy,
+                    .display = (PARCObjectDisplay *) parcString_Display,
+                    .toString = (PARCObjectToString *) parcString_ToString,
+                    .equals = (PARCObjectEquals *) parcString_Equals,
+                    .compare = (PARCObjectCompare *) parcString_Compare,
+                    .hashCode = (PARCObjectHashCode *) parcString_HashCode,
+                    .toJSON = (PARCObjectToJSON *) parcString_ToJSON,
+                    .display = (PARCObjectDisplay *) parcString_Display);
 
 void
 parcString_AssertValid(const PARCString *instance)
@@ -62,7 +71,6 @@ parcString_AssertValid(const PARCString *instance)
     assertTrue(parcString_IsValid(instance),
                "PARCString is not valid.");
 }
-
 
 PARCString *
 parcString_Create(const char *string)
