@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * @file parc_Buffer.h
  * @ingroup memory
  * @brief An indexable, linear buffer of bytes.
- * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  *
  * A `PARCBuffer` is a linear, finite sequence of bytes.
  * The essential properties of a buffer are its content, its capacity, limit, and position:
@@ -133,16 +133,16 @@
  * * {@link parcBuffer_GetAtIndex}
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_Buffer_h
 #define libparc_parc_Buffer_h
 
-#include <parc/algol/parc_ByteArray.h>
-#include <parc/algol/parc_HashCode.h>
-
 struct parc_buffer;
 typedef struct parc_buffer PARCBuffer;
+
+#include <parc/algol/parc_ByteArray.h>
+#include <parc/algol/parc_HashCode.h>
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
 #  define parcBuffer_OptionalAssertValid(_instance_)

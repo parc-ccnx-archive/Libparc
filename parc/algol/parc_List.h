@@ -47,6 +47,8 @@
 
 #include <stdbool.h>
 
+#include <parc/algol/parc_HashCode.h>
+
 struct parc_list;
 /**
  * @typedef PARCList

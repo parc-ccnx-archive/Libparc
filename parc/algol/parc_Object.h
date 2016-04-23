@@ -65,129 +65,22 @@
 #  define parcObject_OptionalAssertValid(_instance_) parcObject_AssertValid(_instance_)
 #endif
 
-typedef uint64_t PARCReferenceCount;
-
 //Switch to strong type after subclasses are converted
 //typedef struct {int unused;} PARCObject;
 typedef void PARCObject;
+
+#include <parc/object/parc_ObjectDescriptor.h>
 
 #include <parc/algol/parc_CMacro.h>
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
 
 /**
- * A Function that performs the final cleanup and resource deallocation when
- * a PARC Object has no more references.
- *
- * This is deprecated and will be removed.
- * Use `PARCObjectDestructor`
- */
-typedef void (PARCObjectDestroy)(PARCObject **);
-
-/**
- * A Function that performs the final cleanup and resource deallocation when
- * a PARC Object has no more references.
- *
- * If the function returns `true` the object is automatically deallocated and destroyed.
- * If the function returns `false` the object is not automatically deallocated and destroyed,
- * and the responsibility for the object's state and memory are the responsibility of
- * the `PARCObjectDestructor` function.
- */
-typedef bool (PARCObjectDestructor)(PARCObject **);
-
-/**
- * A Function that releases one reference to the given PARC Object.
- * On the final release, where the number of references becomes 0,
- * the PARCObjectDestroy function is invoked.
- */
-typedef void (PARCObjectRelease)(PARCObject **objectPointer);
-
-/**
- * A function that produces a deep-copy of the given PARC Object instance.
- */
-typedef PARCObject *(PARCObjectCopy)(const PARCObject *object);
-
-/**
- * A function that invokes the proper _Equals() function for two PARC Object instances.
- */
-typedef bool (PARCObjectEquals)(const PARCObject *objectX, const PARCObject *objectY);
-
-/**
- * A function that invokes the proper _Compare() functions for two PARC Object instances.
- */
-typedef int (PARCObjectCompare)(const PARCObject *, const PARCObject *);
-
-/**
- * A function that computes the 32-bit hashcode of the given PARC Object instance.
- */
-typedef PARCHashCode (PARCObjectHashCode)(const PARCObject *object);
-
-/**
- * A function that produces a C style nul-terminated string representation of the given PARC Object instance.
- */
-typedef char *(PARCObjectToString)(const PARCObject *object);
-
-/**
- * A function that displays a human readable representation of the given PARCObject.
- */
-typedef void (PARCObjectDisplay)(const PARCObject *object, const int indentation);
-
-/**
- * A function that generates a JSON representation of the given PARC Object instance.
- */
-typedef PARCJSON *(PARCObjectToJSON)(const PARCObject *);
-
-/**
- * Every PARC Object instance contains a pointer to an instance of this structure defining
- * the canonical meta-data for the object.
- */
-typedef struct PARCObjectDescriptor {
-    char name[32];
-    PARCObjectDestroy *destroy;
-    PARCObjectDestructor *destructor;
-    PARCObjectRelease *release;
-    PARCObjectCopy *copy;
-    PARCObjectToString *toString;
-    PARCObjectEquals *equals;
-    PARCObjectCompare *compare;
-    PARCObjectHashCode *hashCode;
-    PARCObjectToJSON *toJSON;
-    PARCObjectDisplay *display;
-    const struct PARCObjectDescriptor *super;
-    size_t objectSize;
-    unsigned objectAlignment;
-    bool isLockable;
-} PARCObjectDescriptor;
-
-/**
- * @define parcObject_DescriptorName(_type)
- *
- * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
- * which is a parameter to `parcObject_Create`.
- */
-#define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
-
-/**
- * @define parcObjectDescriptor_Declaration(_type_)
- *
- * Create a declaration of a `PARCObject` implementation.
- */
-#define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
-
-/**
- * @define parcObject_Declare(_type_)
- *
- * Create a declaration of a `PARCObject` implementation.
- */
-#define parcObject_Declare(_type_) \
-    struct _type_; \
-    typedef struct _type_ _type_; \
-    extern parcObjectDescriptor_Declaration(_type_)
-
-/**
  * The globally available `PARCObject` descriptor.
  */
 extern parcObjectDescriptor_Declaration(PARCObject);
+
+typedef uint64_t PARCReferenceCount;
 
 /**
  * Assert that an instance of PARC Object is valid.
@@ -525,43 +418,6 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
     (objectType)->display = NULL, \
     (objectType)->super = NULL
 
-/**
- * Create an allocated instance of `PARCObjectDescriptor`.
- *
- * @param [in] name A nul-terminated, C string containing the name of the object descriptor.
- * @param [in] objectSize The number of bytes necessary to contain the object.
- * @param [in] objectAlignment The alignment boundary necessary for the object, a power of 2 greater than or equal to `sizeof(void *)`
- * @param [in] isLockable True, if this object implementation supports locking.
- * @param [in] destructor The callback function to call when the last `parcObject_Release()` is invoked (replaces @p destroy).
- * @param [in] release The callback function to call when `parcObject_Release()` is invoked.
- * @param [in] copy The callback function to call when parcObject_Copy() is invoked.
- * @param [in] toString The callback function to call when `parcObject_ToString()` is invoked.
- * @param [in] equals The callback function to call when `parcObject_Equals()` is invoked.
- * @param [in] compare The callback function to call when `parcObject_Compare()` is invoked.
- * @param [in] hashCode The callback function to call when `parcObject_HashCode()` is invoked.
- * @param [in] toJSON The callback function to call when `parcObject_ToJSON()` is invoked.
- * @param [in] display The callback function to call when `parcObject_Display()` is invoked.
- * @param [in] super A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
- *
- * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
- * @return non-NULL Successfully created the implementation
- */
-const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
-                                                        size_t objectSize,
-                                                        unsigned int objectAlignment,
-                                                        bool isLockable,
-                                                        PARCObjectDestructor *destructor,
-                                                        PARCObjectRelease *release,
-                                                        PARCObjectCopy *copy,
-                                                        PARCObjectToString *toString,
-                                                        PARCObjectEquals *equals,
-                                                        PARCObjectCompare *compare,
-                                                        PARCObjectHashCode *hashCode,
-                                                        PARCObjectToJSON *toJSON,
-                                                        PARCObjectDisplay *display,
-                                                        const PARCObjectDescriptor *super);
-
-bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
 /**
  * Create new `PARCObjectDescriptor` based on an existing `PARCObjectDescriptor.`

@@ -37,12 +37,12 @@
 
 #include <stdbool.h>
 
+struct parcJSONPair;
+typedef struct parcJSONPair PARCJSONPair;
+
 #include <parc/algol/parc_Buffer.h>
 #include <parc/algol/parc_BufferComposer.h>
 #include <parc/algol/parc_List.h>
-
-struct parcJSONPair;
-typedef struct parcJSONPair PARCJSONPair;
 
 #include <parc/algol/parc_JSONArray.h>
 #include <parc/algol/parc_JSONValue.h>
