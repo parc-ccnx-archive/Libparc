@@ -30,6 +30,10 @@
  */
 #include "../parc_RandomAccessFile.c"
 
+#include <sys/param.h>
+
+#include <fcntl.h>
+
 #include <LongBow/testing.h>
 #include <LongBow/debugging.h>
 #include <parc/algol/parc_Memory.h>
@@ -82,7 +86,14 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCFile *file = parcFile_Create("/tmp/tmpfile");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/tmpfile", temporaryDirectory);
+
+    PARCFile *file = parcFile_Create(filename);
     PARCRandomAccessFile *instance = parcRandomAccessFile_Open(file);
     assertNotNull(instance, "Expected non-null result from parcRandomAccessFile_Open();");
 
@@ -120,7 +131,14 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
 
 LONGBOW_TEST_CASE(Object, parcRandomAccessFile_Display)
 {
-    PARCFile *file = parcFile_Create("/tmp/tmpfile");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/tmpfile", temporaryDirectory);
+
+    PARCFile *file = parcFile_Create(filename);
     PARCRandomAccessFile *instance = parcRandomAccessFile_Open(file);
     parcFile_Release(&file);
 
@@ -130,9 +148,20 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_Display)
 
 LONGBOW_TEST_CASE(Object, parcRandomAccessFile_Equals)
 {
-    PARCFile *fileX = parcFile_Create("/tmp/tmpfileX");
-    PARCFile *fileY = parcFile_Create("/tmp/tmpfileX");
-    PARCFile *fileZ = parcFile_Create("/tmp/tmpfileX");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+
+    sprintf(filename, "%s/tmpfileX", temporaryDirectory);
+    PARCFile *fileX = parcFile_Create(filename);
+
+    sprintf(filename, "%s/tmpfileY", temporaryDirectory);
+    PARCFile *fileY = parcFile_Create(filename);
+
+    sprintf(filename, "%s/tmpfileZ", temporaryDirectory);
+    PARCFile *fileZ = parcFile_Create(filename);
 
     PARCRandomAccessFile *x = parcRandomAccessFile_Open(fileX);
     PARCRandomAccessFile *y = parcRandomAccessFile_Open(fileY);
@@ -154,7 +183,14 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_Equals)
 
 LONGBOW_TEST_CASE(Object, parcRandomAccessFile_IsValid)
 {
-    PARCFile *file = parcFile_Create("/tmp/tmpfile");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/tmpfile", temporaryDirectory);
+
+    PARCFile *file = parcFile_Create(filename);
     parcFile_CreateNewFile(file);
 
     PARCRandomAccessFile *instance = parcRandomAccessFile_Open(file);
@@ -167,7 +203,14 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_IsValid)
 
 LONGBOW_TEST_CASE(Object, parcRandomAccessFile_ToJSON)
 {
-    PARCFile *file = parcFile_Create("/tmp/tmpfile");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/tmpfile", temporaryDirectory);
+
+    PARCFile *file = parcFile_Create(filename);
     PARCRandomAccessFile *instance = parcRandomAccessFile_Open(file);
     parcFile_Release(&file);
 
@@ -178,7 +221,7 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_ToJSON)
     PARCBuffer *buffer = parcJSONValue_GetString(value);
 
     char *string = parcBuffer_ToString(buffer);
-    assertTrue(strcmp("/tmp/tmpfile", string) == 0, "The file was stored correctly");
+    assertTrue(strcmp(filename, string) == 0, "The file was stored correctly");
 
     parcMemory_Deallocate(&string);
 
@@ -189,7 +232,14 @@ LONGBOW_TEST_CASE(Object, parcRandomAccessFile_ToJSON)
 
 LONGBOW_TEST_CASE(Object, parcRandomAccessFile_ToString)
 {
-    PARCFile *file = parcFile_Create("/tmp/tmpfile");
+    char dirname[] = "/tmp/RandomAccessFile_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/tmpfile", temporaryDirectory);
+
+    PARCFile *file = parcFile_Create(filename);
     PARCRandomAccessFile *instance = parcRandomAccessFile_Open(file);
     parcFile_Release(&file);
 
@@ -341,5 +391,3 @@ main(int argc, char *argv[argc])
     longBowTestRunner_Destroy(&testRunner);
     exit(exitStatus);
 }
-
-

@@ -113,8 +113,15 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
 static PARCPublicKeySigner *
 _createSigner(char *path)
 {
-    parcPkcs12KeyStore_CreateFile(path, "blueberry", "person", 1024, 365);
-    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(path, "blueberry", PARC_HASH_SHA256);
+    char dirname[] = "/tmp/pubkeystore_XXXXXX";
+    char filename[MAXPATHLEN];
+
+    char *temporaryDirectory = mkdtemp(dirname);
+    assertNotNull(temporaryDirectory, "tmp_dirname should not be null");
+    sprintf(filename, "%s/%s", temporaryDirectory, path);
+
+    parcPkcs12KeyStore_CreateFile(filename, "blueberry", "person", 1024, 365);
+    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(filename, "blueberry", PARC_HASH_SHA256);
     PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
     parcPkcs12KeyStore_Release(&keyStore);
     PARCPublicKeySigner *pksigner = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
@@ -125,9 +132,9 @@ _createSigner(char *path)
 
 LONGBOW_TEST_CASE(Object, parcPublicKeySigner_Equals)
 {
-    PARCPublicKeySigner *x = _createSigner("/tmp/bananasA");
-    PARCPublicKeySigner *y = _createSigner("/tmp/bananasB");
-    PARCPublicKeySigner *z = _createSigner("/tmp/bananasC");
+    PARCPublicKeySigner *x = _createSigner("bananasA");
+    PARCPublicKeySigner *y = _createSigner("bananasB");
+    PARCPublicKeySigner *z = _createSigner("bananasC");
 
     parcObjectTesting_AssertEquals(x, y, z, NULL);
 
@@ -138,8 +145,8 @@ LONGBOW_TEST_CASE(Object, parcPublicKeySigner_Equals)
 
 LONGBOW_TEST_CASE(Object, parcPublicKeySigner_HashCode)
 {
-    PARCPublicKeySigner *x = _createSigner("/tmp/bananasX");
-    PARCPublicKeySigner *y = _createSigner("/tmp/bananasY");
+    PARCPublicKeySigner *x = _createSigner("bananasX");
+    PARCPublicKeySigner *y = _createSigner("bananasY");
 
     parcObjectTesting_AssertHashCode(x, y);
 
@@ -149,7 +156,7 @@ LONGBOW_TEST_CASE(Object, parcPublicKeySigner_HashCode)
 
 LONGBOW_TEST_CASE(Object, parcPublicKeySigner_IsValid)
 {
-    PARCPublicKeySigner *instance = _createSigner("/tmp/bananas");
+    PARCPublicKeySigner *instance = _createSigner("bananas");
     assertTrue(parcPublicKeySigner_IsValid(instance), "Expected parcPublicKeySigner_Create to result in a valid instance.");
 
     parcPublicKeySigner_Release(&instance);
@@ -158,7 +165,7 @@ LONGBOW_TEST_CASE(Object, parcPublicKeySigner_IsValid)
 
 LONGBOW_TEST_CASE(Object, parcPublicKeySigner_ToString)
 {
-    PARCPublicKeySigner *instance = _createSigner("/tmp/bananas");
+    PARCPublicKeySigner *instance = _createSigner("bananas");
 
     char *string = parcPublicKeySigner_ToString(instance);
 
@@ -251,7 +258,7 @@ LONGBOW_TEST_CASE(Specialization, parcPkcs12KeyStore_SignBuffer)
 
 LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
+    char dirname[] = "pubkeystore_XXXXXX";
     char filename[MAXPATHLEN];
     const char *password = "flumox";
     unsigned key_bits = 1024;
@@ -301,7 +308,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCertificateDigest)
 
 LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
+    char dirname[] = "pubkeystore_XXXXXX";
     char filename[MAXPATHLEN];
     const char *password = "flumox";
     unsigned key_bits = 1024;
@@ -351,7 +358,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetDEREncodedCertificate)
 
 LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
+    char dirname[] = "pubkeystore_XXXXXX";
     char filename[MAXPATHLEN];
     const char *password = "flumox";
     unsigned key_bits = 1024;
@@ -383,7 +390,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
 
 LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
 {
-    char dirname[] = "/tmp/pubkeystore_XXXXXX";
+    char dirname[] = "pubkeystore_XXXXXX";
     char filename[MAXPATHLEN];
     const char *password = "flumox";
     unsigned key_bits = 1024;
