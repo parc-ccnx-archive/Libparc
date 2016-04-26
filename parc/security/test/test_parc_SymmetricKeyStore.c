@@ -43,9 +43,7 @@ LONGBOW_TEST_RUNNER_TEARDOWN(parc_SymmetricSignerFileStore)
 LONGBOW_TEST_FIXTURE(Global)
 {
     LONGBOW_RUN_TEST_CASE(Global, parcSymmetricKeyStore_Create);
-//    LONGBOW_RUN_TEST_CASE(Global, parcSymmetricKeyStore_CreateFile);
     LONGBOW_RUN_TEST_CASE(Global, parcSymmetricKeyStore_CreateKey);
-//    LONGBOW_RUN_TEST_CASE(Global, parcSymmetricKeyStore_OpenFile);
 //    LONGBOW_RUN_TEST_CASE(Global, parcSymmetricKeyStore_CreateFail);
 }
 
@@ -80,6 +78,7 @@ LONGBOW_TEST_CASE(Global, parcSymmetricKeyStore_Create)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(secret_key);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     parcSymmetricKeyStore_Release(&symmetricKeyStore);
     parcSigner_Release(&signer);
@@ -140,6 +139,7 @@ LONGBOW_TEST_CASE(Local, parcSymmetricKeyStore_GetCryptoHashType)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(secret_key);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     PARCCryptoHashType hashType = parcSigner_GetCryptoHashType(signer);
     assertTrue(hashType == PARC_HASH_SHA256,
@@ -178,6 +178,7 @@ LONGBOW_TEST_CASE(Local, parcSymmetricKeyStore_GetSecretKeyDigest)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(secret_key);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     PARCCryptoHash *key_hash = parcKeyStore_GetVerifierKeyDigest(parcSigner_GetKeyStore(signer));
     assertTrue(parcBuffer_Equals(parcCryptoHash_GetDigest(key_hash), secret_sha),
@@ -199,6 +200,7 @@ LONGBOW_TEST_CASE(Local, parcSymmetricKeyStore_GetSigningAlgorithm)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(secret_key);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     PARCSigningAlgorithm alg = parcSigner_GetSigningAlgorithm(signer);
     assertTrue(alg == PARCSigningAlgorithm_HMAC,
@@ -239,6 +241,7 @@ LONGBOW_TEST_CASE(Local, parcSymmetricKeyStore_SignDigest_sha256)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(key_buffer);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
     parcCryptoHasher_Init(hasher);
@@ -301,6 +304,7 @@ LONGBOW_TEST_CASE(Local, parcSymmetricKeyStore_SignDigest_sha512)
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(key_buffer);
     PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA512);
     PARCSigner *signer = parcSigner_Create(privateKeySigner, PARCSymmetricKeySignerAsSigner);
+    parcSymmetricKeySigner_Release(&privateKeySigner);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
     parcCryptoHasher_Init(hasher);

@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @author Marc Mosko, Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -37,63 +37,50 @@
 #include <parc/algol/parc_Memory.h>
 
 struct parc_verifier {
+    PARCObject *instance;
     PARCVerifierInterface *interface;
 };
 
-/**
- *
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
- */
-PARCVerifier *
-parcVerifier_Create(PARCVerifierInterface *interfaceContext)
+static bool
+_parcVerifier_FinalRelease(PARCVerifier **verifierPtr)
 {
-    assertNotNull(interfaceContext, "Parameter must be non-null interface pointer");
+    PARCVerifier *verifier = *verifierPtr;
+    if (verifier->instance != NULL) {
+        parcObject_Release(&(verifier->instance));
+    }
+    return true;
+}
 
-    PARCVerifier *verifier = parcMemory_AllocateAndClear(sizeof(PARCVerifier));
-    assertNotNull(verifier, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(PARCVerifier));
+void
+parcVerifier_AssertValid(const PARCVerifier *verifier)
+{
+    assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
+}
+
+parcObject_ImplementAcquire(parcVerifier, PARCVerifier);
+parcObject_ImplementRelease(parcVerifier, PARCVerifier);
+
+parcObject_Override(PARCVerifier, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcVerifier_FinalRelease);
+
+PARCVerifier *
+parcVerifier_Create(PARCObject *instance, PARCVerifierInterface *interfaceContext)
+{
+    assertNotNull(interfaceContext, "Parameter `interfaceContext` must be non-null interface pointer");
+    assertNotNull(instance, "Parameter `instance` must be non-null PARCObject pointer");
+
+    PARCVerifier *verifier = parcObject_CreateInstance(PARCVerifier);
+    assertNotNull(verifier, "parcObject_CreateInstance returned NULL");
+
+    verifier->instance = parcObject_Acquire(instance);
     verifier->interface = interfaceContext;
+
     return verifier;
 }
 
-/**
- * Destroys the signing context and the underlying interface
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
- */
-void
-parcVerifier_Destroy(PARCVerifier **verifierPtr)
-{
-    assertNotNull(verifierPtr, "Got null double pointer");
-    assertNotNull(*verifierPtr, "Got null pointer dereference");
-
-    PARCVerifier *verifier = *verifierPtr;
-
-    verifier->interface->Destroy(&verifier->interface);
-    parcMemory_Deallocate((void **) &verifier);
-    *verifierPtr = NULL;
-}
-
-/**
- * Verify the signature against the provided digest with the specified key.
- * If we do not trust the key, the signature will be rejected.
- *
- * Returns true if the signature is accepted,false if it is rejected
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
- */
 bool
-parcVerifier_VerifySignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
-                             PARCCryptoSuite suite, PARCSignature *signatureToVerify)
+parcVerifier_VerifyDigestSignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
+                                   PARCCryptoSuite suite, PARCSignature *signatureToVerify)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
     assertNotNull(locallyComputedHash, "cryptoHash to verify must not be null");
@@ -101,41 +88,33 @@ parcVerifier_VerifySignature(PARCVerifier *verifier, PARCKeyId *keyid, PARCCrypt
 
     // null keyid is allowed now that we support CRCs, etc.
 
-    return verifier->interface->VerifyDigest(verifier->interface->interfaceContext, keyid, locallyComputedHash, suite, signatureToVerify);
+    return verifier->interface->VerifyDigest(verifier->instance, keyid, locallyComputedHash, suite, signatureToVerify);
 }
 
-/**
- * Is the given crypto suite compatible with the key?
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
- */
 bool
 parcVerifier_AllowedCryptoSuite(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoSuite suite)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
-    return verifier->interface->AllowedCryptoSuite(verifier->interface->interfaceContext, keyid, suite);
+    return verifier->interface->AllowedCryptoSuite(verifier->instance, keyid, suite);
 }
 
 PARCCryptoHasher*
 parcVerifier_GetCryptoHasher(PARCVerifier *verifier, PARCKeyId *keyid, PARCCryptoHashType hashType)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
-    return verifier->interface->GetCryptoHasher(verifier->interface->interfaceContext, keyid, hashType);
+    return verifier->interface->GetCryptoHasher(verifier->instance, keyid, hashType);
 }
 
 void
 parcVerifier_AddKey(PARCVerifier *verifier, PARCKey *key)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
-    verifier->interface->AddKey(verifier->interface->interfaceContext, key);
+    verifier->interface->AddKey(verifier->instance, key);
 }
 
 void
 parcVerifier_RemoveKeyId(PARCVerifier *verifier, PARCKeyId *keyid)
 {
     assertNotNull(verifier, "Parameter must be non-null PARCVerifier");
-    verifier->interface->RemoveKeyId(verifier->interface->interfaceContext, keyid);
+    verifier->interface->RemoveKeyId(verifier->instance, keyid);
 }

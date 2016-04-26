@@ -27,18 +27,13 @@
 #include <config.h>
 #include <LongBow/unit-test.h>
 #include <sys/param.h>
+#include <errno.h>
 
-// Include the file(s) containing the functions to be tested.
-// This permits internal static functions to be visible to this Test Framework.
 #include "../parc_Signer.c"
+
 #include <parc/algol/parc_SafeMemory.h>
 #include <parc/security/parc_Security.h>
 #include <parc/testing/parc_ObjectTesting.h>
-
-#include <errno.h>
-
-//#include <parc/security/parc_PublicKeySignerPkcs12Store.h>
-//#include <parc/security/parc_SymmetricSignerFileStore.h>
 
 #include <parc/security/parc_Pkcs12KeyStore.h>
 #include <parc/security/parc_KeyStore.h>
@@ -50,7 +45,6 @@
 typedef struct {
     PARCCryptoHasher *hasher;
     PARCKeyStore *keyStore;
-    PARCSymmetricKeyStore *privateKeyStore;
 } _MockSigner;
 
 static PARCSignature *
@@ -86,27 +80,34 @@ _GetKeyStore(_MockSigner *signer)
     return signer->keyStore;
 }
 
+static bool
+_releaseSigner(_MockSigner **signer)
+{
+    parcCryptoHasher_Release(&((*signer)->hasher));
+    parcKeyStore_Release(&((*signer)->keyStore));
+    return true;
+}
+
+parcObject_ImplementAcquire(_mockSigner, _MockSigner);
+parcObject_ImplementRelease(_mockSigner, _MockSigner);
+
+parcObject_Override(_MockSigner, PARCObject,
+    .destructor = (PARCObjectDestructor *) _releaseSigner);
+
 static _MockSigner *
 _createSigner()
 {
-    _MockSigner *signer = parcMemory_Allocate(sizeof(_MockSigner));
+    _MockSigner *signer = parcObject_CreateInstance(_MockSigner);
 
     signer->hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
 
     PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
     assertNotNull(publicKeyStore, "Got null result from opening openssl pkcs12 file");
+
     signer->keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
+    parcPkcs12KeyStore_Release(&publicKeyStore);
 
     return signer;
-}
-
-static void
-_releaseSigner(_MockSigner **signer)
-{
-    parcCryptoHasher_Release(&((*signer)->hasher));
-    parcKeyStore_Release(&((*signer)->keyStore));
-
-    parcMemory_Deallocate(signer);
 }
 
 static PARCSigningInterface *_MockSignerInterface = &(PARCSigningInterface) {
@@ -115,7 +116,6 @@ static PARCSigningInterface *_MockSignerInterface = &(PARCSigningInterface) {
         .GetSigningAlgorithm = (PARCSigningAlgorithm (*)(void *)) _GetSigningAlgorithm,
         .GetCryptoHashType = (PARCCryptoHashType (*)(void *)) _GetCryptoHashType,
         .GetKeyStore = (PARCKeyStore *(*)(void *)) _GetKeyStore,
-        .Release = (void (*)(void **)) _releaseSigner
 };
 
 LONGBOW_TEST_RUNNER(parc_Signer)
@@ -169,6 +169,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_Create)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     assertNotNull(signer, "Expected non-null signer");
 
@@ -179,6 +180,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_AcquireRelease)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     assertNotNull(signer, "Expected non-null signer");
 
@@ -192,6 +194,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreateKeyId)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCKeyId *keyId = parcSigner_CreateKeyId(signer);
 
@@ -227,12 +230,14 @@ LONGBOW_TEST_CASE(Global, parcSigner_CreatePublicKey)
     parcKey_Release(&key);
     parcKey_Release(&expectedKey);
     parcSigner_Release(&signer);
+    _mockSigner_Release(&mock);
 }
 
 LONGBOW_TEST_CASE(Global, parcSigner_GetCryptoHasher)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCCryptoHasher *hasher = parcSigner_GetCryptoHasher(signer);
 
@@ -245,6 +250,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_SignDigest)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCBuffer *buffer = parcBuffer_Allocate(10);
     PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
@@ -268,6 +274,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetSigningAlgorithm)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCSigningAlgorithm alg = parcSigner_GetSigningAlgorithm(signer);
     assertTrue(PARCSigningAlgorithm_RSA == alg, "Expected PARCSigningAlgorithm_RSA algorithm, got %d", alg);
@@ -279,6 +286,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCryptoHashType)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCCryptoHashType type = parcSigner_GetCryptoHashType(signer);
     assertTrue(PARC_HASH_SHA256 == type, "Expected PARC_HASH_SHA256 algorithm, got %d", type);
@@ -290,6 +298,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetKeyStore)
 {
     _MockSigner *mock = _createSigner();
     PARCSigner *signer = parcSigner_Create(mock, _MockSignerInterface);
+    _mockSigner_Release(&mock);
 
     PARCKeyStore *keyStore = parcSigner_GetKeyStore(signer);
     assertNotNull(keyStore, "Expected non-NULL PARCKeyStore");

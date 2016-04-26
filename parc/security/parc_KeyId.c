@@ -75,7 +75,6 @@ parcKeyId_Create(PARCBuffer *preComputedKeyId)
 }
 
 parcObject_ImplementAcquire(parcKeyId, PARCKeyId);
-
 parcObject_ImplementRelease(parcKeyId, PARCKeyId);
 
 bool

@@ -251,5 +251,4 @@ PARCSigningInterface *PARCSymmetricKeySignerAsSigner = &(PARCSigningInterface) {
     .SignDigest               = (PARCSignature *(*)(void *, const PARCCryptoHash *)) _signDigest,
     .GetSigningAlgorithm      = (PARCSigningAlgorithm (*)(void *)) _getSigningAlgorithm,
     .GetKeyStore              = (PARCKeyStore *(*)(void *)) _getKeyStore,
-    .Release                  = (void (*)(void **)) parcSymmetricKeySigner_Release,
 };
