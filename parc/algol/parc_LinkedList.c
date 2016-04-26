@@ -703,3 +703,16 @@ parcLinkedList_AsPARCList(PARCLinkedList *list)
     PARCList *result = parcList_Create(list, PARCLinkedListAsPARCList);
     return result;
 }
+
+void
+parcLinkedList_ApplyImpl(PARCLinkedList *list, void (*function)(PARCObject *, const void *), const void *parameter)
+{
+    PARCIterator *iterator = parcLinkedList_CreateIterator(list);
+    
+    while (parcIterator_HasNext(iterator)) {
+        PARCObject *object = parcIterator_Next(iterator);
+        function(object, parameter);
+    }
+    
+    parcIterator_Release(&iterator);
+}

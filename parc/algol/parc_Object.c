@@ -345,7 +345,7 @@ static inline void
 _parcObjectHeader_AssertValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     trapIllegalValueIf(header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER, "PARCObject@%p is corrupt.", object);
-    trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
+//    trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
     trapIllegalValueIf(header->descriptor == NULL, "PARCObject@%p descriptor cannot be NULL.", object);
     if (header->descriptor->isLockable) {
         trapIllegalValueIf(header->locking == NULL, "PARCObject@%p is corrupt. Is Lockable but no locking structure", object);
@@ -370,7 +370,7 @@ parcObject_AssertValid(const PARCObject *object)
 PARCObject *
 parcObject_Acquire(const PARCObject *object)
 {
-//    parcObject_OptionalAssertValid(object);
+    parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 
@@ -694,7 +694,7 @@ parcObject_SetDescriptor(PARCObject *object, const PARCObjectDescriptor *descrip
     return result;
 }
 
-const PARCObjectDescriptor *
+PARCObjectDescriptor *
 parcObjectDescriptor_Create(const char *name,
                             size_t objectSize,
                             unsigned int objectAlignment,
@@ -708,13 +708,15 @@ parcObjectDescriptor_Create(const char *name,
                             PARCObjectHashCode *hashCode,
                             PARCObjectToJSON *toJSON,
                             PARCObjectDisplay *display,
-                            const PARCObjectDescriptor *super)
+                            const PARCObjectDescriptor *superType,
+                            PARCObjectTypeState *typeState)
 {
-    assertNotNull(super, "Supertype descriptor cannot be NULL.");
+    assertNotNull(superType, "Supertype descriptor cannot be NULL.");
 
     PARCObjectDescriptor *result = parcMemory_AllocateAndClear(sizeof(PARCObjectDescriptor));
     if (result != NULL) {
-        strncpy(result->name, name, sizeof(result->name));
+        strncpy(result->name, name, sizeof(result->name)-1);
+        result->name[sizeof(result->name)-1] = 0;
         result->destroy = NULL;
         result->destructor = destructor;
         result->release = release;
@@ -725,12 +727,35 @@ parcObjectDescriptor_Create(const char *name,
         result->hashCode = hashCode;
         result->toJSON = toJSON;
         result->display = display;
-        result->super = super;
+        result->super = superType;
         result->objectSize = objectSize;
         result->objectAlignment = objectAlignment;
+        result->typeState = typeState;
         result->isLockable = isLockable;
     }
     return result;
+}
+
+PARCObjectDescriptor *
+parcObjectDescriptor_CreateExtension(const PARCObjectDescriptor *superType, const char *name)
+{
+    PARCObjectDescriptor *result = parcMemory_AllocateAndClear(sizeof(PARCObjectDescriptor));
+    *result = *superType;
+    strncpy(result->name, name, sizeof(result->name)-1);
+    result->name[sizeof(result->name)-1] = 0;
+    return result;
+}
+
+PARCObjectTypeState *
+parcObjectDescriptor_GetTypeState(const PARCObjectDescriptor *descriptor)
+{
+    return descriptor->typeState;
+}
+
+const PARCObjectDescriptor *
+parcObjectDescriptor_GetSuperType(const PARCObjectDescriptor *descriptor)
+{
+    return descriptor->super;
 }
 
 bool

@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A512C09A2213917FFD674D4097A69D732DF93245",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A512C09A2213917FFD674D4097A69D732DF93245" : 0,
+    "D745905DC1E5F427E85035915283E46C8FCCB225" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "612F46FF-8865-479C-9EA4-3333D37B5B2D",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A512C09A2213917FFD674D4097A69D732DF93245" : "Libparc\/",
+    "D745905DC1E5F427E85035915283E46C8FCCB225" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "How To Create an Object Pool",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "examples\/How To Create an Object Pool\/How To Create an Object Pool.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "githubenterprise.parc.com:gscott\/Libparc",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A512C09A2213917FFD674D4097A69D732DF93245"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/githubenterprise.parc.com\/gscott\/CCNx_Distillery",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D745905DC1E5F427E85035915283E46C8FCCB225"
+    }
+  ]
+}

@@ -678,6 +678,20 @@ bool parcLinkedList_SetEquals(const PARCLinkedList *x, const PARCLinkedList *y);
 PARCLinkedList *parcLinkedList_InsertAtIndex(PARCLinkedList *list, size_t index, const PARCObject *element);
 
 /**
+ * Apply a function to every element in the given PARCLinkedList.
+ *
+ * The function is applied in order, any return value is ignored.
+ *
+ * @param [in] list A pointer to a valid PARCLinkedList instance.
+ * @param [in] function A pointer to a function that will be called with each element of the list.
+ * @param [in] parameter A pointer to arbitrary data that will supplied as an additional parameter to @p function
+ *
+ */
+#define parcLinkedList_Apply(_list_, _function_, _parameter_) \
+    parcLinkedList_ApplyImpl(_list_, (void (*)) _function_, (const void *) _parameter_)
+void parcLinkedList_ApplyImpl(PARCLinkedList *list, void (*function)(PARCObject *, const void *), const void *parameter);
+
+/**
  * <#One Line Description#>
  *
  * <#Paragraphs Of Explanation#>

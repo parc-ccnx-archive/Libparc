@@ -167,11 +167,17 @@ typedef void (PARCObjectDisplay)(const PARCObject *object, const int indentation
 typedef PARCJSON *(PARCObjectToJSON)(const PARCObject *);
 
 /**
+ * Every PARCObject descriptor has a pointer to a `PARCObjectState`
+ * containing arbitrary data related to all instances sharing the descriptor.
+ */
+typedef void PARCObjectTypeState;
+
+/**
  * Every PARC Object instance contains a pointer to an instance of this structure defining
  * the canonical meta-data for the object.
  */
 struct PARCObjectDescriptor {
-    char name[32];
+    char name[64];
     PARCObjectDestroy *destroy;
     PARCObjectDestructor *destructor;
     PARCObjectRelease *release;
@@ -186,8 +192,7 @@ struct PARCObjectDescriptor {
     size_t objectSize;
     unsigned objectAlignment;
     bool isLockable;
-    bool hasPerObjectState;
-    void *perTypeState;
+    PARCObjectTypeState *typeState;
 };
 
 
@@ -207,25 +212,33 @@ struct PARCObjectDescriptor {
  * @param [in] hashCode The callback function to call when `parcObject_HashCode()` is invoked.
  * @param [in] toJSON The callback function to call when `parcObject_ToJSON()` is invoked.
  * @param [in] display The callback function to call when `parcObject_Display()` is invoked.
- * @param [in] super A pointer to a PARCObjectDescriptor for the supertype of created PARCObjectDescriptor
+ * @param [in] super A pointer to a `PARCObjectDescriptor` for the supertype of created `PARCObjectDescriptor`
+ * @param [in] typeState A pointer to a `PARCObjectTypeState` for the per-type data for the created `PARCObjectDescriptor`
  *
  * @return NULL Memory could not be allocated to store the `PARCObjectDescriptor` instance.
  * @return non-NULL Successfully created the implementation
  */
-const PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
-                                                        size_t objectSize,
-                                                        unsigned int objectAlignment,
-                                                        bool isLockable,
-                                                        PARCObjectDestructor *destructor,
-                                                        PARCObjectRelease *release,
-                                                        PARCObjectCopy *copy,
-                                                        PARCObjectToString *toString,
-                                                        PARCObjectEquals *equals,
-                                                        PARCObjectCompare *compare,
-                                                        PARCObjectHashCode *hashCode,
-                                                        PARCObjectToJSON *toJSON,
-                                                        PARCObjectDisplay *display,
-                                                        const PARCObjectDescriptor *super);
+PARCObjectDescriptor *parcObjectDescriptor_Create(const char *name,
+                                                  size_t objectSize,
+                                                  unsigned int objectAlignment,
+                                                  bool isLockable,
+                                                  PARCObjectDestructor *destructor,
+                                                  PARCObjectRelease *release,
+                                                  PARCObjectCopy *copy,
+                                                  PARCObjectToString *toString,
+                                                  PARCObjectEquals *equals,
+                                                  PARCObjectCompare *compare,
+                                                  PARCObjectHashCode *hashCode,
+                                                  PARCObjectToJSON *toJSON,
+                                                  PARCObjectDisplay *display,
+                                                  const PARCObjectDescriptor *superType,
+                                                  PARCObjectTypeState *typeState);
+
+PARCObjectDescriptor *parcObjectDescriptor_CreateExtension(const PARCObjectDescriptor *superType, const char *name);
+
+PARCObjectTypeState *parcObjectDescriptor_GetTypeState(const PARCObjectDescriptor *descriptor);
+
+const PARCObjectDescriptor *parcObjectDescriptor_GetSuperType(const PARCObjectDescriptor *descriptor);
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
@@ -597,6 +610,7 @@ const PARCObjectDescriptor *parcObject_SetDescriptor(PARCObject *object, const P
         .toJSON          = NULL,   \
         .display         = NULL,   \
         .isLockable      = true, \
+        .typeState = NULL, \
         __VA_ARGS__  \
     }; \
     LongBowCompiler_WarnInitializerOverrides \

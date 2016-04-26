@@ -25,10 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#__FULLUSERNAME___#>, Palo Alto Research Center (PARC)
+ * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-//#include <config.h>
+#include <stdio.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -38,41 +38,21 @@
 
 #include "parc_BufferPool.h"
 
-struct PARCBufferPool {
+struct PARCSimpleBufferPool {
     size_t bufferSize;
-    size_t highWater;
+    size_t limit;
     PARCLinkedList *freeList;
+    PARCObjectDescriptor *descriptor;
 };
 
-static PARCBufferPool *_parcBufferPool;
-
-void
-parcLinkedList_Apply(PARCLinkedList *list, void (*func)(PARCObject *, const void *), const void *parameter)
-{
-    PARCIterator *iterator = parcLinkedList_CreateIterator(list);
-
-    while (parcIterator_HasNext(iterator)) {
-        PARCObject *object = parcIterator_Next(iterator);
-        func(object, parameter);
-    }
-    
-    parcIterator_Release(&iterator);
-}
-
-static void
-_parcBufferPool_ResetDescriptor(PARCObject *object, const void *parameter)
-{
-    parcObject_SetDescriptor(object, &PARCBuffer_Descriptor);
-}
-
 static bool
-_parcBufferPool_Destructor(PARCBufferPool **instancePtr)
+_parcSimpleBufferPool_Destructor(PARCSimpleBufferPool **instancePtr)
 {
-    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCBufferPool pointer.");
+    assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCSimpleBufferPool pointer.");
 
-    PARCBufferPool *pool = *instancePtr;
+    PARCSimpleBufferPool *pool = *instancePtr;
     
-    parcLinkedList_Apply(pool->freeList, _parcBufferPool_ResetDescriptor, NULL);
+    parcLinkedList_Apply(pool->freeList, (void (*)) parcObject_SetDescriptor, (const void *) &PARCBuffer_Descriptor);
     
     parcLinkedList_Release(&pool->freeList);
     
@@ -85,146 +65,55 @@ _parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
     PARCBuffer *buffer = *bufferPtr;
     *bufferPtr = 0;
     
-    if (_parcBufferPool->highWater > parcLinkedList_Size(_parcBufferPool->freeList)) {
-        parcLinkedList_Append(_parcBufferPool->freeList, buffer);
+    PARCSimpleBufferPool *bufferPool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
+    
+    if (bufferPool->limit > parcLinkedList_Size(bufferPool->freeList)) {
+        parcLinkedList_Append(bufferPool->freeList, buffer);
     }
     
     return false;
 }
 
-parcObject_ImplementAcquire(parcBufferPool, PARCBufferPool);
+parcObject_ImplementAcquire(parcSimpleBufferPool, PARCSimpleBufferPool);
 
-parcObject_ImplementRelease(parcBufferPool, PARCBufferPool);
+parcObject_ImplementRelease(parcSimpleBufferPool, PARCSimpleBufferPool);
 
 parcObject_Override(
-	PARCBufferPool, PARCObject,
-	.destructor = (PARCObjectDestructor *) _parcBufferPool_Destructor,
-	.copy = (PARCObjectCopy *) parcBufferPool_Copy,
-	.toString = (PARCObjectToString *)  parcBufferPool_ToString,
-	.equals = (PARCObjectEquals *)  parcBufferPool_Equals,
-	.compare = (PARCObjectCompare *)  parcBufferPool_Compare,
-	.hashCode = (PARCObjectHashCode *)  parcBufferPool_HashCode,
-	.toJSON = (PARCObjectToJSON *)  parcBufferPool_ToJSON);
+	PARCSimpleBufferPool, PARCObject,
+	.destructor = (PARCObjectDestructor *) _parcSimpleBufferPool_Destructor);
 
-
-void
-parcBufferPool_AssertValid(const PARCBufferPool *instance)
+PARCSimpleBufferPool *
+parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
 {
-    assertTrue(parcBufferPool_IsValid(instance),
-               "PARCBufferPool is not valid.");
-}
-
-
-PARCBufferPool *
-parcBufferPool_Create(size_t bufferSize)
-{
-    if (_parcBufferPool == NULL) {
-        _parcBufferPool = parcObject_CreateInstance(PARCBufferPool);
-        
-        if (_parcBufferPool != NULL) {
-            _parcBufferPool->highWater = 3;
-            _parcBufferPool->bufferSize = bufferSize;
-            _parcBufferPool->freeList = parcLinkedList_Create();
-        }
-    }
-    return _parcBufferPool;
-}
-
-int
-parcBufferPool_Compare(const PARCBufferPool *instance, const PARCBufferPool *other)
-{
-    int result = 0;
-    
-    return result;
-}
-
-PARCBufferPool *
-parcBufferPool_Copy(const PARCBufferPool *original)
-{
-    PARCBufferPool *result = NULL;
-    
-    return result;
-}
-
-void
-parcBufferPool_Display(const PARCBufferPool *instance, int indentation)
-{
-    parcDisplayIndented_PrintLine(indentation, "PARCBufferPool@%p {", instance);
-    /* Call Display() functions for the fields here. */
-    parcDisplayIndented_PrintLine(indentation, "}");
-}
-
-bool
-parcBufferPool_Equals(const PARCBufferPool *x, const PARCBufferPool *y)
-{
-    bool result = false;
-    
-    if (x == y) {
-        result = true;
-    } else if (x == NULL || y == NULL) {
-        result = false;
-    } else {
-        /* perform instance specific equality tests here. */
-    }
-    
-    return result;
-}
-
-PARCHashCode
-parcBufferPool_HashCode(const PARCBufferPool *instance)
-{
-    PARCHashCode result = 0;
-    
-    return result;
-}
-
-bool
-parcBufferPool_IsValid(const PARCBufferPool *instance)
-{
-    bool result = false;
-    
-    if (instance != NULL) {
-        result = true;
-    }
-    
-    return result;
-}
-
-PARCJSON *
-parcBufferPool_ToJSON(const PARCBufferPool *instance)
-{
-    PARCJSON *result = parcJSON_Create();
+    PARCSimpleBufferPool *result = parcObject_CreateInstance(PARCSimpleBufferPool);
     
     if (result != NULL) {
+        result->limit = limit;
+        result->bufferSize = bufferSize;
+        result->freeList = parcLinkedList_Create();
         
+        char *string;
+        asprintf(&string, "PARCPooledBuffer=%zu", bufferSize);
+        result->descriptor = parcObjectDescriptor_CreateExtension(&PARCBuffer_Descriptor, string);
+        free(string);
+        result->descriptor->destructor = (PARCObjectDestructor *) _parcBuffer_PoolDestructor;
+        result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
     
     return result;
 }
 
-char *
-parcBufferPool_ToString(const PARCBufferPool *instance)
-{
-    char *result = parcMemory_Format("PARCBufferPool@%p\n", instance);
-
-    return result;
-}
-
-parcObject_Extends(PARCPooledBuffer, PARCBuffer,
-                   .destructor = (PARCObjectDestructor *) _parcBuffer_PoolDestructor);
-
 PARCBuffer *
-parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
+parcSimpleBufferPool_GetInstance(PARCSimpleBufferPool *bufferPool)
 {
     PARCBuffer *result;
     
-    if (parcLinkedList_Size(_parcBufferPool->freeList) > 0) {
-        result = parcLinkedList_RemoveFirst(_parcBufferPool->freeList);
+    if (parcLinkedList_Size(bufferPool->freeList) > 0) {
+        result = parcLinkedList_RemoveFirst(bufferPool->freeList);
     } else {
         result = parcBuffer_Allocate(bufferPool->bufferSize);
-        parcObject_SetDescriptor(result, &parcObject_DescriptorName(PARCPooledBuffer));
+        parcObject_SetDescriptor(result, bufferPool->descriptor);
     }
     
     return result;
-    
 }

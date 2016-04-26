@@ -1,0 +1,275 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5CFB27251CCB281A007CD418 /* parc_BufferPool.c in Sources */ = {isa = PBXBuildFile; fileRef = 5CFB27221CCB281A007CD418 /* parc_BufferPool.c */; };
+		5CFB27271CCB297B007CD418 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5CFB27261CCB297B007CD418 /* main.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5CFB27161CCAC85A007CD418 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		5CFB27181CCAC85A007CD418 /* How To Create an Object Pool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "How To Create an Object Pool"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5CFB27221CCB281A007CD418 /* parc_BufferPool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_BufferPool.c; sourceTree = SOURCE_ROOT; };
+		5CFB27231CCB281A007CD418 /* parc_BufferPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_BufferPool.h; sourceTree = SOURCE_ROOT; };
+		5CFB27241CCB281A007CD418 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = SOURCE_ROOT; };
+		5CFB27261CCB297B007CD418 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5CFB27151CCAC85A007CD418 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5CFB270F1CCAC85A007CD418 = {
+			isa = PBXGroup;
+			children = (
+				5CFB271A1CCAC85A007CD418 /* How To Create an Object Pool */,
+				5CFB27191CCAC85A007CD418 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5CFB27191CCAC85A007CD418 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5CFB27181CCAC85A007CD418 /* How To Create an Object Pool */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5CFB271A1CCAC85A007CD418 /* How To Create an Object Pool */ = {
+			isa = PBXGroup;
+			children = (
+				5CFB27261CCB297B007CD418 /* main.c */,
+				5CFB27221CCB281A007CD418 /* parc_BufferPool.c */,
+				5CFB27231CCB281A007CD418 /* parc_BufferPool.h */,
+				5CFB27241CCB281A007CD418 /* test */,
+			);
+			path = "How To Create an Object Pool";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5CFB27171CCAC85A007CD418 /* How To Create an Object Pool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5CFB271F1CCAC85B007CD418 /* Build configuration list for PBXNativeTarget "How To Create an Object Pool" */;
+			buildPhases = (
+				5CFB27141CCAC85A007CD418 /* Sources */,
+				5CFB27151CCAC85A007CD418 /* Frameworks */,
+				5CFB27161CCAC85A007CD418 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "How To Create an Object Pool";
+			productName = "How To Create an Object Pool";
+			productReference = 5CFB27181CCAC85A007CD418 /* How To Create an Object Pool */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5CFB27101CCAC85A007CD418 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0730;
+				ORGANIZATIONNAME = CSL;
+				TargetAttributes = {
+					5CFB27171CCAC85A007CD418 = {
+						CreatedOnToolsVersion = 7.3;
+					};
+				};
+			};
+			buildConfigurationList = 5CFB27131CCAC85A007CD418 /* Build configuration list for PBXProject "How To Create an Object Pool" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 5CFB270F1CCAC85A007CD418;
+			productRefGroup = 5CFB27191CCAC85A007CD418 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5CFB27171CCAC85A007CD418 /* How To Create an Object Pool */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5CFB27141CCAC85A007CD418 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5CFB27271CCB297B007CD418 /* main.c in Sources */,
+				5CFB27251CCB281A007CD418 /* parc_BufferPool.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5CFB271D1CCAC85B007CD418 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-lparc",
+					"-llongbow",
+					"-llongbow-textplain",
+				);
+				REZ_SEARCH_PATHS = "";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		5CFB271E1CCAC85B007CD418 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/include";
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = (
+					"-lparc",
+					"-llongbow",
+					"-llongbow-textplain",
+				);
+				REZ_SEARCH_PATHS = "";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		5CFB27201CCAC85B007CD418 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		5CFB27211CCAC85B007CD418 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = "$(PROJECT_DIR)/../../../../usr/lib";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5CFB27131CCAC85A007CD418 /* Build configuration list for PBXProject "How To Create an Object Pool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CFB271D1CCAC85B007CD418 /* Debug */,
+				5CFB271E1CCAC85B007CD418 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5CFB271F1CCAC85B007CD418 /* Build configuration list for PBXNativeTarget "How To Create an Object Pool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CFB27201CCAC85B007CD418 /* Debug */,
+				5CFB27211CCAC85B007CD418 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5CFB27101CCAC85A007CD418 /* Project object */;
+}

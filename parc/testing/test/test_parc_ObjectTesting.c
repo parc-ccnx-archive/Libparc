@@ -388,7 +388,7 @@ _copyDescriptor(const PARCObjectDescriptor *orig)
                                        orig->toString, orig->equals,
                                        orig->compare, orig->hashCode,
                                        orig->toJSON, orig->display,
-                                       orig->super);
+                                       orig->super, orig->typeState);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Conformance)
