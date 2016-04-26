@@ -8,9 +8,20 @@
 
 #include <stdio.h>
 
+#include "parc_BufferPool.h"
+
 int
 main(int argc, char *argv[argc])
 {
+    PARCBufferPool *pool = parcBufferPool_Create(10);
+    
+    PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
+    parcBuffer_Release(&buffer);
+
+    buffer = parcBufferPool_GetInstance(pool);
+    parcBuffer_Release(&buffer);
+    
+    parcBufferPool_Release(&pool);
     
     return 0;
 }

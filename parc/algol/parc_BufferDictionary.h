@@ -36,13 +36,13 @@
  * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
  * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
-
 #ifndef libparc_parc_BufferDictionary_h
 #define libparc_parc_BufferDictionary_h
 
+typedef struct parc_buffer_dictionary PARCBufferDictionary;
+
 #include <parc/algol/parc_Buffer.h>
 
-typedef struct parc_buffer_dictionary PARCBufferDictionary;
 
 /**
  * Creates an empty dictionary.  You must use {@link parcBufferDictionary_Release} to destroy it.

@@ -370,7 +370,7 @@ parcObject_AssertValid(const PARCObject *object)
 PARCObject *
 parcObject_Acquire(const PARCObject *object)
 {
-    parcObject_OptionalAssertValid(object);
+//    parcObject_OptionalAssertValid(object);
 
     _PARCObjectHeader *header = _parcObject_Header(object);
 

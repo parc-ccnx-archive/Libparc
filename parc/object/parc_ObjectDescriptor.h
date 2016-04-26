@@ -54,8 +54,36 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <parc/algol/parc_JSON.h>
+
+typedef struct PARCObjectDescriptor PARCObjectDescriptor;
+
+/**
+ * @define parcObject_DescriptorName(_type)
+ *
+ * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
+ * which is a parameter to `parcObject_Create`.
+ */
+#define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
+
+/**
+ * @define parcObjectDescriptor_Declaration(_type_)
+ *
+ * Create a declaration of a `PARCObject` implementation.
+ */
+#define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
+
+/**
+ * @define parcObject_Declare(_type_)
+ *
+ * Create a declaration of a `PARCObject` implementation.
+ */
+#define parcObject_Declare(_type_) \
+    struct _type_; \
+    typedef struct _type_ _type_; \
+    extern parcObjectDescriptor_Declaration(_type_)
+
 #include <parc/algol/parc_HashCode.h>
+#include <parc/algol/parc_JSON.h>
 
 /**
  * A Function that performs the final cleanup and resource deallocation when
@@ -123,7 +151,7 @@ typedef PARCJSON *(PARCObjectToJSON)(const PARCObject *);
  * Every PARC Object instance contains a pointer to an instance of this structure defining
  * the canonical meta-data for the object.
  */
-typedef struct PARCObjectDescriptor {
+struct PARCObjectDescriptor {
     char name[32];
     PARCObjectDestroy *destroy;
     PARCObjectDestructor *destructor;
@@ -139,33 +167,7 @@ typedef struct PARCObjectDescriptor {
     size_t objectSize;
     unsigned objectAlignment;
     bool isLockable;
-} PARCObjectDescriptor;
-
-
-/**
- * @define parcObject_DescriptorName(_type)
- *
- * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
- * which is a parameter to `parcObject_Create`.
- */
-#define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
-
-/**
- * @define parcObjectDescriptor_Declaration(_type_)
- *
- * Create a declaration of a `PARCObject` implementation.
- */
-#define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
-
-/**
- * @define parcObject_Declare(_type_)
- *
- * Create a declaration of a `PARCObject` implementation.
- */
-#define parcObject_Declare(_type_) \
-struct _type_; \
-typedef struct _type_ _type_; \
-extern parcObjectDescriptor_Declaration(_type_)
+};
 
 
 /**

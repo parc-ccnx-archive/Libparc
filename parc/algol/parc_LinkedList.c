@@ -135,8 +135,6 @@ _parcLinkedListNode_IsValid(const _PARCLinkedListNode *node)
 static inline _PARCLinkedListNode *
 _parcLinkedListNode_Create(const PARCObject *object, _PARCLinkedListNode *previous, _PARCLinkedListNode *next)
 {
-    parcObject_OptionalAssertValid(object);
-
     _PARCLinkedListNode *result = parcMemory_Allocate(sizeof(_PARCLinkedListNode));
     if (result != NULL) {
         result->object = parcObject_Acquire(object);

@@ -138,11 +138,12 @@
 #ifndef libparc_parc_Buffer_h
 #define libparc_parc_Buffer_h
 
-struct parc_buffer;
 typedef struct parc_buffer PARCBuffer;
 
+#include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_ByteArray.h>
-#include <parc/algol/parc_HashCode.h>
+
+extern parcObjectDescriptor_Declaration(PARCBuffer);
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
 #  define parcBuffer_OptionalAssertValid(_instance_)
@@ -189,7 +190,7 @@ void parcBuffer_AssertValid(const PARCBuffer *instance);
  * {
  *     PARCBuffer *buffer = parcBuffer_Allocate(64);
  *
- *     if (parcBuffer_IsValid(array)) {
+ *     if (parcBuffer_IsValid(buffer)) {
  *         printf("Buffer is valid.\n");
  *     }
  * }

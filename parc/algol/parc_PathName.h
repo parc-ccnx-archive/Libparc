@@ -35,10 +35,10 @@
 #ifndef libparc_parc_PathName_h
 #define libparc_parc_PathName_h
 
-#include <parc/algol/parc_BufferComposer.h>
-
 struct parc_pathname;
 typedef struct parc_pathname PARCPathName;
+
+#include <parc/algol/parc_BufferComposer.h>
 
 /**
  * Create an empty, relative, `PARCPathName`.

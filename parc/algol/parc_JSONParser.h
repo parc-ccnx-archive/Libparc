@@ -35,6 +35,9 @@
 #ifndef PARC_Library_parc_JSONParser_h
 #define PARC_Library_parc_JSONParser_h
 
+struct parc_buffer_parser;
+typedef struct parc_buffer_parser PARCJSONParser;
+
 #include <parc/algol/parc_Buffer.h>
 
 /**
@@ -49,8 +52,6 @@
 #  define parcJSONParser_OptionalAssertValid(_instance_) parcJSONParser_AssertValid(_instance_)
 #endif
 
-struct parc_buffer_parser;
-typedef struct parc_buffer_parser PARCJSONParser;
 
 /**
  * Create a new `PARCJSONParser`.

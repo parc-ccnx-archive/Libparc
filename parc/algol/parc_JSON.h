@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
  * Compose members as JSON Pairs consisting of a name and value.  See functions named `parcJSONPair_Create*`
  *
  * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_JSON_h
 #define libparc_parc_JSON_h
@@ -51,6 +51,7 @@ struct parc_json;
 typedef struct parc_json PARCJSON;
 
 #include <parc/algol/parc_Buffer.h>
+#include <parc/algol/parc_HashCode.h>
 #include <parc/algol/parc_BufferComposer.h>
 #include <parc/algol/parc_PathName.h>
 

@@ -86,14 +86,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <parc/algol/parc_HashCode.h>
-
-#ifdef PARCLibrary_DISABLE_VALIDATION
-#  define parcByteArray_OptionalAssertValid(_instance_)
-#else
-#  define parcByteArray_OptionalAssertValid(_instance_) parcByteArray_AssertValid(_instance_)
-#endif
-
 struct parc_byte_array;
 /**
  *
@@ -101,6 +93,14 @@ struct parc_byte_array;
  * @see {@link parcByteArray_Wrap}
  */
 typedef struct parc_byte_array PARCByteArray;
+
+#include <parc/algol/parc_HashCode.h>
+
+#ifdef PARCLibrary_DISABLE_VALIDATION
+#  define parcByteArray_OptionalAssertValid(_instance_)
+#else
+#  define parcByteArray_OptionalAssertValid(_instance_) parcByteArray_AssertValid(_instance_)
+#endif
 
 /**
  * Assert that an instance of `PARCByteArray` is valid.

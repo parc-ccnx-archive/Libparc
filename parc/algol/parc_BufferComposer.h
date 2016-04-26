@@ -40,16 +40,18 @@
 #ifndef libparc_parc_BufferComposer_h
 #define libparc_parc_BufferComposer_h
 
+struct parc_buffer_composer;
+typedef struct parc_buffer_composer PARCBufferComposer;
+
 #include <parc/algol/parc_Buffer.h>
+
+extern parcObjectDescriptor_Declaration(PARCBufferComposer);
 
 #ifdef PARCLibrary_DISABLE_VALIDATION
 #  define parcBufferComposer_OptionalAssertValid(_instance_)
 #else
 #  define parcBufferComposer_OptionalAssertValid(_instance_) parcBufferComposer_AssertValid(_instance_)
 #endif
-
-struct parc_buffer_composer;
-typedef struct parc_buffer_composer PARCBufferComposer;
 
 /**
  * Create an empty (zero-length) `PARCBufferComposer`.

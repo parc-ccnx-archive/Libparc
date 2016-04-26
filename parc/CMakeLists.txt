@@ -152,7 +152,7 @@ set(LIBPARC_ALGOL_SOURCE_FILES
 	)
 
 set(LIBPARC_OBJECT_HEADER_FILES
-	object/parc_ObjectDescriptor.h 
+
 	)
 
 set(LIBPARC_OBJECT_SOURCE_FILES

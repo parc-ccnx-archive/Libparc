@@ -47,14 +47,14 @@
 
 #include <stdbool.h>
 
-#include <parc/algol/parc_HashCode.h>
-
 struct parc_list;
 /**
  * @typedef PARCList
  * @brief  An ordered collection (also known as a sequence).
  */
 typedef struct parc_list PARCList;
+
+#include <parc/algol/parc_HashCode.h>
 
 #include <parc/algol/parc_Collection.h>
 #include <parc/algol/parc_Object.h>

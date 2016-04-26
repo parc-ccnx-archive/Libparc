@@ -34,26 +34,60 @@
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 
+#include <parc/algol/parc_LinkedList.h>
+
 #include "parc_BufferPool.h"
 
 struct PARCBufferPool {
     size_t bufferSize;
+    size_t highWater;
+    PARCLinkedList *freeList;
 };
+
+static PARCBufferPool *_parcBufferPool;
+
+void
+parcLinkedList_Apply(PARCLinkedList *list, void (*func)(PARCObject *, const void *), const void *parameter)
+{
+    PARCIterator *iterator = parcLinkedList_CreateIterator(list);
+
+    while (parcIterator_HasNext(iterator)) {
+        PARCObject *object = parcIterator_Next(iterator);
+        func(object, parameter);
+    }
+    
+    parcIterator_Release(&iterator);
+}
+
+static void
+_parcBufferPool_ResetDescriptor(PARCObject *object, const void *parameter)
+{
+    parcObject_SetDescriptor(object, &PARCBuffer_Descriptor);
+}
 
 static bool
 _parcBufferPool_Destructor(PARCBufferPool **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCBufferPool pointer.");
-    PARCBufferPool *instance = *instancePtr;
+
+    PARCBufferPool *pool = *instancePtr;
     
+    parcLinkedList_Apply(pool->freeList, _parcBufferPool_ResetDescriptor, NULL);
     
-    /* cleanup the instance fields here */
+    parcLinkedList_Release(&pool->freeList);
+    
     return true;
 }
 
 static bool
 _parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
 {
+    PARCBuffer *buffer = *bufferPtr;
+    *bufferPtr = 0;
+    
+    if (_parcBufferPool->highWater > parcLinkedList_Size(_parcBufferPool->freeList)) {
+        parcLinkedList_Append(_parcBufferPool->freeList, buffer);
+    }
     
     return false;
 }
@@ -84,13 +118,16 @@ parcBufferPool_AssertValid(const PARCBufferPool *instance)
 PARCBufferPool *
 parcBufferPool_Create(size_t bufferSize)
 {
-    PARCBufferPool *result = parcObject_CreateInstance(PARCBufferPool);
-    
-    if (result != NULL) {
-        result->bufferSize = bufferSize;
+    if (_parcBufferPool == NULL) {
+        _parcBufferPool = parcObject_CreateInstance(PARCBufferPool);
+        
+        if (_parcBufferPool != NULL) {
+            _parcBufferPool->highWater = 3;
+            _parcBufferPool->bufferSize = bufferSize;
+            _parcBufferPool->freeList = parcLinkedList_Create();
+        }
     }
-
-    return result;
+    return _parcBufferPool;
 }
 
 int
@@ -179,9 +216,14 @@ parcObject_Extends(PARCPooledBuffer, PARCBuffer,
 PARCBuffer *
 parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
 {
-    PARCBuffer *result = parcBuffer_Allocate(bufferPool->bufferSize);
+    PARCBuffer *result;
     
-    parcObject_SetDescriptor(result, &parcObject_DescriptorName(PARCReverseString));
+    if (parcLinkedList_Size(_parcBufferPool->freeList) > 0) {
+        result = parcLinkedList_RemoveFirst(_parcBufferPool->freeList);
+    } else {
+        result = parcBuffer_Allocate(bufferPool->bufferSize);
+        parcObject_SetDescriptor(result, &parcObject_DescriptorName(PARCPooledBuffer));
+    }
     
     return result;
     

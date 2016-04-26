@@ -364,4 +364,7 @@ PARCJSON *parcBufferPool_ToJSON(const PARCBufferPool *instance);
  * @see parcBufferPool_Display
  */
 char *parcBufferPool_ToString(const PARCBufferPool *instance);
+
+
+PARCBuffer *parcBufferPool_GetInstance(PARCBufferPool *bufferPool);
 #endif
