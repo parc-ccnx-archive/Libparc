@@ -49,51 +49,43 @@
 
 #include <openssl/x509v3.h>
 
-static PARCCryptoHasher *_parcInMemoryVerifier_GetCryptoHasher(void *interfaceContext, PARCKeyId *keyid, PARCCryptoHashType hashType);
-static bool _parcInMemoryVerifier_VerifyDigest(void *interfaceContext, PARCKeyId *keyid, PARCCryptoHash *locallyComputedHash,
-                                               PARCCryptoSuite suite, PARCSignature *objectSignature);
-static void _parcInMemoryVerifier_AddKey(void *interfaceContext, PARCKey *key);
-static void _parcInMemoryVerifier_RemoveKeyId(void *interfaceContext, PARCKeyId *keyid);
-static bool _parcInMemoryVerifier_AllowedCryptoSuite(void *interfaceContext, PARCKeyId *keyid, PARCCryptoSuite suite);
-static void _parcInMemoryVerifier_Destroy(struct parc_verifier_interface **interfaceContextPtr);
-
-static PARCVerifierInterface inmemory_verifier_interface = {
-    .interfaceContext   = NULL,
-    .GetCryptoHasher    = _parcInMemoryVerifier_GetCryptoHasher,
-    .VerifyDigest       = _parcInMemoryVerifier_VerifyDigest,
-    .AddKey             = _parcInMemoryVerifier_AddKey,
-    .RemoveKeyId        = _parcInMemoryVerifier_RemoveKeyId,
-    .AllowedCryptoSuite = _parcInMemoryVerifier_AllowedCryptoSuite,
-    .Destroy            = _parcInMemoryVerifier_Destroy
-};
-
-typedef struct parc_inmemory_verifier {
+struct parc_inmemory_verifier {
     PARCCryptoHasher *hasher_sha256;
     PARCCryptoHasher *hasher_sha512;
     PARCCryptoCache *key_cache;
-} PARCInMemoryVerifier;
+};
 
-PARCVerifierInterface *
-parcInMemoryVerifier_Create()
+static bool
+_parcInMemoryVerifier_Destructor(PARCInMemoryVerifier **verifierPtr)
 {
-    PARCInMemoryVerifier *verifier = parcMemory_AllocateAndClear(sizeof(PARCInMemoryVerifier));
-    assertNotNull(verifier, "parcMemory_AllocateAndClear(%zu) returned NULL, cannot allocate verifier", sizeof(PARCInMemoryVerifier));
+    PARCInMemoryVerifier *verifier = *verifierPtr;
 
-    // right now only support sha-256.  need to figure out how to make this flexible
-    verifier->hasher_sha256 = parcCryptoHasher_Create(PARC_HASH_SHA256);
-    verifier->hasher_sha512 = parcCryptoHasher_Create(PARC_HASH_SHA512);
-    verifier->key_cache = parcCryptoCache_Create();
+    parcCryptoHasher_Release(&(verifier->hasher_sha256));
+    parcCryptoHasher_Release(&(verifier->hasher_sha512));
+    parcCryptoCache_Destroy(&(verifier->key_cache));
 
-    PARCVerifierInterface *interface = parcMemory_AllocateAndClear(sizeof(PARCVerifierInterface));
-    assertNotNull(interface, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(PARCVerifierInterface));
-    *interface = inmemory_verifier_interface;
-    interface->interfaceContext = verifier;
-
-    return interface;
+    return true;
 }
 
-static bool _parcInMemoryVerifier_RSAKey_Verify(PARCInMemoryVerifier *verifier, PARCCryptoHash *localHash,
-                                                PARCSignature *signatureToVerify, PARCBuffer *derEncodedKey);
+parcObject_ImplementAcquire(parcInMemoryVerifier, PARCInMemoryVerifier);
+parcObject_ImplementRelease(parcInMemoryVerifier, PARCInMemoryVerifier);
+
+parcObject_Override(PARCInMemoryVerifier, PARCObject,
+    .destructor = (PARCObjectDestructor *) _parcInMemoryVerifier_Destructor);
+
+PARCInMemoryVerifier *
+parcInMemoryVerifier_Create()
+{
+    PARCInMemoryVerifier *verifier = parcObject_CreateInstance(PARCInMemoryVerifier);
+    if (verifier != NULL) {
+        // right now only support sha-256.  need to figure out how to make this flexible
+        verifier->hasher_sha256 = parcCryptoHasher_Create(PARC_HASH_SHA256);
+        verifier->hasher_sha512 = parcCryptoHasher_Create(PARC_HASH_SHA512);
+        verifier->key_cache = parcCryptoCache_Create();
+    }
+
+    return verifier;
+}
 
 
 // ======================================
@@ -170,6 +162,9 @@ _parcInMemoryVerifier_AllowedCryptoSuite(void *interfaceContext, PARCKeyId *keyi
 
     return false;
 }
+
+static bool _parcInMemoryVerifier_RSAKey_Verify(PARCInMemoryVerifier *verifier, PARCCryptoHash *localHash,
+                                                PARCSignature *signatureToVerify, PARCBuffer *derEncodedKey);
 
 /**
  * The signature verifies if:
@@ -251,25 +246,6 @@ _parcInMemoryVerifier_RemoveKeyId(void *interfaceContext, PARCKeyId *keyid)
     parcCryptoCache_RemoveKey(verifier->key_cache, keyid);
 }
 
-static void
-_parcInMemoryVerifier_Destroy(struct parc_verifier_interface **interfaceContextPtr)
-{
-    assertNotNull(interfaceContextPtr, "Got null double pointer");
-    assertNotNull(*interfaceContextPtr, "Got null pointer dereference");
-
-    PARCVerifierInterface *interface = (PARCVerifierInterface *) *interfaceContextPtr;
-    PARCInMemoryVerifier *verifier = (PARCInMemoryVerifier *) interface->interfaceContext;
-
-    parcCryptoHasher_Release(&(verifier->hasher_sha256));
-    parcCryptoHasher_Release(&(verifier->hasher_sha512));
-    parcCryptoCache_Destroy(&(verifier->key_cache));
-
-    parcMemory_Deallocate((void **) &verifier);
-    parcMemory_Deallocate((void **) &interface);
-    *interfaceContextPtr = NULL;
-}
-
-
 // ==============================================================
 // Openssl specific parts
 
@@ -339,6 +315,14 @@ _parcInMemoryVerifier_RSAKey_Verify(PARCInMemoryVerifier *verifier, PARCCryptoHa
     }
     return false;
 }
+
+PARCVerifierInterface *PARCInMemoryVerifierAsVerifier = &(PARCVerifierInterface) {
+    .GetCryptoHasher    = _parcInMemoryVerifier_GetCryptoHasher,
+    .VerifyDigest       = _parcInMemoryVerifier_VerifyDigest,
+    .AddKey             = _parcInMemoryVerifier_AddKey,
+    .RemoveKeyId        = _parcInMemoryVerifier_RemoveKeyId,
+    .AllowedCryptoSuite = _parcInMemoryVerifier_AllowedCryptoSuite,
+};
 
 #ifdef __APPLE__
 #pragma clang diagnostic pop

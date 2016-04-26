@@ -218,5 +218,4 @@ PARCSigningInterface *PARCPublicKeySignerAsSigner = &(PARCSigningInterface) {
     .GetSigningAlgorithm = (PARCSigningAlgorithm (*)(void *)) _GetSigningAlgorithm,
     .GetCryptoHashType = (PARCCryptoHashType (*)(void *)) _GetCryptoHashType,
     .GetKeyStore = (PARCKeyStore *(*)(void *)) _GetKeyStore,
-    .Release = (void (*)(void **)) parcPublicKeySigner_Release
 };
