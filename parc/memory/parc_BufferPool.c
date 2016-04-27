@@ -43,6 +43,8 @@ struct PARCBufferPool {
     size_t bufferSize;
     size_t limit;
     size_t highWater;
+    size_t totalInstances;
+    size_t cacheHits;
     PARCLinkedList *freeList;
     PARCObjectDescriptor *descriptor;
 };
@@ -63,10 +65,9 @@ _parcBufferPool_Destructor(PARCBufferPool **instancePtr)
 }
 
 static bool
-_parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
+_parcBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
 {
     PARCBuffer *buffer = *bufferPtr;
-    *bufferPtr = 0;
     
     PARCBufferPool *pool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
     
@@ -78,10 +79,14 @@ _parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
         if (pool->highWater < freeListSize) {
             pool->highWater = freeListSize;
         }
-        return false;
     } else {
-        return true;
+        parcBuffer_Acquire(buffer);
+        parcObject_SetDescriptor(buffer, &PARCBuffer_Descriptor);
+        parcBuffer_Release(&buffer);
     }
+    
+    *bufferPtr = 0;
+    return false;
 }
 
 parcObject_ImplementAcquire(parcBufferPool, PARCBufferPool);
@@ -90,9 +95,7 @@ parcObject_ImplementRelease(parcBufferPool, PARCBufferPool);
 
 parcObject_Override(
 	PARCBufferPool, PARCObject,
-	.destructor = (PARCObjectDestructor *) _parcBufferPool_Destructor,
-	.toString = (PARCObjectToString *)  parcBufferPool_ToString,
-	.toJSON = (PARCObjectToJSON *)  parcBufferPool_ToJSON);
+	.destructor = (PARCObjectDestructor *) _parcBufferPool_Destructor);
 
 
 void
@@ -109,6 +112,9 @@ parcBufferPool_Create(size_t limit, size_t bufferSize)
     
     if (result != NULL) {
         result->limit = limit;
+        result->totalInstances = 0;
+        result->cacheHits = 0;
+        result->highWater = 0;
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
         
@@ -116,7 +122,7 @@ parcBufferPool_Create(size_t limit, size_t bufferSize)
         asprintf(&string, "PARCBufferPool=%zu", bufferSize);
         result->descriptor = parcObjectDescriptor_CreateExtension(&PARCBuffer_Descriptor, string);
         free(string);
-        result->descriptor->destructor = (PARCObjectDestructor *) _parcBuffer_PoolDestructor;
+        result->descriptor->destructor = (PARCObjectDestructor *) _parcBufferPool_BufferDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
     
@@ -143,26 +149,6 @@ parcBufferPool_IsValid(const PARCBufferPool *instance)
     return result;
 }
 
-PARCJSON *
-parcBufferPool_ToJSON(const PARCBufferPool *instance)
-{
-    PARCJSON *result = parcJSON_Create();
-    
-    if (result != NULL) {
-        
-    }
-    
-    return result;
-}
-
-char *
-parcBufferPool_ToString(const PARCBufferPool *instance)
-{
-    char *result = parcMemory_Format("PARCBufferPool@%p\n", instance);
-
-    return result;
-}
-
 PARCBuffer *
 parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
 {
@@ -170,16 +156,41 @@ parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
     
     if (parcLinkedList_Size(bufferPool->freeList) > 0) {
         result = parcLinkedList_RemoveFirst(bufferPool->freeList);
+        bufferPool->cacheHits++;
     } else {
         result = parcBuffer_Allocate(bufferPool->bufferSize);
         parcObject_SetDescriptor(result, bufferPool->descriptor);
     }
+    bufferPool->totalInstances++;
     
     return result;
+}
+
+size_t
+parcBufferPool_SetLimit(PARCBufferPool *bufferPool, size_t limit)
+{
+    size_t oldLimit = bufferPool->limit;
+    bufferPool->limit = limit;
+    for (size_t i = limit; i < oldLimit; i++) {
+        parcLinkedList_RemoveLast(bufferPool->freeList);
+    }
+    return oldLimit;
 }
 
 size_t
 parcBufferPool_GetHighWater(const PARCBufferPool *bufferPool)
 {
     return bufferPool->highWater;
+}
+
+size_t
+parcBufferPool_GetTotalInstances(const PARCBufferPool *bufferPool)
+{
+    return bufferPool->totalInstances;
+}
+
+size_t
+parcBufferPool_GetCacheHits(const PARCBufferPool *bufferPool)
+{
+    return bufferPool->cacheHits;
 }

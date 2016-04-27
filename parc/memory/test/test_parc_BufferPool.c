@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @author <#__FULLUSERNAME___#>, Palo Alto Research Center (PARC)
+ * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include "../parc_BufferPool.c"
@@ -97,8 +97,7 @@ LONGBOW_TEST_FIXTURE(Object)
 {
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_Display);
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_IsValid);
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_ToJSON);
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_ToString);
+    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_AssertValid);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Object)
@@ -131,49 +130,43 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_IsValid)
     assertFalse(parcBufferPool_IsValid(instance), "Expected parcBufferPool_Release to result in an invalid instance.");
 }
 
-LONGBOW_TEST_CASE(Object, parcBufferPool_ToJSON)
+LONGBOW_TEST_CASE(Object, parcBufferPool_AssertValid)
 {
     PARCBufferPool *instance = parcBufferPool_Create(3, 10);
+    parcBufferPool_AssertValid(instance);
     
-    PARCJSON *json = parcBufferPool_ToJSON(instance);
-
-    parcJSON_Release(&json);
-
     parcBufferPool_Release(&instance);
-}
-
-LONGBOW_TEST_CASE(Object, parcBufferPool_ToString)
-{
-    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
-    
-    char *string = parcBufferPool_ToString(instance);
-    
-    assertNotNull(string, "Expected non-NULL result from parcBufferPool_ToString");
-    
-    parcMemory_Deallocate((void **) &string);
-    parcBufferPool_Release(&instance);
+    assertFalse(parcBufferPool_IsValid(instance), "Expected parcBufferPool_Release to result in an invalid instance.");
 }
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_GetInstance);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetInstance);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetHighWater);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetTotalInstances);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetCacheHits);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_SetLimit);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
 {
+    longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
 LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 {
-    if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
+    int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
+    
+    if (parcMemory_Outstanding() > initialAllocations) {
+        parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
     
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_CASE(Object, parcBufferPool_GetInstance)
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetInstance)
 {
     PARCBufferPool *pool = parcBufferPool_Create(3, 10);
     
@@ -189,6 +182,91 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_GetInstance)
     parcBufferPool_Release(&pool);
 }
 
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetHighWater)
+{
+    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
+    size_t highWater = parcBufferPool_GetHighWater(pool);
+    
+    assertTrue(highWater == 0, "Expected the highWater to be 0, actual %zu", highWater);
+    
+    PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
+    
+    parcBuffer_AssertValid(buffer);
+    parcBuffer_Release(&buffer);
+    
+    highWater = parcBufferPool_GetHighWater(pool);
+    
+    assertTrue(highWater == 1, "Expected the highWater to be 1, actual %zu", highWater);
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetTotalInstances)
+{
+    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
+    size_t totalInstances = parcBufferPool_GetTotalInstances(pool);
+    
+    assertTrue(totalInstances == 0, "Expected the totalInstances to be 0, actual %zu", totalInstances);
+    
+    PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
+    
+    parcBuffer_AssertValid(buffer);
+    parcBuffer_Release(&buffer);
+    
+    totalInstances = parcBufferPool_GetTotalInstances(pool);
+    
+    assertTrue(totalInstances == 1, "Expected the totalInstances to be 1, actual %zu", totalInstances);
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetCacheHits)
+{
+    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
+    size_t cacheHits = parcBufferPool_GetCacheHits(pool);
+    
+    assertTrue(cacheHits == 0, "Expected the cacheHits to be 0, actual %zu", cacheHits);
+    
+    PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
+    parcBuffer_AssertValid(buffer);
+    parcBuffer_Release(&buffer);
+
+    cacheHits = parcBufferPool_GetCacheHits(pool);
+    assertTrue(cacheHits == 0, "Expected the cacheHits to be 0, actual %zu", cacheHits);
+    
+    buffer = parcBufferPool_GetInstance(pool);
+    parcBuffer_AssertValid(buffer);
+    parcBuffer_Release(&buffer);
+    
+    cacheHits = parcBufferPool_GetCacheHits(pool);
+    assertTrue(cacheHits == 1, "Expected the cacheHits to be 1, actual %zu", cacheHits);
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_SetLimit)
+{
+    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
+    size_t limit = parcBufferPool_SetLimit(pool, 2);
+    
+    assertTrue(limit == 3, "Expected the limit to be 3, actual %zu", limit);
+    
+    limit = parcBufferPool_SetLimit(pool, 2);
+    assertTrue(limit == 2, "Expected the limit to be 2, actual %zu", limit);
+    
+    PARCBuffer *buffer1 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer2 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer3 = parcBufferPool_GetInstance(pool);
+    parcBuffer_AssertValid(buffer1);
+    parcBuffer_AssertValid(buffer2);
+    parcBuffer_AssertValid(buffer3);
+    parcBuffer_Release(&buffer1);
+    parcBuffer_Release(&buffer2);
+    parcBuffer_Release(&buffer3);
+    
+    parcBufferPool_Release(&pool);
+}
+
 int
 main(int argc, char *argv[argc])
 {
@@ -197,5 +275,3 @@ main(int argc, char *argv[argc])
     longBowTestRunner_Destroy(&testRunner);
     exit(exitStatus);
 }
-
-

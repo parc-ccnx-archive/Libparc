@@ -364,4 +364,58 @@ PARCJSON *parcBufferPool_ToJSON(const PARCBufferPool *instance);
  * @see parcBufferPool_Display
  */
 char *parcBufferPool_ToString(const PARCBufferPool *instance);
+
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+PARCBuffer *parcBufferPool_GetInstance(PARCBufferPool *bufferPool);
+
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+size_t parcBufferPool_SetLimit(PARCBufferPool *bufferPool, size_t limit);
+
+/**
+ * <#One Line Description#>
+ *
+ * <#Paragraphs Of Explanation#>
+ *
+ * @param [<#in#> | <#out#> | <#in,out#>] <#name#> <#description#>
+ *
+ * @return <#value#> <#explanation#>
+ *
+ * Example:
+ * @code
+ * {
+ *     <#example#>
+ * }
+ * @endcode
+ */
+size_t parcBufferPool_GetHighWater(const PARCBufferPool *bufferPool);
 #endif
