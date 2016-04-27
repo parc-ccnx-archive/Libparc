@@ -52,6 +52,7 @@ LONGBOW_TEST_RUNNER(parc_BufferPool)
 // The Test Runner calls this function once before any Test Fixtures are run.
 LONGBOW_TEST_RUNNER_SETUP(parc_BufferPool)
 {
+    parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -74,6 +75,7 @@ LONGBOW_TEST_FIXTURE_SETUP(CreateAcquireRelease)
 LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 {
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
+        parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
 
@@ -82,7 +84,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 {
-    PARCBufferPool *instance = parcBufferPool_Create();
+    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
     assertNotNull(instance, "Expected non-null result from parcBufferPool_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcBufferPool_Acquire, instance);
@@ -93,11 +95,7 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 
 LONGBOW_TEST_FIXTURE(Object)
 {
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_Compare);
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_Copy);
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_Display);
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_Equals);
-    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_HashCode);
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_IsValid);
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_ToJSON);
     LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_ToString);
@@ -117,56 +115,16 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_CASE(Object,  parcBufferPool_Compare)
-{
-    testUnimplemented("");
-
-}
-
-LONGBOW_TEST_CASE(Object, parcBufferPool_Copy)
-{
-    PARCBufferPool *instance = parcBufferPool_Create();
-    PARCBufferPool *copy = parcBufferPool_Copy(instance);
-    assertTrue(parcBufferPool_Equals(instance, copy), "Expected the copy to be equal to the original");
-
-    parcBufferPool_Release(&instance);
-    parcBufferPool_Release(&copy);
-}
-
 LONGBOW_TEST_CASE(Object, parcBufferPool_Display)
 {
-    PARCBufferPool *instance = parcBufferPool_Create();
+    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
     parcBufferPool_Display(instance, 0);
     parcBufferPool_Release(&instance);
 }
 
-LONGBOW_TEST_CASE(Object, parcBufferPool_Equals)
-{
-    PARCBufferPool *x = parcBufferPool_Create();
-    PARCBufferPool *y = parcBufferPool_Create();
-    PARCBufferPool *z = parcBufferPool_Create();
-
-    parcObjectTesting_AssertEquals(x, y, z, NULL);
-
-    parcBufferPool_Release(&x);
-    parcBufferPool_Release(&y);
-    parcBufferPool_Release(&z);
-}
-
-LONGBOW_TEST_CASE(Object, parcBufferPool_HashCode)
-{
-    PARCBufferPool *x = parcBufferPool_Create();
-    PARCBufferPool *y = parcBufferPool_Create();
-    
-    parcObjectTesting_AssertHashCode(x, y);
-    
-    parcBufferPool_Release(&x);
-    parcBufferPool_Release(&y);
-}
-
 LONGBOW_TEST_CASE(Object, parcBufferPool_IsValid)
 {
-    PARCBufferPool *instance = parcBufferPool_Create();
+    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
     assertTrue(parcBufferPool_IsValid(instance), "Expected parcBufferPool_Create to result in a valid instance.");
     
     parcBufferPool_Release(&instance);
@@ -175,7 +133,7 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_IsValid)
 
 LONGBOW_TEST_CASE(Object, parcBufferPool_ToJSON)
 {
-    PARCBufferPool *instance = parcBufferPool_Create();
+    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
     
     PARCJSON *json = parcBufferPool_ToJSON(instance);
 
@@ -186,7 +144,7 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_ToJSON)
 
 LONGBOW_TEST_CASE(Object, parcBufferPool_ToString)
 {
-    PARCBufferPool *instance = parcBufferPool_Create();
+    PARCBufferPool *instance = parcBufferPool_Create(3, 10);
     
     char *string = parcBufferPool_ToString(instance);
     
@@ -198,6 +156,7 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_ToString)
 
 LONGBOW_TEST_FIXTURE(Specialization)
 {
+    LONGBOW_RUN_TEST_CASE(Object, parcBufferPool_GetInstance);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -212,6 +171,22 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     }
     
     return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Object, parcBufferPool_GetInstance)
+{
+    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
+    
+    PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
+    
+    parcBuffer_AssertValid(buffer);
+    parcBuffer_Release(&buffer);
+    
+    size_t highWater = parcBufferPool_GetHighWater(pool);
+    
+    assertTrue(highWater == 1, "Expected the highWater to be 1, actual %zu", highWater);
+    
+    parcBufferPool_Release(&pool);
 }
 
 int

@@ -111,7 +111,7 @@ void parcBufferPool_AssertValid(const PARCBufferPool *instance);
  * }
  * @endcode
  */
-PARCBufferPool *parcBufferPool_Create(void);
+PARCBufferPool *parcBufferPool_Create(size_t limit, size_t bufferSize);
 
 /**
  * Compares @p instance with @p other for order.
