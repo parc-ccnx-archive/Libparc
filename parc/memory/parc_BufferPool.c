@@ -29,7 +29,6 @@
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
-#include <stdio.h>
 
 #include <parc/algol/parc_Object.h>
 #include <parc/algol/parc_DisplayIndented.h>
@@ -117,11 +116,10 @@ parcBufferPool_Create(size_t limit, size_t bufferSize)
         result->highWater = 0;
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
-        
-        char *string;
-        asprintf(&string, "PARCBufferPool=%zu", bufferSize);
+
+        char *string = parcMemory_Format("PARCBufferPool=%zu", bufferSize);
         result->descriptor = parcObjectDescriptor_CreateExtension(&PARCBuffer_Descriptor, string);
-        free(string);
+        parcMemory_Deallocate(&string);
         result->descriptor->destructor = (PARCObjectDestructor *) _parcBufferPool_BufferDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
