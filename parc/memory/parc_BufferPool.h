@@ -54,11 +54,13 @@
  */
 /**
  * @file parc_BufferPool.h
- * @brief <#Brief Description#>
+ * @brief A simple pool of uniformly sized PARCBuffer instances.
  *
- * <#Detailed Description#>
+ * The client uses `parcBufferPool_GetInstance` to obtain instances which are placed attempted to be placed
+ * into the pool when the `PARCBuffer_Release` function is called.
+ * The pool has a maxmimum number of instances that it will cache.
  *
- * @author <#gscott#>, Palo Alto Research Center (PARC)
+ * @author Glenn Scott, Palo Alto Research Center (PARC)
  * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_BufferPool
@@ -85,7 +87,7 @@ typedef struct PARCBufferPool PARCBufferPool;
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     PARCBufferPool *b = parcBufferPool_Acquire();
 
@@ -110,22 +112,21 @@ PARCBufferPool *parcBufferPool_Acquire(const PARCBufferPool *instance);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     parcBufferPool_AssertValid(a);
  *
- *     printf("Instance is valid.\n");
- *
- *     parcBufferPool_Release(&b);
+ *     parcBufferPool_Release(&a);
  * }
  * @endcode
  */
 void parcBufferPool_AssertValid(const PARCBufferPool *instance);
 
 /**
- * Create an instance of PARCBufferPool
+ * Create an instance of PARCBufferPool containing instances of `PARCBuffer`.
  *
- * <#Paragraphs Of Explanation#>
+ * The value of @p limit is the maximum number of instances that the pool will cache,
+ * and @p bufferSize is the size of the `PARCBuffer` instances cached.
  *
  * @return non-NULL A pointer to a valid PARCBufferPool instance.
  * @return NULL An error occurred.
@@ -133,7 +134,7 @@ void parcBufferPool_AssertValid(const PARCBufferPool *instance);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     parcBufferPool_Release(&a);
  * }
@@ -142,60 +143,24 @@ void parcBufferPool_AssertValid(const PARCBufferPool *instance);
 PARCBufferPool *parcBufferPool_Create(size_t limit, size_t bufferSize);
 
 /**
- * Compares @p instance with @p other for order.
+ * Create an instance of PARCBufferPool containing instances of object specified by the given `PARCObjectDescriptor`.
  *
- * Returns a negative integer, zero, or a positive integer as @p instance
- * is less than, equal to, or greater than @p other.
+ * The value of @p limit is the maximum number of instances that the pool will cache,
+ * and @p bufferSize is the size of the `PARCBuffer` instances cached.
  *
- * @param [in] instance A pointer to a valid PARCBufferPool instance.
- * @param [in] other A pointer to a valid PARCBufferPool instance.
- *
- * @return <0 Instance is less than @p other.
- * @return 0 Instance a and instance b compare the same.
- * @return >0 Instance a is greater than instance b.
+ * @return non-NULL A pointer to a valid PARCBufferPool instance.
+ * @return NULL An error occurred.
  *
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
- *     PARCBufferPool *b = parcBufferPool_Create();
- *
- *     if (parcBufferPool_Compare(a, b) == 0) {
- *         printf("Instances are equal.\n");
- *     }
+ *     PARCBufferPool *a = parcBufferPool_CreateExtending(5, 10, &MyPARCBuffer_Descriptor);
  *
  *     parcBufferPool_Release(&a);
- *     parcBufferPool_Release(&b);
- * }
- * @endcode
- *
- * @see parcBufferPool_Equals
- */
-int parcBufferPool_Compare(const PARCBufferPool *instance, const PARCBufferPool *other);
-
-/**
- * Create an independent copy the given `PARCBuffer`
- *
- * A new buffer is created as a complete copy of the original.
- *
- * @param [in] original A pointer to a valid PARCBufferPool instance.
- *
- * @return NULL Memory could not be allocated.
- * @return non-NULL A pointer to a new `PARCBufferPool` instance.
- *
- * Example:
- * @code
- * {
- *     PARCBufferPool *a = parcBufferPool_Create();
- *
- *     PARCBufferPool *copy = parcBufferPool_Copy(&b);
- *
- *     parcBufferPool_Release(&b);
- *     parcBufferPool_Release(&copy);
  * }
  * @endcode
  */
-PARCBufferPool *parcBufferPool_Copy(const PARCBufferPool *original);
+PARCBufferPool *parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObjectDescriptor *originalDescriptor);
 
 /**
  * Print a human readable representation of the given `PARCBufferPool`.
@@ -206,7 +171,7 @@ PARCBufferPool *parcBufferPool_Copy(const PARCBufferPool *original);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     parcBufferPool_Display(a, 0);
  *
@@ -215,82 +180,6 @@ PARCBufferPool *parcBufferPool_Copy(const PARCBufferPool *original);
  * @endcode
  */
 void parcBufferPool_Display(const PARCBufferPool *instance, int indentation);
-
-/**
- * Determine if two `PARCBufferPool` instances are equal.
- *
- * The following equivalence relations on non-null `PARCBufferPool` instances are maintained: *
- *   * It is reflexive: for any non-null reference value x, `parcBufferPool_Equals(x, x)` must return true.
- *
- *   * It is symmetric: for any non-null reference values x and y, `parcBufferPool_Equals(x, y)` must return true if and only if
- *        `parcBufferPool_Equals(y x)` returns true.
- *
- *   * It is transitive: for any non-null reference values x, y, and z, if
- *        `parcBufferPool_Equals(x, y)` returns true and
- *        `parcBufferPool_Equals(y, z)` returns true,
- *        then `parcBufferPool_Equals(x, z)` must return true.
- *
- *   * It is consistent: for any non-null reference values x and y, multiple invocations of `parcBufferPool_Equals(x, y)`
- *         consistently return true or consistently return false.
- *
- *   * For any non-null reference value x, `parcBufferPool_Equals(x, NULL)` must return false.
- *
- * @param [in] x A pointer to a valid PARCBufferPool instance.
- * @param [in] y A pointer to a valid PARCBufferPool instance.
- *
- * @return true The instances x and y are equal.
- *
- * Example:
- * @code
- * {
- *     PARCBufferPool *a = parcBufferPool_Create();
- *     PARCBufferPool *b = parcBufferPool_Create();
- *
- *     if (parcBufferPool_Equals(a, b)) {
- *         printf("Instances are equal.\n");
- *     }
- *
- *     parcBufferPool_Release(&a);
- *     parcBufferPool_Release(&b);
- * }
- * @endcode
- * @see parcBufferPool_HashCode
- */
-bool parcBufferPool_Equals(const PARCBufferPool *x, const PARCBufferPool *y);
-
-/**
- * Returns a hash code value for the given instance.
- *
- * The general contract of `HashCode` is:
- *
- * Whenever it is invoked on the same instance more than once during an execution of an application,
- * the `HashCode` function must consistently return the same value,
- * provided no information used in a corresponding comparisons on the instance is modified.
- *
- * This value need not remain consistent from one execution of an application to another execution of the same application.
- * If two instances are equal according to the {@link parcBufferPool_Equals} method,
- * then calling the {@link parcBufferPool_HashCode} method on each of the two instances must produce the same integer result.
- *
- * It is not required that if two instances are unequal according to the
- * {@link parcBufferPool_Equals} function,
- * then calling the `parcBufferPool_HashCode`
- * method on each of the two objects must produce distinct integer results.
- *
- * @param [in] instance A pointer to a valid PARCBufferPool instance.
- *
- * @return The hashcode for the given instance.
- *
- * Example:
- * @code
- * {
- *     PARCBufferPool *a = parcBufferPool_Create();
- *
- *     PARCHashCode hashValue = parcBufferPool_HashCode(buffer);
- *     parcBufferPool_Release(&a);
- * }
- * @endcode
- */
-PARCHashCode parcBufferPool_HashCode(const PARCBufferPool *instance);
 
 /**
  * Determine if an instance of `PARCBufferPool` is valid.

@@ -136,7 +136,7 @@ parcBufferPool_AssertValid(const PARCBufferPool *instance)
 }
 
 PARCBufferPool *
-parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, PARCObjectDescriptor *descriptor)
+parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObjectDescriptor *originalDescriptor)
 {
     PARCBufferPool *result = parcObject_CreateInstance(PARCBufferPool);
     
@@ -148,11 +148,13 @@ parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, PARCObjectDescri
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
         
+        result->originalDescriptor = originalDescriptor;
+        
         char *string = parcMemory_Format("PARCBufferPool=%zu", bufferSize);
-        result->descriptor = parcObjectDescriptor_CreateExtension(descriptor, string);
-        parcMemory_Deallocate(&string);
+        result->descriptor = parcObjectDescriptor_CreateExtension(result->originalDescriptor, string);
         result->descriptor->destructor = (PARCObjectDestructor *) _parcBufferPool_ObjectDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
+        parcMemory_Deallocate(&string);
     }
     
     return result;
@@ -161,24 +163,7 @@ parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, PARCObjectDescri
 PARCBufferPool *
 parcBufferPool_Create(size_t limit, size_t bufferSize)
 {
-    PARCBufferPool *result = parcObject_CreateInstance(PARCBufferPool);
-    
-    if (result != NULL) {
-        result->limit = limit;
-        result->totalInstances = 0;
-        result->cacheHits = 0;
-        result->largestPoolSize = 0;
-        result->bufferSize = bufferSize;
-        result->freeList = parcLinkedList_Create();
-        
-        result->originalDescriptor = &PARCBuffer_Descriptor;
-        
-        char *string = parcMemory_Format("PARCBufferPool=%zu", bufferSize);
-        result->descriptor = parcObjectDescriptor_CreateExtension(result->originalDescriptor, string);
-        result->descriptor->destructor = (PARCObjectDestructor *) _parcBufferPool_ObjectDestructor;
-        result->descriptor->typeState = (PARCObjectTypeState *) result;
-        parcMemory_Deallocate(&string);
-    }
+    PARCBufferPool *result = parcBufferPool_CreateExtending(limit, bufferSize, &PARCBuffer_Descriptor);
     
     return result;
 }
