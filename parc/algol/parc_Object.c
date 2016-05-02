@@ -801,7 +801,8 @@ parcObject_Lock(const PARCObject *object)
     if (object != NULL) {
         _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
         if (locking != NULL) {
-            trapCannotObtainLockIf(pthread_equal(locking->locker, pthread_self()), "Recursive locks are not supported.");
+            trapCannotObtainLockIf(pthread_equal(locking->locker, pthread_self()),
+                                   "Recursive locks on %p are not supported.", object);
 
             errno = pthread_mutex_lock(&locking->lock);
 

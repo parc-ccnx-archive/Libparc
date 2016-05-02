@@ -142,10 +142,14 @@ LONGBOW_TEST_CASE(Object, parcBufferPool_AssertValid)
 LONGBOW_TEST_FIXTURE(Specialization)
 {
     LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetInstance);
-    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetHighWater);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetLargestPoolSize);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetCurrentPoolSize);
     LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetTotalInstances);
     LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetCacheHits);
-    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_SetLimit);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_GetLimit);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_SetLimit_Increasing);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_SetLimit_Decreasing);
+    LONGBOW_RUN_TEST_CASE(Specialization, parcBufferPool_Drain);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Specialization)
@@ -175,28 +179,28 @@ LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetInstance)
     parcBuffer_AssertValid(buffer);
     parcBuffer_Release(&buffer);
     
-    size_t highWater = parcBufferPool_GetHighWater(pool);
+    size_t largestPoolSize = parcBufferPool_GetLargestPoolSize(pool);
     
-    assertTrue(highWater == 1, "Expected the highWater to be 1, actual %zu", highWater);
+    assertTrue(largestPoolSize == 1, "Expected the largestPoolSize to be 1, actual %zu", largestPoolSize);
     
     parcBufferPool_Release(&pool);
 }
 
-LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetHighWater)
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetLargestPoolSize)
 {
     PARCBufferPool *pool = parcBufferPool_Create(3, 10);
-    size_t highWater = parcBufferPool_GetHighWater(pool);
+    size_t largestPoolSize = parcBufferPool_GetLargestPoolSize(pool);
     
-    assertTrue(highWater == 0, "Expected the highWater to be 0, actual %zu", highWater);
+    assertTrue(largestPoolSize == 0, "Expected the largestPoolSize to be 0, actual %zu", largestPoolSize);
     
     PARCBuffer *buffer = parcBufferPool_GetInstance(pool);
     
     parcBuffer_AssertValid(buffer);
     parcBuffer_Release(&buffer);
     
-    highWater = parcBufferPool_GetHighWater(pool);
+    largestPoolSize = parcBufferPool_GetLargestPoolSize(pool);
     
-    assertTrue(highWater == 1, "Expected the highWater to be 1, actual %zu", highWater);
+    assertTrue(largestPoolSize == 1, "Expected the largestPoolSize to be 1, actual %zu", largestPoolSize);
     
     parcBufferPool_Release(&pool);
 }
@@ -244,15 +248,54 @@ LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetCacheHits)
     parcBufferPool_Release(&pool);
 }
 
-LONGBOW_TEST_CASE(Specialization, parcBufferPool_SetLimit)
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetLimit)
 {
-    PARCBufferPool *pool = parcBufferPool_Create(3, 10);
-    size_t limit = parcBufferPool_SetLimit(pool, 2);
+    size_t expected = 20;
     
-    assertTrue(limit == 3, "Expected the limit to be 3, actual %zu", limit);
+    PARCBufferPool *pool = parcBufferPool_Create(expected, 10);
+    size_t limit = parcBufferPool_GetLimit(pool);
     
-    limit = parcBufferPool_SetLimit(pool, 2);
-    assertTrue(limit == 2, "Expected the limit to be 2, actual %zu", limit);
+    assertTrue(limit == expected, "Expected the limit to be %zu, actual %zu", expected, limit);
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_GetCurrentPoolSize)
+{
+    size_t expectedLimit = 3;
+    
+    PARCBufferPool *pool = parcBufferPool_Create(expectedLimit, 10);
+    size_t poolSize = parcBufferPool_GetCurrentPoolSize(pool);
+    
+    assertTrue(poolSize == 0, "Expected the poolSize to be 0, actual %zu", poolSize);
+    
+    PARCBuffer *buffer1 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer2 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer3 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer4 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer5 = parcBufferPool_GetInstance(pool);
+
+    parcBuffer_Release(&buffer1);
+    parcBuffer_Release(&buffer2);
+    parcBuffer_Release(&buffer3);
+    parcBuffer_Release(&buffer4);
+    parcBuffer_Release(&buffer5);
+    
+    poolSize = parcBufferPool_GetCurrentPoolSize(pool);
+    
+    assertTrue(poolSize == expectedLimit, "Expected the poolSize to be %zu, actual %zu", expectedLimit, poolSize);
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_SetLimit_Increasing)
+{
+    size_t oldLimit = 3;
+    size_t newLimit = 5;
+    
+    PARCBufferPool *pool = parcBufferPool_Create(oldLimit, 10);
+    size_t limit = parcBufferPool_GetLimit(pool);
+    
+    assertTrue(limit == oldLimit, "Expected the limit to be %zu, actual %zu", oldLimit, limit);
     
     PARCBuffer *buffer1 = parcBufferPool_GetInstance(pool);
     PARCBuffer *buffer2 = parcBufferPool_GetInstance(pool);
@@ -263,6 +306,69 @@ LONGBOW_TEST_CASE(Specialization, parcBufferPool_SetLimit)
     parcBuffer_Release(&buffer1);
     parcBuffer_Release(&buffer2);
     parcBuffer_Release(&buffer3);
+    
+    limit = parcBufferPool_SetLimit(pool, newLimit);
+    assertTrue(limit == 3, "Expected the old limit to be %zu, actual %zu", oldLimit, limit);
+    
+    size_t largestPoolSize = parcBufferPool_GetLargestPoolSize(pool);
+    assertTrue(largestPoolSize == oldLimit, "Expected largest pool size to be %zu, actual %zu", oldLimit, largestPoolSize);
+    
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_SetLimit_Decreasing)
+{
+    size_t oldLimit = 3;
+    size_t newLimit = 2;
+    
+    PARCBufferPool *pool = parcBufferPool_Create(oldLimit, 10);
+    size_t limit = parcBufferPool_GetLimit(pool);
+    
+    assertTrue(limit == oldLimit, "Expected the limit to be %zu, actual %zu", oldLimit, limit);
+    
+    PARCBuffer *buffer1 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer2 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer3 = parcBufferPool_GetInstance(pool);
+    parcBuffer_AssertValid(buffer1);
+    parcBuffer_AssertValid(buffer2);
+    parcBuffer_AssertValid(buffer3);
+    parcBuffer_Release(&buffer1);
+    parcBuffer_Release(&buffer2);
+    parcBuffer_Release(&buffer3);
+    
+    limit = parcBufferPool_SetLimit(pool, newLimit);
+    assertTrue(limit == 3, "Expected the old limit to be %zu, actual %zu", oldLimit, limit);
+    
+    size_t largestPoolSize = parcBufferPool_GetLargestPoolSize(pool);
+    assertTrue(largestPoolSize == oldLimit, "Expected largest pool size to be %zu, actual %zu", oldLimit, largestPoolSize);
+    
+    
+    parcBufferPool_Release(&pool);
+}
+
+LONGBOW_TEST_CASE(Specialization, parcBufferPool_Drain)
+{
+    size_t oldLimit = 3;
+    size_t newLimit = 2;
+    
+    PARCBufferPool *pool = parcBufferPool_Create(oldLimit, 10);
+    
+    PARCBuffer *buffer1 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer2 = parcBufferPool_GetInstance(pool);
+    PARCBuffer *buffer3 = parcBufferPool_GetInstance(pool);
+    parcBuffer_AssertValid(buffer1);
+    parcBuffer_AssertValid(buffer2);
+    parcBuffer_AssertValid(buffer3);
+    parcBuffer_Release(&buffer1);
+    parcBuffer_Release(&buffer2);
+    parcBuffer_Release(&buffer3);
+    
+    size_t limit = parcBufferPool_SetLimit(pool, newLimit);
+    assertTrue(limit == oldLimit, "Expected the limit to be %zu, actual %zu", oldLimit, limit);
+    
+    size_t drained = parcBufferPool_Drain(pool);
+    assertTrue(drained == 1, "Expected the drained to be 1, actual %zu", drained);
     
     parcBufferPool_Release(&pool);
 }

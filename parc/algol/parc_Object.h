@@ -242,8 +242,6 @@ const PARCObjectDescriptor *parcObjectDescriptor_GetSuperType(const PARCObjectDe
 
 bool parcObjectDescriptor_Destroy(PARCObjectDescriptor **descriptorPointer);
 
-
-
 /**
  * The globally available `PARCObject` descriptor.
  */
@@ -291,9 +289,9 @@ bool parcObject_IsValid(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval time = { .tv_sec = 1, .tv_usec = 2 };
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
- *     struct timeval *t = parcObject_Copy(&time, sizeof(time), NULL);
+ *     struct MyType *copy = parcObject_Copy(t);
  * }
  * @endcode
  *
@@ -317,7 +315,7 @@ PARCObject *parcObject_Copy(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
  *     int compareResult = parcObject_Compare(t, t);
  *     printf("0? %d\n", compareResult);
@@ -361,14 +359,14 @@ int parcObject_Compare(const PARCObject *x, const PARCObject *y);
  * Example:
  * @code
  * {
- *    PARCObject *a = parcObject_Create();
- *    PARCObject *b = parcObject_Create();
+ *     struct MyType *a = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
+ *     struct MyType *b = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
- *    if (parcObject_Equals(a, b)) {
+ *     if (parcObject_Equals(a, b)) {
  *        // true
- *    } else {
+ *     } else {
  *        // false
- *    }
+ *     }
  * }
  * @endcode
  */
@@ -388,10 +386,10 @@ bool parcObject_Equals(const PARCObject *x, const PARCObject *y);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
- *     uint32_t hashcode = parcObject_HashCode(t);
- *     printf("Hashcode = %d\n", hashcode);
+ *     PARCHashCode hashcode = parcObject_HashCode(t);
+ *     printf("Hashcode = %" PRIXPARCHashCode "\n", hashcode);
  *
  *     parcObject_Release(&t);
  * }
@@ -410,11 +408,11 @@ PARCHashCode parcObject_HashCode(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
  *     char *string = parcObject_ToString(t);
  *     printf("%s\n", string);
- *     parcMemory_Deallocate((void **)&string);
+ *     parcMemory_Deallocate((void **) &string);
  *
  *     parcObject_Release(&t);
  * }
@@ -433,7 +431,7 @@ char *parcObject_ToString(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
  *     PARCJSON *json = parcObject_ToJSON(t);
  *     printf("JSON representation: %s\n", parcJSON_ToString(json));
@@ -457,9 +455,9 @@ PARCJSON *parcObject_ToJSON(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
- *     struct timeval *new = parcObject_Acquire(t);
+ *     struct MyType *new = parcObject_Acquire(t);
  *
  *     parcObject_Release(&t);
  *     parcObject_Release(&new);
@@ -475,11 +473,11 @@ PARCObject *parcObject_Acquire(const PARCObject *object);
  * The pointer to the instance is set to NULL as a side-effect of this function.
  *
  * If an invocation of `parcObject_Release` causes the last reference to
- * the instance to be released, it calls the instance's `finalize` function
+ * the instance to be released, it calls the instance's `destructor` function
  * specified in the `PARCObjectDescriptor` structure supplied when the instance
- * was created (see `parcObject_Create`, and the instance is deallocated.
+ * was created (see `parcObject_Create`.
  *
- * The contents of the dealloced memory used for the PARC object are undefined.
+ * The contents of the deallocated memory used for the PARC object are undefined.
  * Do not reference the object after the last release.
  *
  * @param [in] objectPointer A pointer to a pointer to the instance to release.
@@ -489,7 +487,7 @@ PARCObject *parcObject_Acquire(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
  *     parcObject_Release(&t);
  * }
@@ -512,9 +510,9 @@ PARCReferenceCount parcObject_Release(PARCObject **objectPointer);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
- *     PARCReferenceCount count = parcObject_GetReferenceCount(object);
+ *     PARCReferenceCount count = parcObject_GetReferenceCount(t);
  *
  *     parcObject_Release(&t);
  * }
@@ -534,14 +532,13 @@ PARCReferenceCount parcObject_GetReferenceCount(const PARCObject *object);
  * Example:
  * @code
  * {
- *     struct timeval *t = parcObject_Create(sizeof(struct timeval), NULL);
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
  *
  *     parcObject_Display(t, 0);
  *
  *     parcObject_Release(&t);
  * }
  * @endcode
- *
  */
 void parcObject_Display(const PARCObject *object, const int indentation);
 
@@ -551,6 +548,17 @@ void parcObject_Display(const PARCObject *object, const int indentation);
  * @param [in] object A pointer to a valid `PARCObject` instance
  *
  * @return A pointer to the given PARCObject's `PARCObjectDescriptor`.
+ *
+ * Example:
+ * @code
+ * {
+ *     struct MyType *t = parcObject_Create(sizeof(struct MyType), &MyType_Descriptor);
+ *
+ *     PARCObjectDescriptor *descriptor = parcObject_GetDescriptor(t);
+ *
+ *     parcObject_Release(&t);
+ * }
+ * @endcode
  */
 const PARCObjectDescriptor *parcObject_GetDescriptor(const PARCObject *object);
 
@@ -971,7 +979,7 @@ PARCObject *parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descri
 /**
  * @def parcObject_ImplementAcquire
  *
- * parcObject_ImplementAcquire is a helper C-macro that creates a canonical subtype specific
+ * `parcObject_ImplementAcquire` is a helper C-macro that creates a canonical subtype specific
  * Acquire function.
  *
  * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
@@ -985,7 +993,7 @@ PARCObject *parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descri
 /**
  * @def parcObject_ImplementRelease
  *
- * parcObject_ImplementRelease is a helper C-macro that creates a canonical subtype specific
+ * `parcObject_ImplementRelease` is a helper C-macro that creates a canonical subtype specific
  * Release function.
  *
  * @param [in] _namespace A subtype's namespace string (e.g. parcBuffer)
@@ -997,7 +1005,7 @@ PARCObject *parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descri
     } extern void _namespace##_Release(_type **pObject)
 
 /**
- * parcObject_ImplementationCheck is a helper macro that will generate compile time warnings for
+ * `parcObject_ImplementationCheck` is a helper macro that will generate compile time warnings for
  * missing canonical functions or canonical functions with faulty signatures.
  *
  * @param _namespace A subtype's namespace string (e.g. parcBuffer)
@@ -1052,7 +1060,7 @@ bool parcObject_Lock(const PARCObject *object);
 /**
  * @def parcObject_ImplementLock
  *
- * parcObject_ImplementLock is a helper C-macro that defines a static, inline facade for the `parcObject_Lock` function.
+ * `parcObject_ImplementLock` is a helper C-macro that defines a static, inline facade for the `parcObject_Lock` function.
  *
  * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
  * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
@@ -1085,7 +1093,7 @@ bool parcObject_TryLock(const PARCObject *object);
 /**
  * @def parcObject_ImplementTryLock
  *
- * parcObject_ImplementTryLock is a helper C-macro that defines a static, inline facade for the `parcObject_TryLock` function.
+ * `parcObject_ImplementTryLock` is a helper C-macro that defines a static, inline facade for the `parcObject_TryLock` function.
  *
  * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
  * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
@@ -1096,17 +1104,19 @@ bool parcObject_TryLock(const PARCObject *object);
     } typedef void parcCMacro_Cat(_type, _TryLock_NOOP)
 
 /**
- * Try to unlock the advisory lock on the given PARCObject instance.
+ * Try to unlock the advisory lock on the given `PARCObject` instance.
  *
- * @param [in] object A pointer to a valid PARCObject instance.
+ * @param [in] object A pointer to a valid `PARCObject` instance.
  *
- * @return true The PARCObject was locked and now is unlocked.
- * @return false The PARCObject was not locked and remains unlocked.
+ * @return true The `PARCObject` was locked and now is unlocked.
+ * @return false The `PARCObject` was not locked and remains unlocked.
  *
  * Example:
  * @code
  * {
- *     parcObject_Unlock(object);
+ *     if (parcObject_Lock(Object)) {
+ *         parcObject_Unlock(object);
+ *     }
  * }
  * @endcode
  */
@@ -1115,7 +1125,7 @@ bool parcObject_Unlock(const PARCObject *object);
 /**
  * @def parcObject_ImplementUnlock
  *
- * parcObject_ImplementUnlock is a helper C-macro that defines a static, inline facade for the `parcObject_Unlock` function.
+ * `parcObject_ImplementUnlock` is a helper C-macro that defines a static, inline facade for the `parcObject_Unlock` function.
  *
  * @param [in] _namespace A subtype's namespace string (e.g. `parcBuffer`)
  * @param [in] _type A subtype's type string (e.g. `PARCBuffer`)
@@ -1135,7 +1145,14 @@ bool parcObject_Unlock(const PARCObject *object);
  * Example:
  * @code
  * {
- *     <#example#>
+ *     if (parcObject_Lock(object)) {
+ *         ...
+ *         if (parcObject_IsLocked(object) {
+ *             ....
+ *         }
+ *         ...
+ *         parcObject_Unlock(object);
+ *     }
  * }
  * @endcode
  */
@@ -1168,8 +1185,14 @@ bool parcObject_IsLocked(const PARCObject *object);
  * Example:
  * @code
  * {
- *
- *     parcObject_Wait(object);
+ *     if (parcObject_Lock(object)) {
+ *         ...
+ *         if (parcObject_Wait(object) {
+ *             ....
+ *         }
+ *         ...
+ *         parcObject_Unlock(object);
+ *     }
  * }
  * @endcode
  */
@@ -1358,6 +1381,15 @@ void parcObject_NotifyAll(const PARCObject *object);
     static inline void _namespace##_NotifyAll(const _type *pObject) { \
     parcObject_NotifyAll((const PARCObject *) pObject);               \
 } typedef void parcCMacro_Cat(_type, _NotifyAll_NOOP)
+
+/**
+ * @def parcObject_Mutex
+ *
+ * parcObject_Mutex establishes a lock on the given object, executes the specified code block and unlocks the object.
+ *
+ * @param [in] _object_ A pointer to a valid PARCObject that implements locking.
+ */
+#define parcObject_Mutex(_object_) for (bool once = true; once && parcObject_Lock(_object_); parcObject_Unlock(_object_), once = false)
 
 
 /**
