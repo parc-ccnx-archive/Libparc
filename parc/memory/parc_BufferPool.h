@@ -125,6 +125,11 @@ void parcBufferPool_AssertValid(const PARCBufferPool *instance);
 /**
  * Create an instance of PARCBufferPool containing instances of `PARCBuffer`.
  *
+ * This function is equivalent to invoking
+ * @code
+ *     PARCBufferPool *a = parcBufferPool_CreateExtending(5, 10, &PARCBuffer_Descriptor);
+ * @endcode
+ *
  * The value of @p limit is the maximum number of instances that the pool will cache,
  * and @p bufferSize is the size of the `PARCBuffer` instances cached.
  *
@@ -147,6 +152,8 @@ PARCBufferPool *parcBufferPool_Create(size_t limit, size_t bufferSize);
  *
  * The value of @p limit is the maximum number of instances that the pool will cache,
  * and @p bufferSize is the size of the `PARCBuffer` instances cached.
+ *
+  * This function creates a PARCBufferPool that creates and manages instances of PARCBuffer which may have been extended.
  *
  * @return non-NULL A pointer to a valid PARCBufferPool instance.
  * @return NULL An error occurred.

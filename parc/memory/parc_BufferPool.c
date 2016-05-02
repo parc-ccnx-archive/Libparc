@@ -81,14 +81,14 @@ static bool
 _parcBufferPool_Destructor(PARCBufferPool **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCBufferPool pointer.");
-    
+
     PARCBufferPool *pool = *instancePtr;
-    
-    parcLinkedList_Apply(pool->freeList, (void (*)) parcObject_SetDescriptor, (const void *) &PARCBuffer_Descriptor);
-    
+
+    parcLinkedList_Apply(pool->freeList, (void (*))parcObject_SetDescriptor, (const void *) &PARCBuffer_Descriptor);
+
     parcLinkedList_Release(&pool->freeList);
     parcObjectDescriptor_Destroy(&pool->descriptor);
-    
+
     return true;
 }
 
@@ -96,12 +96,13 @@ static bool
 _parcBufferPool_ObjectDestructor(PARCBuffer **bufferPtr)
 {
     PARCBuffer *buffer = *bufferPtr;
-    
+
     PARCBufferPool *bufferPool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
-    
-    parcObject_Mutex(bufferPool->freeList) {
+
+    parcObject_Mutex(bufferPool->freeList)
+    {
         size_t freeListSize = parcLinkedList_Size(bufferPool->freeList);
-        
+
         if (bufferPool->limit > freeListSize) {
             parcLinkedList_Append(bufferPool->freeList, buffer);
             freeListSize++;
@@ -114,7 +115,7 @@ _parcBufferPool_ObjectDestructor(PARCBuffer **bufferPtr)
             parcBuffer_Release(&buffer);
         }
     }
-    
+
     *bufferPtr = 0;
     return false;
 }
@@ -139,7 +140,7 @@ PARCBufferPool *
 parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObjectDescriptor *originalDescriptor)
 {
     PARCBufferPool *result = parcObject_CreateInstance(PARCBufferPool);
-    
+
     if (result != NULL) {
         result->limit = limit;
         result->totalInstances = 0;
@@ -147,16 +148,16 @@ parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObject
         result->largestPoolSize = 0;
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
-        
+
         result->originalDescriptor = originalDescriptor;
-        
+
         char *string = parcMemory_Format("PARCBufferPool=%zu", bufferSize);
         result->descriptor = parcObjectDescriptor_CreateExtension(result->originalDescriptor, string);
         result->descriptor->destructor = (PARCObjectDestructor *) _parcBufferPool_ObjectDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
         parcMemory_Deallocate(&string);
     }
-    
+
     return result;
 }
 
@@ -164,7 +165,7 @@ PARCBufferPool *
 parcBufferPool_Create(size_t limit, size_t bufferSize)
 {
     PARCBufferPool *result = parcBufferPool_CreateExtending(limit, bufferSize, &PARCBuffer_Descriptor);
-    
+
     return result;
 }
 
@@ -180,11 +181,11 @@ bool
 parcBufferPool_IsValid(const PARCBufferPool *bufferPool)
 {
     bool result = false;
-    
+
     if (bufferPool != NULL) {
         result = parcLinkedList_IsValid(bufferPool->freeList);
     }
-    
+
     return result;
 }
 
@@ -192,8 +193,9 @@ PARCBuffer *
 parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
 {
     PARCBuffer *result = NULL;
-    
-    parcObject_Mutex(bufferPool->freeList) {
+
+    parcObject_Mutex(bufferPool->freeList)
+    {
         if (parcLinkedList_Size(bufferPool->freeList) > 0) {
             result = parcLinkedList_RemoveFirst(bufferPool->freeList);
             bufferPool->cacheHits++;
@@ -203,7 +205,7 @@ parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
         }
         bufferPool->totalInstances++;
     }
-    
+
     return result;
 }
 
@@ -211,8 +213,9 @@ size_t
 parcBufferPool_Drain(PARCBufferPool *bufferPool)
 {
     size_t result = 0;
-    
-    parcObject_Mutex(bufferPool->freeList) {
+
+    parcObject_Mutex(bufferPool->freeList)
+    {
         size_t freeListSize = parcLinkedList_Size(bufferPool->freeList);
         if (freeListSize > bufferPool->limit) {
             result = freeListSize - bufferPool->limit;
@@ -223,7 +226,7 @@ parcBufferPool_Drain(PARCBufferPool *bufferPool)
             }
         }
     }
-    
+
     return result;
 }
 
@@ -231,13 +234,13 @@ size_t
 parcBufferPool_SetLimit(PARCBufferPool *bufferPool, size_t limit)
 {
     size_t oldLimit = bufferPool->limit;
-    
+
     if (limit < bufferPool->limit) {
         bufferPool->largestPoolSize = bufferPool->limit;
     }
-    
+
     bufferPool->limit = limit;
-    
+
     return oldLimit;
 }
 
@@ -251,11 +254,12 @@ size_t
 parcBufferPool_GetCurrentPoolSize(const PARCBufferPool *bufferPool)
 {
     size_t result = 0;
-    
-    parcObject_Mutex(bufferPool->freeList) {
+
+    parcObject_Mutex(bufferPool->freeList)
+    {
         result = parcLinkedList_Size(bufferPool->freeList);
     }
-    
+
     return result;
 }
 

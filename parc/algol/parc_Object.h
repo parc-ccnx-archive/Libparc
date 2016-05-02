@@ -1385,9 +1385,20 @@ void parcObject_NotifyAll(const PARCObject *object);
 /**
  * @def parcObject_Mutex
  *
- * parcObject_Mutex establishes a lock on the given object, executes the specified code block and unlocks the object.
+ * parcObject_Mutex establishes a mutual exclusion region of code using the given object as the mutex semaphore,
+ * executes the specified code block and exits the mutual exclusion region.
+ *
  *
  * @param [in] _object_ A pointer to a valid PARCObject that implements locking.
+ *
+ * Example:
+ * @code
+ * {
+ *      parcObject_Mutex(object) {
+ *          ....
+ *      }
+ * }
+ * @endcode
  */
 #define parcObject_Mutex(_object_) for (bool once = true; once && parcObject_Lock(_object_); parcObject_Unlock(_object_), once = false)
 
