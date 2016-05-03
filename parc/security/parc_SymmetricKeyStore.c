@@ -88,12 +88,11 @@ _parcSymmetricKeyStore_Finalize(PARCSymmetricKeyStore **interfacePtr)
 }
 
 PARCKeyStoreInterface *PARCSymmetricKeyStoreAsKeyStore = &(PARCKeyStoreInterface) {
-    .GetVerifierKeyDigest     = (PARCCryptoHash *(*)(void *)) _getSecretKeyDigest,
-    .GetCertificateDigest     = NULL,
-    .GetDEREncodedCertificate = NULL,
-    .GetDEREncodedPublicKey   = NULL,
-    .GetDEREncodedPrivateKey  = NULL,
-    .Release                  = (void (*)(void **)) _parcSymmetricKeyStore_Finalize,
+    .getVerifierKeyDigest     = (PARCKeyStoreGetVerifierKeyDigest *)  _getSecretKeyDigest,
+    .getCertificateDigest     = NULL,
+    .getDEREncodedCertificate = NULL,
+    .getDEREncodedPublicKey   = NULL,
+    .getDEREncodedPrivateKey  = NULL,
 };
 
 parcObject_ImplementAcquire(parcSymmetricKeyStore, PARCSymmetricKeyStore);

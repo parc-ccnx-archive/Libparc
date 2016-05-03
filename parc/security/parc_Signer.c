@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @header <#Headline Name#>
- * <#Abstract#>
- *
- *     <#Discussion#>
- *
- * @author Marc Mosko
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
- *
- * Example:
- * @code
- * <#example#>
- * @endcode
+ * @author Marc Mosko, Christopher A. Wood
+ * @copyright 2013-2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
  */
 #include <config.h>
 #include <stdio.h>
@@ -50,7 +40,7 @@
 #include <parc/security/parc_KeyStore.h>
 
 struct parc_signer {
-    void *instance;
+    PARCObject *instance;
     PARCSigningInterface *interface;
 };
 
@@ -58,8 +48,8 @@ static bool
 _parcSigner_FinalRelease(PARCSigner **signerPtr)
 {
     PARCSigner *signer = *signerPtr;
-    if (signer->interface != NULL) {
-        signer->interface->Release(&(signer->instance));
+    if (signer->instance != NULL) {
+        parcObject_Release(&(signer->instance));
     }
     return true;
 }
@@ -77,13 +67,13 @@ parcObject_Override(PARCSigner, PARCObject,
     .destructor = (PARCObjectDestructor *) _parcSigner_FinalRelease);
 
 PARCSigner *
-parcSigner_Create(void *instance, PARCSigningInterface *interfaceContext)
+parcSigner_Create(PARCObject *instance, PARCSigningInterface *interfaceContext)
 {
     assertNotNull(interfaceContext, "Parameter must be non-null implementation pointer");
 
     PARCSigner *signer = parcObject_CreateInstance(PARCSigner);
     if (signer != NULL) {
-        signer->instance = instance;
+        signer->instance = parcObject_Acquire(instance);
         signer->interface = interfaceContext;
     }
     return signer;
@@ -97,6 +87,7 @@ parcSigner_CreatePublicKey(PARCSigner *signer)
     PARCCryptoHash *hash = parcKeyStore_GetVerifierKeyDigest(keyStore);
 
     PARCKeyId *keyid = parcKeyId_Create(parcCryptoHash_GetDigest(hash));
+    parcCryptoHash_Release(&hash);
 
     PARCBuffer *derEncodedKey = parcKeyStore_GetDEREncodedPublicKey(keyStore);
 
@@ -107,7 +98,6 @@ parcSigner_CreatePublicKey(PARCSigner *signer)
     parcBuffer_Release(&derEncodedKey);
     parcKeyId_Release(&keyid);
 
-    parcCryptoHash_Release(&hash);
     return key;
 }
 
@@ -137,6 +127,25 @@ parcSigner_SignDigest(const PARCSigner *signer, const PARCCryptoHash *parcDigest
 
     assertNotNull(parcDigest, "parcDigest to sign must not be null");
     return signer->interface->SignDigest(signer->instance, parcDigest);
+}
+
+PARCSignature *
+parcSigner_SignBuffer(const PARCSigner *signer, const PARCBuffer *buffer)
+{
+    parcSigner_OptionalAssertValid(signer);
+    assertNotNull(buffer, "buffer to sign must not be null");
+
+    PARCCryptoHashType hashType = parcSigner_GetCryptoHashType(signer);
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(hashType);
+    parcCryptoHasher_Init(hasher);
+    parcCryptoHasher_UpdateBuffer(hasher, buffer);
+    PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
+    parcCryptoHasher_Release(&hasher);
+
+    PARCSignature *signature = parcSigner_SignDigest(signer, hash);
+    parcCryptoHash_Release(&hash);
+
+    return signature;
 }
 
 PARCSigningAlgorithm
