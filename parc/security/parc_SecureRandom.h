@@ -18,6 +18,8 @@
 
 #include <stdbool.h>
 
+#include <parc/algol/parc_Object.h>
+
 struct parc_securerandom;
 typedef struct parc_securerandom PARCSecureRandom;
 

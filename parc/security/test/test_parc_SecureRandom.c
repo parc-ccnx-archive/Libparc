@@ -17,6 +17,7 @@
 #include <LongBow/testing.h>
 #include <LongBow/debugging.h>
 
+#include <parc/security/parc_Security.h>
 #include <parc/algol/parc_Memory.h>
 #include <parc/algol/parc_SafeMemory.h>
 #include <parc/algol/parc_LinkedList.h>

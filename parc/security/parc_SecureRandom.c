@@ -51,11 +51,29 @@ parcSecureRandom_AssertValid(const PARCSecureRandom *instance)
 PARCSecureRandom *
 parcSecureRandom_Create()
 {
+#if 0
+    // If /dev/urandom cannot be opened, this will be in a non-working state yet appear to be successful.
+    // Since the subsequent read and write system calls are not checked for success, you probably won't get the
+    // properties needed
+    
     PARCSecureRandom *result = parcObject_CreateInstance(PARCSecureRandom);
 
     if (result != NULL) {
         result->randomfd = open("/dev/urandom", O_RDWR);
     }
+#else
+    PARCSecureRandom *result = NULL;
+    
+    int fd = open("/dev/urandom", O_RDWR);
+    if (fd != -1) {
+        result = parcObject_CreateInstance(PARCSecureRandom);
+        if (result != NULL) {
+            result->randomfd = fd;
+        } else {
+            close(fd);
+        }
+    }
+#endif
 
     return result;
 }
@@ -90,6 +108,11 @@ parcSecureRandom_Next(PARCSecureRandom *random)
 ssize_t
 parcSecureRandom_NextBytes(PARCSecureRandom *random, PARCBuffer *buffer)
 {
+    // Buffers are modal in the sense that they are either ready for reading or for writing.
+    // Typically one 'writes' one or more times into a buffer then flips it for reading, and vice versa.
+    // This puts byte into the buffer, but doesn't move the position to the end of the update.
+    // The documentation for this function says "use the buffer" but doesn't say what the state of the buffer is.
+    // Also the read can return less than length number of bytes and as such the buffer will still have the original limit.
     size_t length = parcBuffer_Remaining(buffer);
     ssize_t result = read(random->randomfd, parcBuffer_Overlay(buffer, 0), length);
     return result;
@@ -99,14 +122,25 @@ bool
 parcSecureRandom_IsValid(const PARCSecureRandom *instance)
 {
     bool result = false;
-
+#if 0
     if (instance == NULL) {
         return false;
     }
 
+    // Actually a 0 file descriptor is valid, what is invalid is a file descriptor of -1.
+    // You can get a file descriptor of zero by simply close(0); int fd0 = open("/dev/random,...);
+    // Many daemon programmes close 0, 1, 2 in order to disassociate from the controlling terminal,
+    // so if this type was used in a daemon process, it could very well get file descriptor 0 when it opens /dev/urandom
     if (instance->randomfd != 0) {
         result = true;
     }
+#else
+    if (instance != NULL) {
+        if (instance->randomfd != -1) {
+            result = true;
+        }
+    }
+#endif
 
     return result;
 }
