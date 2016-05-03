@@ -108,6 +108,8 @@ uint32_t parcSecureRandom_Next(PARCSecureRandom *rng);
 
 /**
  * Fill a `PARCBuffer` instance with random bytes from a `PARCSecureRandom` instance.
+ * The resultant `PARCBuffer` will be ready for reading, i.e., one does not need
+ * to call `parcBuffer_Flip()` on the result.
  *
  * @param [in] rng A `PARCSecureRandom` instance.
  * @param [in] buffer A `PARCBuffer` instance to fill.
