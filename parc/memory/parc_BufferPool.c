@@ -137,7 +137,7 @@ parcBufferPool_AssertValid(const PARCBufferPool *instance)
 }
 
 PARCBufferPool *
-parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObjectDescriptor *originalDescriptor)
+parcBufferPool_CreateExtending(const PARCObjectDescriptor *originalDescriptor, size_t limit, size_t bufferSize)
 {
     PARCBufferPool *result = parcObject_CreateInstance(PARCBufferPool);
 
@@ -164,7 +164,7 @@ parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObject
 PARCBufferPool *
 parcBufferPool_Create(size_t limit, size_t bufferSize)
 {
-    PARCBufferPool *result = parcBufferPool_CreateExtending(limit, bufferSize, &PARCBuffer_Descriptor);
+    PARCBufferPool *result = parcBufferPool_CreateExtending(limit, bufferSize, &parcObject_DescriptorName(PARCBuffer));
 
     return result;
 }

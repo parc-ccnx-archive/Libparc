@@ -68,9 +68,10 @@ typedef struct object_header {
     PARCReferenceCount references;
     const PARCObjectDescriptor *descriptor;
     
-    // Currently every object is lockable, but at some point in the future this will be controlled by the descriptor.
     // The locking member points to the locking structure or is NULL if the object does not support locking.
     _PARCObjectLocking *locking;
+    
+    // Currently every object is lockable, but at some point in the future this will be controlled by the descriptor.
     _PARCObjectLocking lock;
 
     void *data[];

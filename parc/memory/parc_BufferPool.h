@@ -67,11 +67,9 @@
 #define PARCLibrary_parc_BufferPool
 #include <stdbool.h>
 
-#include <parc/algol/parc_JSON.h>
-#include <parc/algol/parc_HashCode.h>
+#include <parc/algol/parc_Object.h>
 
-struct PARCBufferPool;
-typedef struct PARCBufferPool PARCBufferPool;
+parcObject_Declare(PARCBufferPool);
 
 /**
  * Increase the number of references to a `PARCBufferPool` instance.
@@ -82,14 +80,14 @@ typedef struct PARCBufferPool PARCBufferPool;
  *
  * @param [in] instance A pointer to a valid PARCBufferPool instance.
  *
- * @return The same value as @p instance.
+ * @return The same value as the parameter @p instance.
  *
  * Example:
  * @code
  * {
  *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
- *     PARCBufferPool *b = parcBufferPool_Acquire();
+ *     PARCBufferPool *b = parcBufferPool_Acquire(a);
 
  *     parcBufferPool_Release(&a);
  *     parcBufferPool_Release(&b);
@@ -127,7 +125,7 @@ void parcBufferPool_AssertValid(const PARCBufferPool *instance);
  *
  * This function is equivalent to invoking
  * @code
- *     PARCBufferPool *a = parcBufferPool_CreateExtending(5, 10, &PARCBuffer_Descriptor);
+ *     PARCBufferPool *a = parcBufferPool_CreateExtending(&parcObject_DescriptorName(PARCBuffer), 5, 10);
  * @endcode
  *
  * The value of @p limit is the maximum number of instances that the pool will cache,
@@ -153,7 +151,7 @@ PARCBufferPool *parcBufferPool_Create(size_t limit, size_t bufferSize);
  * The value of @p limit is the maximum number of instances that the pool will cache,
  * and @p bufferSize is the size of the `PARCBuffer` instances cached.
  *
-  * This function creates a PARCBufferPool that creates and manages instances of PARCBuffer which may have been extended.
+ * This function creates a PARCBufferPool that creates and manages instances of PARCBuffer which may have been extended.
  *
  * @return non-NULL A pointer to a valid PARCBufferPool instance.
  * @return NULL An error occurred.
@@ -161,13 +159,13 @@ PARCBufferPool *parcBufferPool_Create(size_t limit, size_t bufferSize);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_CreateExtending(5, 10, &MyPARCBuffer_Descriptor);
+ *     PARCBufferPool *a = parcBufferPool_CreateExtending(&parcObject_DescriptorName(MyPARCBuffer), 5, 10);
  *
  *     parcBufferPool_Release(&a);
  * }
  * @endcode
  */
-PARCBufferPool *parcBufferPool_CreateExtending(size_t limit, size_t bufferSize, const PARCObjectDescriptor *originalDescriptor);
+PARCBufferPool *parcBufferPool_CreateExtending(const PARCObjectDescriptor *originalDescriptor, size_t limit, size_t bufferSize);
 
 /**
  * Print a human readable representation of the given `PARCBufferPool`.
@@ -202,7 +200,7 @@ void parcBufferPool_Display(const PARCBufferPool *instance, int indentation);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     if (parcBufferPool_IsValid(a)) {
  *         printf("Instance is valid.\n");
@@ -230,7 +228,7 @@ bool parcBufferPool_IsValid(const PARCBufferPool *instance);
  * Example:
  * @code
  * {
- *     PARCBufferPool *a = parcBufferPool_Create();
+ *     PARCBufferPool *a = parcBufferPool_Create(5, 10);
  *
  *     parcBufferPool_Release(&a);
  * }
@@ -267,7 +265,8 @@ PARCBuffer *parcBufferPool_GetInstance(PARCBufferPool *bufferPool);
 /**
  * Set the largest number of buffers the pool will cache.
  *
- * If the new limit is less than the current limit, the number of buffers the pool will cache will decay during use.
+ * If the new limit is less than the current limit, and the current pool size is greater than the new limit,
+ * the number of buffers the pool will cache will decay as they are obtained and released from the pool during use.
  *
  * @param [in] bufferPool A pointer to a valid PARCBufferPool instance.
  * @param [in] limit the largest number of buffers the pool will cache.

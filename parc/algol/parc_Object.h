@@ -79,15 +79,25 @@ typedef struct PARCObjectDescriptor PARCObjectDescriptor;
 /**
  * @define parcObject_DescriptorName(_type)
  *
- * Creates a subtype specific name for a subtype's `PARCObjectDescriptor`
+ * Compose the token for a subtype specific name for a subtype's `PARCObjectDescriptor`
  * which is a parameter to `parcObject_Create`.
+ *
+ * For example
+ * @code
+ * parcObject_DescriptorName(MyType)
+ * @endcode
+ *
+ * generates the token `MyType_Descriptor`
+ *
+ * Implementations should use this macro, rather than hardcode the format in their code.
  */
 #define parcObject_DescriptorName(_type) parcCMacro_Cat(_type, _Descriptor)
 
 /**
  * @define parcObjectDescriptor_Declaration(_type_)
  *
- * Create a declaration of a `PARCObject` implementation.
+ * Create a declaration of a `PARCObjectDescriptor` implementation.
+ * To define the actual implementation, use `parcObject_Override`
  */
 #define parcObjectDescriptor_Declaration(_type_) const PARCObjectDescriptor parcObject_DescriptorName(_type_)
 
@@ -95,9 +105,10 @@ typedef struct PARCObjectDescriptor PARCObjectDescriptor;
  * @define parcObject_Declare(_type_)
  *
  * Create a declaration of a `PARCObject` implementation.
+ * This causes the corresponding `typedef` to be defined
+ * and the global PARCObjectDescriptor corresponding to the declared type.
  */
 #define parcObject_Declare(_type_) \
-    struct _type_; \
     typedef struct _type_ _type_; \
     extern parcObjectDescriptor_Declaration(_type_)
 
