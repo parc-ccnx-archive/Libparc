@@ -19,7 +19,7 @@
 #include <parc/algol/parc_DisplayIndented.h>
 #include <parc/algol/parc_Memory.h>
 
-#include "parc_SecureRandom.h"
+#include <parc/security/parc_SecureRandom.h>
 
 struct parc_securerandom {
     int randomfd;
@@ -39,13 +39,7 @@ _parcSecureRandom_Destructor(PARCSecureRandom **instancePtr)
 parcObject_ImplementAcquire(parcSecureRandom, PARCSecureRandom);
 parcObject_ImplementRelease(parcSecureRandom, PARCSecureRandom);
 parcObject_Override(PARCSecureRandom, PARCObject,
-                    .destructor = (PARCObjectDestructor *) _parcSecureRandom_Destructor,
-                    .copy = (PARCObjectCopy *) parcSecureRandom_Copy,
-                    .toString = (PARCObjectToString *) parcSecureRandom_ToString,
-                    .equals = (PARCObjectEquals *) parcSecureRandom_Equals,
-                    .compare = (PARCObjectCompare *) parcSecureRandom_Compare,
-                    .hashCode = (PARCObjectHashCode *) parcSecureRandom_HashCode,
-                    .toJSON = (PARCObjectToJSON *) parcSecureRandom_ToJSON);
+                    .destructor = (PARCObjectDestructor *) _parcSecureRandom_Destructor);
 
 void
 parcSecureRandom_AssertValid(const PARCSecureRandom *instance)
@@ -76,10 +70,9 @@ _parcSecureRandom_ReSeed(PARCSecureRandom *random, PARCBuffer *buffer)
 PARCSecureRandom *
 parcSecureRandom_CreateWithSeed(PARCBuffer *seed)
 {
-    PARCSecureRandom *result = parcObject_CreateInstance(PARCSecureRandom);
+    PARCSecureRandom *result = parcSecureRandom_Create();
 
     if (result != NULL) {
-        result->randomfd = open("/dev/urandom", O_RDWR);
         _parcSecureRandom_ReSeed(result, seed);
     }
 
@@ -90,63 +83,15 @@ uint32_t
 parcSecureRandom_Next(PARCSecureRandom *random)
 {
     uint32_t value;
-    ssize_t result = read(random->randomfd, &value, sizeof(value));
-    return result;
+    read(random->randomfd, &value, sizeof(value));
+    return value;
 }
 
-int
+ssize_t
 parcSecureRandom_NextBytes(PARCSecureRandom *random, PARCBuffer *buffer)
 {
     size_t length = parcBuffer_Remaining(buffer);
-    ssize_t result = read(random->randomfd, parcBuffer_Overlay(buffer, length), length);
-    return result;
-}
-
-int
-parcSecureRandom_Compare(const PARCSecureRandom *instance, const PARCSecureRandom *other)
-{
-    int result = 0;
-
-    return result;
-}
-
-PARCSecureRandom *
-parcSecureRandom_Copy(const PARCSecureRandom *original)
-{
-    PARCSecureRandom *result = NULL;
-
-    return result;
-}
-
-void
-parcSecureRandom_Display(const PARCSecureRandom *instance, int indentation)
-{
-    parcDisplayIndented_PrintLine(indentation, "PARCSecureRandom@%p {", instance);
-    /* Call Display() functions for the fields here. */
-    parcDisplayIndented_PrintLine(indentation, "}");
-}
-
-bool
-parcSecureRandom_Equals(const PARCSecureRandom *x, const PARCSecureRandom *y)
-{
-    bool result = false;
-
-    if (x == y) {
-        result = true;
-    } else if (x == NULL || y == NULL) {
-        result = false;
-    } else {
-        /* perform instance specific equality tests here. */
-    }
-
-    return result;
-}
-
-PARCHashCode
-parcSecureRandom_HashCode(const PARCSecureRandom *instance)
-{
-    PARCHashCode result = 0;
-
+    ssize_t result = read(random->randomfd, parcBuffer_Overlay(buffer, 0), length);
     return result;
 }
 
@@ -155,29 +100,13 @@ parcSecureRandom_IsValid(const PARCSecureRandom *instance)
 {
     bool result = false;
 
-    if (instance != NULL) {
+    if (instance == NULL) {
+        return false;
+    }
+
+    if (instance->randomfd != 0) {
         result = true;
     }
-
-    return result;
-}
-
-PARCJSON *
-parcSecureRandom_ToJSON(const PARCSecureRandom *instance)
-{
-    PARCJSON *result = parcJSON_Create();
-
-    if (result != NULL) {
-
-    }
-
-    return result;
-}
-
-char *
-parcSecureRandom_ToString(const PARCSecureRandom *instance)
-{
-    char *result = parcMemory_Format("PARCSecureRandom@%p\n", instance);
 
     return result;
 }
