@@ -60,7 +60,7 @@
 
 #include <parc/algol/parc_LinkedList.h>
 
-#include "parc_BufferPool.h"
+#include "parc_SimpleBufferPool.h"
 
 struct PARCSimpleBufferPool {
     size_t bufferSize;
@@ -84,7 +84,7 @@ _parcSimpleBufferPool_Destructor(PARCSimpleBufferPool **instancePtr)
 }
 
 static bool
-_parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
+_parcSimpleBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
 {
     PARCBuffer *buffer = *bufferPtr;
     *bufferPtr = 0;
@@ -93,6 +93,10 @@ _parcBuffer_PoolDestructor(PARCBuffer **bufferPtr)
     
     if (bufferPool->limit > parcLinkedList_Size(bufferPool->freeList)) {
         parcLinkedList_Append(bufferPool->freeList, buffer);
+    } else {
+        parcBuffer_Acquire(buffer);
+        parcObject_SetDescriptor(buffer, &parcObject_DescriptorName(PARCBuffer));
+        parcBuffer_Release(&buffer);
     }
     
     return false;
@@ -102,8 +106,7 @@ parcObject_ImplementAcquire(parcSimpleBufferPool, PARCSimpleBufferPool);
 
 parcObject_ImplementRelease(parcSimpleBufferPool, PARCSimpleBufferPool);
 
-parcObject_Override(
-	PARCSimpleBufferPool, PARCObject,
+parcObject_Override(PARCSimpleBufferPool, PARCObject,
 	.destructor = (PARCObjectDestructor *) _parcSimpleBufferPool_Destructor);
 
 PARCSimpleBufferPool *
@@ -117,10 +120,10 @@ parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
         result->freeList = parcLinkedList_Create();
         
         char *string;
-        asprintf(&string, "PARCPooledBuffer=%zu", bufferSize);
-        result->descriptor = parcObjectDescriptor_CreateExtension(&PARCBuffer_Descriptor, string);
+        asprintf(&string, "PARCSimpleBufferPool=%zu", bufferSize);
+        result->descriptor = parcObjectDescriptor_CreateExtension(&parcObject_DescriptorName(PARCBuffer), string);
         free(string);
-        result->descriptor->destructor = (PARCObjectDestructor *) _parcBuffer_PoolDestructor;
+        result->descriptor->destructor = (PARCObjectDestructor *) _parcSimpleBufferPool_BufferDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
     

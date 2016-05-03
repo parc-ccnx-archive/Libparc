@@ -65,10 +65,9 @@
 #define PARCLibrary_parc_BufferPool
 #include <stdbool.h>
 
-#include <parc/algol/parc_JSON.h>
-#include <parc/algol/parc_HashCode.h>
+#include <parc/algol/parc_Object.h>
 
-typedef struct PARCSimpleBufferPool PARCSimpleBufferPool;
+parcObject_Declare(PARCSimpleBufferPool);
 
 /**
  * Increase the number of references to a `PARCBufferPool` instance.

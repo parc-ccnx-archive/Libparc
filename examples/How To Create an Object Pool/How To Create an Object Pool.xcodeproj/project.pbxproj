@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5CFB27251CCB281A007CD418 /* parc_BufferPool.c in Sources */ = {isa = PBXBuildFile; fileRef = 5CFB27221CCB281A007CD418 /* parc_BufferPool.c */; };
+		5C76AF491CD92E780072D660 /* parc_SimpleBufferPool.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C76AF471CD92E780072D660 /* parc_SimpleBufferPool.c */; };
 		5CFB27271CCB297B007CD418 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5CFB27261CCB297B007CD418 /* main.c */; };
 /* End PBXBuildFile section */
 
@@ -24,10 +24,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5C76AF471CD92E780072D660 /* parc_SimpleBufferPool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_SimpleBufferPool.c; sourceTree = SOURCE_ROOT; };
+		5C76AF481CD92E780072D660 /* parc_SimpleBufferPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_SimpleBufferPool.h; sourceTree = SOURCE_ROOT; };
 		5CFB27181CCAC85A007CD418 /* How To Create an Object Pool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "How To Create an Object Pool"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5CFB27221CCB281A007CD418 /* parc_BufferPool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parc_BufferPool.c; sourceTree = SOURCE_ROOT; };
-		5CFB27231CCB281A007CD418 /* parc_BufferPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parc_BufferPool.h; sourceTree = SOURCE_ROOT; };
-		5CFB27241CCB281A007CD418 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = SOURCE_ROOT; };
 		5CFB27261CCB297B007CD418 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -61,10 +60,9 @@
 		5CFB271A1CCAC85A007CD418 /* How To Create an Object Pool */ = {
 			isa = PBXGroup;
 			children = (
+				5C76AF471CD92E780072D660 /* parc_SimpleBufferPool.c */,
+				5C76AF481CD92E780072D660 /* parc_SimpleBufferPool.h */,
 				5CFB27261CCB297B007CD418 /* main.c */,
-				5CFB27221CCB281A007CD418 /* parc_BufferPool.c */,
-				5CFB27231CCB281A007CD418 /* parc_BufferPool.h */,
-				5CFB27241CCB281A007CD418 /* test */,
 			);
 			path = "How To Create an Object Pool";
 			sourceTree = "<group>";
@@ -125,8 +123,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C76AF491CD92E780072D660 /* parc_SimpleBufferPool.c in Sources */,
 				5CFB27271CCB297B007CD418 /* main.c in Sources */,
-				5CFB27251CCB281A007CD418 /* parc_BufferPool.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
