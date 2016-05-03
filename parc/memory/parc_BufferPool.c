@@ -164,7 +164,7 @@ parcBufferPool_CreateExtending(const PARCObjectDescriptor *originalDescriptor, s
 PARCBufferPool *
 parcBufferPool_Create(size_t limit, size_t bufferSize)
 {
-    PARCBufferPool *result = parcBufferPool_CreateExtending(limit, bufferSize, &parcObject_DescriptorName(PARCBuffer));
+    PARCBufferPool *result = parcBufferPool_CreateExtending(&parcObject_DescriptorName(PARCBuffer), limit, bufferSize);
 
     return result;
 }
