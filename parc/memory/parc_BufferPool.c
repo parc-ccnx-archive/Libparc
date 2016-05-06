@@ -37,7 +37,7 @@
  * # claims and grants only apply to the pieces (source code, programs, text,
  * # media, etc) that they have contributed directly to this software.
  * #
- * # There is no guarantee that this file is complete, up to date or accurate. It
+ * # There is no guarantee that this section is complete, up to date or accurate. It
  * # is up to the contributors to maintain their section in this file up to date
  * # and up to the user of the software to verify any claims herein.
  * #

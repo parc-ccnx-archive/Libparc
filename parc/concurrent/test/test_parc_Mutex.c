@@ -44,8 +44,8 @@ LONGBOW_TEST_RUNNER(parc_Mutex)
     // The following Test Fixtures will run their corresponding Test Cases.
     // Test Fixtures are run in the order specified, but all tests should be idempotent.
     // Never rely on the execution order of tests or share state between them.
-    LONGBOW_RUN_TEST_FIXTURE(CreateAcquireRelease);
-    LONGBOW_RUN_TEST_FIXTURE(Object);
+//    LONGBOW_RUN_TEST_FIXTURE(CreateAcquireRelease);
+//    LONGBOW_RUN_TEST_FIXTURE(Object);
     LONGBOW_RUN_TEST_FIXTURE(Specialization);
 }
 
@@ -227,6 +227,7 @@ LONGBOW_TEST_CASE(Specialization, parcMutex_Example)
     //        }
     PARCAtomicBool *atomic = parcAtomicBool_Create(false);
     
+    parcAtomicBool_Toggle(atomic, true);
     parcAtomicBool_Toggle(atomic, true);
     
     parcAtomicBool_Toggle(atomic, false);

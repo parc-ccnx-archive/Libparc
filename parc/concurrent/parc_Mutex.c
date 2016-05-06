@@ -182,7 +182,7 @@ parcAtomicBool_Toggle(PARCAtomicBool *atomic, bool newValue)
 {
     bool predicate = !newValue;
     
-    while (__sync_bool_compare_and_swap(atomic, predicate, newValue))
+    while (__sync_bool_compare_and_swap(atomic, predicate, newValue) == false)
         ;
 }
 
