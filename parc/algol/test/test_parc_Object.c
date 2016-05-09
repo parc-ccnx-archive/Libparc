@@ -224,6 +224,7 @@ LONGBOW_TEST_RUNNER(parcObject)
     LONGBOW_RUN_TEST_FIXTURE(Fail);
     LONGBOW_RUN_TEST_FIXTURE(Locking);
     LONGBOW_RUN_TEST_FIXTURE(WaitNotify);
+    LONGBOW_RUN_TEST_FIXTURE(Synchronization);
 }
 
 LONGBOW_TEST_RUNNER_SETUP(parcObject)
@@ -1538,6 +1539,47 @@ LONGBOW_TEST_CASE(StaticObjects, parcObject_InitAndClearInstanceImpl)
     parcObject_AssertValid(globalObject);
     
 //    parcObject_Release(&globalObject);
+}
+
+LONGBOW_TEST_FIXTURE(Synchronization)
+{
+    LONGBOW_RUN_TEST_CASE(Synchronization, parcObject_SynchronizeBegin);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(Synchronization)
+{
+    _originalMemoryProvider = parcMemory_SetInterface(&PARCSafeMemoryAsPARCMemory);
+    
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(Synchronization)
+{
+    uint32_t outstandingAllocations = parcSafeMemory_ReportAllocation(STDOUT_FILENO);
+    
+    parcMemory_SetInterface(_originalMemoryProvider);
+    if (outstandingAllocations != 0) {
+        printf("%s leaks memory by %d allocations\n", longBowTestRunner_GetName(testRunner), outstandingAllocations);
+        return LONGBOW_STATUS_MEMORYLEAK;
+    }
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Synchronization, parcObject_SynchronizeBegin)
+{
+    PARCObject *dummy = parcObject_CreateInstance(_DummyObject);
+    
+    bool result = parcObject_BarrierSet(dummy);
+    assertTrue(result, "Expected parcObject_BarrierSet to always return true.");
+    
+    _PARCObjectHeader *header = _parcObject_Header(dummy);
+    assertTrue(header->barrier, "Expected the header barrier to be set.");
+    
+    result = parcObject_BarrierUnset(dummy);
+    assertFalse(result, "Expected parcObject_BarrierUnset to always return false.");
+    assertFalse(header->barrier, "Expected the header barrier to NOT be set.");
+
+    parcObject_Release(&dummy);
 }
 
 int

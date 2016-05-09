@@ -65,6 +65,7 @@ typedef struct object_header {
 #define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x0ddFadda
     uint32_t magicGuardNumber;
     bool isAllocated;
+    bool barrier;
     PARCReferenceCount references;
     const PARCObjectDescriptor *descriptor;
     
@@ -346,7 +347,6 @@ static inline void
 _parcObjectHeader_AssertValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     trapIllegalValueIf(header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER, "PARCObject@%p is corrupt.", object);
-//    trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
     trapIllegalValueIf(header->descriptor == NULL, "PARCObject@%p descriptor cannot be NULL.", object);
     if (header->descriptor->isLockable) {
         trapIllegalValueIf(header->locking == NULL, "PARCObject@%p is corrupt. Is Lockable but no locking structure", object);
@@ -547,6 +547,7 @@ static inline _PARCObjectHeader *
 _parcObjectHeader_InitAllocated(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
 {
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
+    header->barrier = false;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
     header->isAllocated = true;
@@ -935,4 +936,25 @@ parcObject_NotifyAll(const PARCObject *object)
     if (locking != NULL) {
         pthread_cond_broadcast(&locking->notification);
     }
+}
+
+bool
+parcObject_BarrierSet(const PARCObject *object)
+{
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    while (__sync_bool_compare_and_swap(&header->barrier, false, true) == false)
+        ;
+    return true;
+}
+
+bool
+parcObject_BarrierUnset(const PARCObject *object)
+{
+    _PARCObjectHeader *header = _parcObject_Header(object);
+    
+    while (__sync_bool_compare_and_swap(&header->barrier, true, false) == false)
+        ;
+    
+    return false;
 }

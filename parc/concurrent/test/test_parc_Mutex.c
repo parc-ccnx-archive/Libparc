@@ -215,6 +215,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
+
 LONGBOW_TEST_CASE(Specialization, parcMutex_Example)
 {
     
@@ -222,15 +223,10 @@ LONGBOW_TEST_CASE(Specialization, parcMutex_Example)
     
     PARCMutex *instance = parcMutex_Create();
     
-    //        parcMutex_Synchronize(object) {
-    //
-    //        }
-    PARCAtomicBool *atomic = parcAtomicBool_Create(false);
+    parcObject_BeginSynchronize(instance);
     
-    parcAtomicBool_Toggle(atomic, true);
-    parcAtomicBool_Toggle(atomic, true);
+    parcObject_EndSynchronize(instance);
     
-    parcAtomicBool_Toggle(atomic, false);
     
     parcMutex_Release(&instance);
 }

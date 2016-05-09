@@ -1396,9 +1396,8 @@ void parcObject_NotifyAll(const PARCObject *object);
 /**
  * @def parcObject_Mutex
  *
- * parcObject_Mutex establishes a mutual exclusion region of code using the given object as the mutex semaphore,
- * executes the specified code block and exits the mutual exclusion region.
- *
+ * This macro uses the functions `parcObject_Lock` and `parcObject_Unlock`
+ * to provide a simple syntax for implementing a mutual exclusion region of code.
  *
  * @param [in] _object_ A pointer to a valid PARCObject that implements locking.
  *
@@ -1410,9 +1409,9 @@ void parcObject_NotifyAll(const PARCObject *object);
  *      }
  * }
  * @endcode
+ * @see parcObject_Synchronize
  */
 #define parcObject_Mutex(_object_) for (bool once = true; once && parcObject_Lock(_object_); parcObject_Unlock(_object_), once = false)
-
 
 /**
  * Determine if a given `PARCObject` is and instance of the specified `PARCObjectDescriptor`.
@@ -1424,4 +1423,80 @@ void parcObject_NotifyAll(const PARCObject *object);
  * @return false @p object is not an instance of @p descriptor.
  */
 bool parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescriptor *descriptor);
+
+/**
+ * Atomically set an object's barrier.
+ *
+ * If the barrier is not set, the barrier will be set and this function returns `true`.
+ *
+ * If the barrier is already set, any subsequent attempt to set the barrier will block until the barrier is unset
+ * (see `parcObject_BarrierUnset`).
+ * If there are multiple competitors to set the barrier,
+ * only one will (indiscriminately) succeed and return and the remaining will continue to attempt to set the barrier.
+ *
+ * @param [in] object A pointer to a valid PARCObject
+ *
+ * @return true
+ *
+ * Example:
+ * @code
+ * {
+ *     parcObject_BarrierSet(object);
+ *
+ *     ...
+ *
+ *     parcObject_BarrierUnset(object);
+ * }
+ * @endcode
+ */
+bool parcObject_BarrierSet(const PARCObject *object);
+
+/**
+ * Unset an objects' barrier.
+ *
+ * If a barrier is set (see `parcObject_BarrierSet`), the barrier is unset (see `parcObject_BarrierUnset`).
+ *
+ * If a barrier is not set, this function will block until the barrier is set,
+ * whereupon it will be immediately unset the barrier and return.
+ *
+ * If there are multiple competitors attempting to unset the barrier,
+ * only one will (indiscriminately) succeed and return and the remaining will continue to attempt to unset the barrier.
+ *
+ * @param [in] object A pointer to a valid `PARCObject`
+ *
+ * @return false
+ *
+ * Example:
+ * @code
+ * {
+ *     parcObject_BarrierSet(object);
+ *
+ *     ...
+ *
+ *     parcObject_BarrierUnset(object);
+ * }
+ * @endcode
+ */
+bool parcObject_BarrierUnset(const PARCObject *object);
+
+/**
+ * Synchronize on a `PARCObject` instance to provide a simple mutual exclusion region of code.
+ *
+ * This macro uses the functions `parcObject_BarrierSet` and `parcObject_BarrierUnset`
+ * to provide a simple syntax for implementing a mutual exclusion region of code.
+ *
+ * @param [in] object A pointer to a valid `PARCObject`
+ *
+ * Example:
+ * @code
+ * {
+ *     parcObject_Synchronize(_object_) {
+ *         // Only one thread executes this code at a single time.
+ *     }
+ * }
+ * @endcode
+ * @see parcObject_Mutex
+ */
+#define parcObject_Synchronize(_object_) for (bool once = parcObject_BarrierSet(_object_); once; once = parcObject_BarrierUnset(_object_))
+
 #endif // libparc_parc_Object_h
