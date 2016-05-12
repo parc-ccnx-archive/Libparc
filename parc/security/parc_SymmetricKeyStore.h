@@ -89,7 +89,7 @@
  * ---------------------------------------------------------------------------
  *
  * @author Marc Mosko, Christopher A. Wood, Computing Science Laboratory, PARC
- * @copyright 2013-2016, Palo Alto Research Center, Inc. (PARC), A Xerox Company. All Rights Reserved.
+ * @copyright 2013-2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef libparc_parc_SymmetricKeyStore_h
 #define libparc_parc_SymmetricKeyStore_h
