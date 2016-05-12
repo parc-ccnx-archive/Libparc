@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -252,7 +252,7 @@ LONGBOW_TEST_CASE(Specialization, parcStopwatch_Multi)
     PARCStopwatch *a = parcStopwatch_Create();
     PARCStopwatch *b = parcStopwatch_Create();
     PARCStopwatch *c = parcStopwatch_Create();
-    
+   
     parcStopwatch_Start(a, b, c);
     sleep(2);
     uint64_t nanos = parcStopwatch_ElapsedTimeNanos(a);
@@ -260,7 +260,7 @@ LONGBOW_TEST_CASE(Specialization, parcStopwatch_Multi)
     if (nanos > (3000000000)) {
         parcStopwatch_Display(a, 0);
     }
-    
+   
     parcStopwatch_Release(&a);
     parcStopwatch_Release(&b);
     parcStopwatch_Release(&c);
@@ -277,7 +277,7 @@ LONGBOW_TEST_CASE(Specialization, parcStopwatch_ElapsedTimeNanos)
     if (nanos > (3000000000)) {
         parcStopwatch_Display(instance, 0);
     }
-    
+   
     parcStopwatch_Release(&instance);
 }
 

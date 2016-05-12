@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -268,7 +268,7 @@ LONGBOW_TEST_FIXTURE(Specialization)
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetAtIndex);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetFirst);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_GetLast);
-    
+   
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveFirst_SingleElement);
     LONGBOW_RUN_TEST_CASE(Specialization, parcSortedList_RemoveLast);
@@ -417,14 +417,14 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_GetFirst)
     PARCBuffer *element6 = parcBuffer_WrapCString("6");
     PARCBuffer *element5 = parcBuffer_WrapCString("5");
     PARCBuffer *element8 = parcBuffer_WrapCString("8");
-    
+   
     parcSortedList_Add(instance, element1);
     parcSortedList_Add(instance, element2);
     parcSortedList_Add(instance, element3);
-    
+   
     PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetFirst(instance);
     assertTrue(parcBuffer_Equals(element1, actual), "Got the wrong value.");
-    
+   
     parcBuffer_Release(&element1);
     parcBuffer_Release(&element2);
     parcBuffer_Release(&element3);
@@ -447,14 +447,14 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_GetLast)
     PARCBuffer *element6 = parcBuffer_WrapCString("6");
     PARCBuffer *element5 = parcBuffer_WrapCString("5");
     PARCBuffer *element8 = parcBuffer_WrapCString("8");
-    
+   
     parcSortedList_Add(instance, element1);
     parcSortedList_Add(instance, element2);
     parcSortedList_Add(instance, element3);
-    
+   
     PARCBuffer *actual = (PARCBuffer *) parcSortedList_GetLast(instance);
     assertTrue(parcBuffer_Equals(element3, actual), "Got the wrong value at index 1");
-    
+   
     parcBuffer_Release(&element1);
     parcBuffer_Release(&element2);
     parcBuffer_Release(&element3);
@@ -469,18 +469,18 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_GetLast)
 LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveFirst)
 {
     PARCSortedList *deque = parcSortedList_Create();
-    
+   
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
     PARCBuffer *object2 = parcBuffer_WrapCString("2");
     PARCBuffer *object3 = parcBuffer_WrapCString("3");
-    
+   
     parcSortedList_Add(deque, object1);
     parcSortedList_Add(deque, object2);
     parcSortedList_Add(deque, object3);
-    
+   
     PARCBuffer *peek = parcSortedList_RemoveFirst(deque);
     assertTrue(parcBuffer_Equals(object1, peek), "Objects out of order");
-    
+   
     parcBuffer_Release(&peek);
     parcBuffer_Release(&object1);
     parcBuffer_Release(&object2);
@@ -493,11 +493,11 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveFirst_SingleElement)
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
     PARCSortedList *deque = parcSortedList_Create();
     parcSortedList_Add(deque, object1);
-    
+   
     PARCBuffer *peek = parcSortedList_RemoveFirst(deque);
     assertTrue(parcBuffer_Equals(object1, peek),
                "Objects out of order.");
-    
+   
     parcBuffer_Release(&peek);
     parcBuffer_Release(&object1);
     parcSortedList_Release(&deque);
@@ -508,18 +508,18 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveLast)
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
     PARCBuffer *object2 = parcBuffer_WrapCString("2");
     PARCBuffer *object3 = parcBuffer_WrapCString("3");
-    
+   
     PARCSortedList *deque = parcSortedList_Create();
     parcSortedList_Add(deque, object1);
     parcSortedList_Add(deque, object2);
     parcSortedList_Add(deque, object3);
-    
+   
     PARCBuffer *peek = parcSortedList_RemoveLast(deque);
     assertTrue(parcBuffer_Equals(object3, peek),
                "Objects out of order.");
-    
+   
     parcBuffer_Release(&peek);
-    
+   
     parcBuffer_Release(&object1);
     parcBuffer_Release(&object2);
     parcBuffer_Release(&object3);
@@ -529,14 +529,14 @@ LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveLast)
 LONGBOW_TEST_CASE(Specialization, parcSortedList_RemoveLast_SingleElement)
 {
     PARCBuffer *object1 = parcBuffer_WrapCString("1");
-    
+   
     PARCSortedList *deque = parcSortedList_Create();
     parcSortedList_Add(deque, object1);
-    
+   
     PARCBuffer *peek = parcSortedList_RemoveLast(deque);
     assertTrue(parcBuffer_Equals(object1, peek),
                "Objects out of order.");
-    
+   
     parcBuffer_Release(&object1);
     parcSortedList_Release(&deque);
 }

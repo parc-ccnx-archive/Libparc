@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -105,7 +105,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -115,7 +115,7 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNotNull(instance, "Expected non-null result from parcTimer_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcTimer_Acquire, instance);
-    
+   
     parcTimer_Release(&instance);
     assertNull(instance, "Expected null result from parcTimer_Release();");
 }
@@ -142,7 +142,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -186,9 +186,9 @@ LONGBOW_TEST_CASE(Object, parcTimer_HashCode)
 {
     PARCTimer *x = parcTimer_Create();
     PARCTimer *y = parcTimer_Create();
-    
+   
     parcObjectTesting_AssertHashCode(x, y);
-    
+   
     parcTimer_Release(&x);
     parcTimer_Release(&y);
 }
@@ -197,7 +197,7 @@ LONGBOW_TEST_CASE(Object, parcTimer_IsValid)
 {
     PARCTimer *instance = parcTimer_Create();
     assertTrue(parcTimer_IsValid(instance), "Expected parcTimer_Create to result in a valid instance.");
-    
+   
     parcTimer_Release(&instance);
     assertFalse(parcTimer_IsValid(instance), "Expected parcTimer_Release to result in an invalid instance.");
 }
@@ -205,7 +205,7 @@ LONGBOW_TEST_CASE(Object, parcTimer_IsValid)
 LONGBOW_TEST_CASE(Object, parcTimer_ToJSON)
 {
     PARCTimer *instance = parcTimer_Create();
-    
+   
     PARCJSON *json = parcTimer_ToJSON(instance);
 
     parcJSON_Release(&json);
@@ -216,11 +216,11 @@ LONGBOW_TEST_CASE(Object, parcTimer_ToJSON)
 LONGBOW_TEST_CASE(Object, parcTimer_ToString)
 {
     PARCTimer *instance = parcTimer_Create();
-    
+   
     char *string = parcTimer_ToString(instance);
-    
+   
     assertNotNull(string, "Expected non-NULL result from parcTimer_ToString");
-    
+   
     parcMemory_Deallocate((void **) &string);
     parcTimer_Release(&instance);
 }
@@ -239,7 +239,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 

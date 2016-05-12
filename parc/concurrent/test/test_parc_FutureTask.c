@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -105,11 +105,11 @@ LONGBOW_TEST_FIXTURE_SETUP(CreateAcquireRelease)
 LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 {
     int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
-    
+   
     if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -125,7 +125,7 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNotNull(instance, "Expected non-null result from parcFutureTask_Create(_function, _function);");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcFutureTask_Acquire, instance);
-    
+   
     parcFutureTask_Release(&instance);
     assertNull(instance, "Expected null result from parcFutureTask_Release();");
 }
@@ -133,14 +133,14 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
 LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease_PARCObject)
 {
     PARCBuffer *object = parcBuffer_Allocate(10);
-    
+   
     PARCFutureTask *instance = parcFutureTask_Create(_function, object);
     parcBuffer_Release(&object);
-    
+   
     assertNotNull(instance, "Expected non-null result from parcFutureTask_Create(_function, object);");
-    
+   
     parcObjectTesting_AssertAcquireReleaseContract(parcFutureTask_Acquire, instance);
-    
+   
     parcFutureTask_Release(&instance);
     assertNull(instance, "Expected null result from parcFutureTask_Release();");
 }
@@ -166,11 +166,11 @@ LONGBOW_TEST_FIXTURE_SETUP(Object)
 LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
 {
     int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
-    
+   
     if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -216,9 +216,9 @@ LONGBOW_TEST_CASE(Object, parcFutureTask_HashCode)
 {
     PARCFutureTask *x = parcFutureTask_Create(_function, _function);
     PARCFutureTask *y = parcFutureTask_Create(_function, _function);
-    
+   
     parcObjectTesting_AssertHashCode(x, y);
-    
+   
     parcFutureTask_Release(&x);
     parcFutureTask_Release(&y);
 }
@@ -227,7 +227,7 @@ LONGBOW_TEST_CASE(Object, parcFutureTask_IsValid)
 {
     PARCFutureTask *instance = parcFutureTask_Create(_function, _function);
     assertTrue(parcFutureTask_IsValid(instance), "Expected parcFutureTask_Create to result in a valid instance.");
-    
+   
     parcFutureTask_Release(&instance);
     assertFalse(parcFutureTask_IsValid(instance), "Expected parcFutureTask_Release to result in an invalid instance.");
 }
@@ -235,7 +235,7 @@ LONGBOW_TEST_CASE(Object, parcFutureTask_IsValid)
 LONGBOW_TEST_CASE(Object, parcFutureTask_ToJSON)
 {
     PARCFutureTask *instance = parcFutureTask_Create(_function, _function);
-    
+   
     PARCJSON *json = parcFutureTask_ToJSON(instance);
 
     parcJSON_Release(&json);
@@ -246,11 +246,11 @@ LONGBOW_TEST_CASE(Object, parcFutureTask_ToJSON)
 LONGBOW_TEST_CASE(Object, parcFutureTask_ToString)
 {
     PARCFutureTask *instance = parcFutureTask_Create(_function, _function);
-    
+   
     char *string = parcFutureTask_ToString(instance);
-    
+   
     assertNotNull(string, "Expected non-NULL result from parcFutureTask_ToString");
-    
+   
     parcMemory_Deallocate((void **) &string);
     parcFutureTask_Release(&instance);
 }
@@ -274,11 +274,11 @@ LONGBOW_TEST_FIXTURE_SETUP(Specialization)
 LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
 {
     int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
-    
+   
     if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -296,7 +296,7 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_Get)
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
 
     PARCFutureTaskResult result = parcFutureTask_Get(task, PARCTimeout_Immediate);
-    
+   
     assertTrue(parcExecution_Is(result.execution, PARCExecution_Timeout), "Expected Timeout, actual %s",
                parcExecution_GetMessage(result.execution));
     parcFutureTask_Release(&task);
@@ -308,7 +308,7 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_IsCancelled)
 
     bool actual = parcFutureTask_IsCancelled(task);
     assertFalse(actual, "Expected true.");
-    
+   
     parcFutureTask_Release(&task);
 }
 
@@ -317,9 +317,9 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_IsDone)
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
 
     bool actual = parcFutureTask_IsDone(task);
-    
+   
     assertFalse(actual, "Expected false.");
-    
+   
     parcFutureTask_Release(&task);
 }
 
@@ -328,9 +328,9 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_Run)
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
 
     parcFutureTask_Run(task);
-    
+   
     PARCFutureTaskResult actual = parcFutureTask_Get(task, PARCTimeout_Immediate);
-    
+   
     assertTrue(parcFutureTask_IsDone(task), "Expected parcFutureTask_IsDone to be true.");
     assertTrue(parcExecution_Is(actual.execution, PARCExecution_OK),
                "Expected OK, actual %s", parcExecution_GetMessage(actual.execution));
@@ -343,7 +343,7 @@ LONGBOW_TEST_CASE(Specialization, parcFutureTask_RunAndReset)
     PARCFutureTask *task = parcFutureTask_Create(_function, _function);
 
     bool actual = parcFutureTask_RunAndReset(task);
-    
+   
     assertTrue(actual, "Expectd parcFutureTask_RunAndReset to return true.");
     assertFalse(parcFutureTask_IsDone(task), "Expected parcFutureTask_IsDone to be false");
     parcFutureTask_Release(&task);

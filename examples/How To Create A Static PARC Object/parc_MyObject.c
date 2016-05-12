@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -79,8 +79,8 @@ static bool
 _parcMyObject_Destructor(PARCMyObject **instancePtr)
 {
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCMyObject pointer.");
-    
-    
+
+
     /* cleanup the instance fields here */
     return true;
 }
@@ -111,7 +111,7 @@ PARCMyObject *
 parcMyObject_Wrap(void *origin)
 {
     PARCMyObject *result = parcObject_Wrap(origin, PARCMyObject);
-        
+
     return  result;
 }
 
@@ -123,7 +123,7 @@ parcMyObject_Init(PARCMyObject *object, int x, double y, double z)
         object->y = y;
         object->z = z;
     }
-    
+
     return object;
 }
 
@@ -131,13 +131,13 @@ PARCMyObject *
 parcMyObject_Create(int x, double y, double z)
 {
     PARCMyObject *result = parcObject_CreateInstance(PARCMyObject);
-    
+
     if (result != NULL) {
         result->x = x;
         result->y = y;
         result->z = z;
     }
-    
+
     return (PARCMyObject *) result;
 }
 
@@ -145,7 +145,7 @@ int
 parcMyObject_Compare(const PARCMyObject *instance, const PARCMyObject *other)
 {
     int result = 0;
-    
+
     return result;
 }
 
@@ -153,7 +153,7 @@ PARCMyObject *
 parcMyObject_Copy(const PARCMyObject *original)
 {
     PARCMyObject *result = NULL;
-    
+
     return result;
 }
 
@@ -167,7 +167,7 @@ bool
 parcMyObject_Equals(const PARCMyObject *x, const PARCMyObject *y)
 {
     bool result = false;
-    
+
     if (x == y) {
         result = true;
     } else if (x == NULL || y == NULL) {
@@ -175,7 +175,7 @@ parcMyObject_Equals(const PARCMyObject *x, const PARCMyObject *y)
     } else {
         /* perform instance specific equality tests here. */
     }
-    
+
     return result;
 }
 
@@ -183,7 +183,7 @@ PARCHashCode
 parcMyObject_HashCode(const PARCMyObject *instance)
 {
     PARCHashCode result = 0;
-    
+
     return result;
 }
 
@@ -191,11 +191,11 @@ bool
 parcMyObject_IsValid(const PARCMyObject *instance)
 {
     bool result = false;
-    
+
     if (instance != NULL) {
         result = true;
     }
-    
+
     return result;
 }
 
@@ -203,11 +203,11 @@ PARCJSON *
 parcMyObject_ToJSON(const PARCMyObject *instance)
 {
     PARCJSON *result = parcJSON_Create();
-    
+
     if (result != NULL) {
-        
+
     }
-    
+
     return result;
 }
 

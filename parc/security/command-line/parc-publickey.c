@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2013-2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -85,7 +85,7 @@ parcPublicKey_Create(PARCArrayList *args)
     if (parcArrayList_Size(args) > 6) {
         validityDays = (unsigned int) strtoul(parcArrayList_Get(args, 6), NULL, 10);
     }
-    
+   
     bool result = parcPkcs12KeyStore_CreateFile(fileName, password, subjectName, keyLength, validityDays);
     if (!result) {
         printf("Error: %s %s", fileName, strerror(errno));
@@ -102,13 +102,13 @@ parcPublicKey_Validate(PARCArrayList *args)
 
     PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(fileName, password, PARC_HASH_SHA256);
     PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
-    
+   
     PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
     PARCSigner *pkSigner = parcSigner_Create(signer, PARCPublicKeySignerAsSigner);
-    
+   
     parcKeyStore_Release(&publicKeyStore);
     parcPkcs12KeyStore_Release(&keyStore);
-    
+   
     if (pkSigner == NULL) {
         printf("Invalid %s\n", fileName);
         return;

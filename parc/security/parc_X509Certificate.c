@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -271,7 +271,7 @@ _addCertificateExtensionWithContext(X509 *cert, int nid, char *value)
 {
     X509_EXTENSION *extension;
     X509V3_CTX context;
-    
+   
     X509V3_set_ctx_nodb(&context);
     X509V3_set_ctx(&context, cert, cert, NULL, NULL, 0);
     extension = X509V3_EXT_conf_nid(NULL, &context, nid, value);
@@ -300,7 +300,7 @@ _addKeyIdentifier(X509 *cert)
 {
     unsigned char spkid[SHA256_DIGEST_LENGTH];
     char spkid_hex[1 + 2 * SHA256_DIGEST_LENGTH];
-    
+   
     /* Generate a KeyID which is the SHA256 digest of the DER encoding
      * of a SubjectPublicKeyInfo.  Note that this is slightly uncommon,
      * but it is more general and complete than digesting the BIT STRING
@@ -308,7 +308,7 @@ _addKeyIdentifier(X509 *cert)
      * how you must generate a key ID).  This code must produce the same result
      * as the Java version applied to the same SubjectPublicKeyInfo.
      */
-    
+   
     if (ASN1_item_digest(ASN1_ITEM_rptr(X509_PUBKEY), EVP_sha256(), X509_get_X509_PUBKEY(cert), spkid, NULL)) {
         for (int i = 0; i < 32; i++) {
             snprintf(&spkid_hex[2 * i], 3, "%02X", (unsigned) spkid[i]);
@@ -328,7 +328,7 @@ _addSubjectName(X509 *cert, const char *subjectname)
     // Set up the simple subject name and issuer name for the certificate.
     X509_NAME *name = X509_get_subject_name(cert);
     assertNotNull(name, "Got null name from X509_get_subject_name");
-    
+   
     if (X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *) subjectname, -1, -1, 0)) {
         if (X509_set_issuer_name(cert, name)) {
             return true;
@@ -342,7 +342,7 @@ _addRandomSerial(X509 *cert)
 {
     unsigned long serial = 0;
     unsigned char serial_bytes[sizeof(serial)];
-    
+   
     // Construct random positive serial number.
     RAND_bytes(serial_bytes, sizeof(serial_bytes));
     serial_bytes[0] &= 0x7F;
@@ -442,21 +442,21 @@ PARCX509Certificate *
 parcX509Certificate_CreateSelfSignedCertificate(PARCBuffer **privateKeyBuffer, char *subjectName, int keyLength, size_t validityDays)
 {
     parcSecurity_AssertIsInitialized();
-    
+   
     RSA *rsa = RSA_new();
     assertNotNull(rsa, "RSA_new failed.");
-    
+   
     EVP_PKEY *privateKey = EVP_PKEY_new();
     assertNotNull(privateKey, "EVP_PKEY_new() failed.");
-    
+   
     X509 *cert = X509_new();
     assertNotNull(cert, "X509_new() failed.");
-    
+   
     int res;
     BIGNUM *pub_exp;
-    
+   
     pub_exp = BN_new();
-    
+   
     BN_set_word(pub_exp, RSA_F4);
     res = 1;
     bool result = false;
@@ -488,37 +488,37 @@ parcX509Certificate_CreateSelfSignedCertificate(PARCBuffer **privateKeyBuffer, c
             }
         }
     }
-    
+   
     ERR_print_errors_fp(stdout);
-    
+   
     BN_free(pub_exp);
-    
+   
     uint8_t *certificateDerEncoding = NULL;
     int numBytes = i2d_X509(cert, &certificateDerEncoding);
     if (numBytes < 0) {
         EVP_PKEY_free(privateKey);
         RSA_free(rsa);
         X509_free(cert);
-        
+       
         return NULL;
     }
-    
+   
     PARCBuffer *derBuffer = parcBuffer_Allocate(numBytes);
     parcBuffer_Flip(parcBuffer_PutArray(derBuffer, numBytes, certificateDerEncoding));
-    
+   
     PARCX509Certificate *certificate = parcX509Certificate_CreateFromDERBuffer(derBuffer);
     parcBuffer_Release(&derBuffer);
-    
+   
     uint8_t *privateKeyBytes = NULL;
     int privateKeyByteCount = i2d_PrivateKey(privateKey, &privateKeyBytes);
     if (privateKeyByteCount < 0) {
         EVP_PKEY_free(privateKey);
         RSA_free(rsa);
         X509_free(cert);
-        
+       
         return NULL;
     }
-    
+   
     *privateKeyBuffer = parcBuffer_Allocate(privateKeyByteCount);
     parcBuffer_Flip(parcBuffer_PutArray(*privateKeyBuffer, privateKeyByteCount, privateKeyBytes));
 

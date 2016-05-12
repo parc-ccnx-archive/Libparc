@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -108,7 +108,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -118,9 +118,9 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNotNull(pool, "Expected non-null result from parcThreadPool_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcThreadPool_Acquire, pool);
-    
+   
     parcThreadPool_ShutdownNow(pool);
-    
+   
     parcThreadPool_Release(&pool);
     assertNull(pool, "Expected null result from parcThreadPool_Release();");
 }
@@ -147,7 +147,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Object)
     if (!parcMemoryTesting_ExpectedOutstanding(0, "%s mismanaged memory.", longBowTestCase_GetFullName(testCase))) {
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -162,10 +162,10 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Copy)
     PARCThreadPool *instance = parcThreadPool_Create(6);
     PARCThreadPool *copy = parcThreadPool_Copy(instance);
     assertTrue(parcThreadPool_Equals(instance, copy), "Expected the copy to be equal to the original");
-    
+   
     parcThreadPool_ShutdownNow(instance);
     parcThreadPool_ShutdownNow(copy);
-    
+   
     parcThreadPool_Release(&instance);
     parcThreadPool_Release(&copy);
 }
@@ -174,9 +174,9 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Display)
 {
     PARCThreadPool *instance = parcThreadPool_Create(6);
     parcThreadPool_Display(instance, 0);
-    
+   
     parcThreadPool_ShutdownNow(instance);
-    
+   
     parcThreadPool_Release(&instance);
 }
 
@@ -187,11 +187,11 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Equals)
     PARCThreadPool *z = parcThreadPool_Create(6);
 
     parcObjectTesting_AssertEquals(x, y, z, NULL);
-    
+   
     parcThreadPool_ShutdownNow(x);
     parcThreadPool_ShutdownNow(y);
     parcThreadPool_ShutdownNow(z);
-    
+   
     parcThreadPool_Release(&x);
     parcThreadPool_Release(&y);
     parcThreadPool_Release(&z);
@@ -201,12 +201,12 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_HashCode)
 {
     PARCThreadPool *x = parcThreadPool_Create(6);
     PARCThreadPool *y = parcThreadPool_Create(6);
-    
+   
     parcObjectTesting_AssertHashCode(x, y);
-    
+   
     parcThreadPool_ShutdownNow(x);
     parcThreadPool_ShutdownNow(y);
-    
+   
     parcThreadPool_Release(&x);
     parcThreadPool_Release(&y);
 }
@@ -215,7 +215,7 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_IsValid)
 {
     PARCThreadPool *instance = parcThreadPool_Create(6);
     assertTrue(parcThreadPool_IsValid(instance), "Expected parcThreadPool_Create to result in a valid instance.");
-    
+   
     parcThreadPool_ShutdownNow(instance);
 
     parcThreadPool_Release(&instance);
@@ -225,28 +225,28 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_IsValid)
 LONGBOW_TEST_CASE(Object, parcThreadPool_ToJSON)
 {
     PARCThreadPool *instance = parcThreadPool_Create(6);
-    
+   
     PARCJSON *json = parcThreadPool_ToJSON(instance);
 
     parcJSON_Release(&json);
-    
+   
     parcThreadPool_ShutdownNow(instance);
-    
+   
     parcThreadPool_Release(&instance);
 }
 
 LONGBOW_TEST_CASE(Object, parcThreadPool_ToString)
 {
     PARCThreadPool *instance = parcThreadPool_Create(6);
-    
+   
     char *string = parcThreadPool_ToString(instance);
-    
+   
     assertNotNull(string, "Expected non-NULL result from parcThreadPool_ToString");
-    
+   
     parcMemory_Deallocate((void **) &string);
-    
+   
     parcThreadPool_ShutdownNow(instance);
-    
+   
     parcThreadPool_Release(&instance);
 }
 
@@ -267,7 +267,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
         parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -290,16 +290,16 @@ LONGBOW_TEST_CASE(Object, parcThreadPool_Execute)
     parcThreadPool_Execute(pool, task);
     parcThreadPool_Execute(pool, task);
     parcFutureTask_Release(&task);
-    
-    parcThreadPool_Shutdown(pool); 
+   
+    parcThreadPool_Shutdown(pool);
     bool shutdownSuccess = parcThreadPool_AwaitTermination(pool, PARCTimeout_Never);
-    
+   
     assertTrue(shutdownSuccess, "parcThreadPool_AwaitTermination timed-out");
-    
+   
     uint64_t count = parcThreadPool_GetCompletedTaskCount(pool);
     assertTrue(count == 5, "Expected 5, actual %lld", count);
-    
-    
+   
+   
     parcThreadPool_Release(&pool);
 }
 

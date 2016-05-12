@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -149,7 +149,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Acquire)
     assertNotNull(identity, "Expected non-null");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcIdentity_Acquire, identity);
-    
+   
     parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
@@ -166,7 +166,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetFileName)
     assertNotNull(identity, "Expected non-null");
 
     assertEqualStrings(keystoreName, parcIdentity_GetFileName(identity));
-    
+   
     parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
@@ -183,7 +183,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_GetPassWord)
     assertNotNull(identity, "Expected non-null");
 
     assertEqualStrings(keystorePassword, parcIdentity_GetPassWord(identity));
-    
+   
     parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }
@@ -206,7 +206,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_CreateSigner)
     PARCSigner *signer = parcIdentity_CreateSigner(identity);
 
     assertNotNull(signer, "Expected non-null");
-    
+   
     parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
     parcSigner_Release(&signer);
@@ -232,13 +232,13 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Equals)
     PARCIdentity *u2 = parcIdentity_Create(identityFile2, PARCIdentityFileAsPARCIdentity);
 
     parcObjectTesting_AssertEqualsFunction(parcIdentity_Equals, x, y, z, u1, u2);
-    
+   
     parcIdentityFile_Release(&identityFileX);
     parcIdentityFile_Release(&identityFileY);
     parcIdentityFile_Release(&identityFileZ);
     parcIdentityFile_Release(&identityFile1);
     parcIdentityFile_Release(&identityFile2);
-    
+   
     parcIdentity_Release(&x);
     parcIdentity_Release(&y);
     parcIdentity_Release(&z);
@@ -258,7 +258,7 @@ LONGBOW_TEST_CASE(Global, parcIdentity_Display)
     assertNotNull(identity, "Expected non-null");
 
     parcIdentity_Display(identity, 0);
-    
+   
     parcIdentityFile_Release(&identityFile);
     parcIdentity_Release(&identity);
 }

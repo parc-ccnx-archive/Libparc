@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -101,10 +101,10 @@ LONGBOW_TEST_FIXTURE(CreateAcquireRelease)
 LONGBOW_TEST_FIXTURE_SETUP(CreateAcquireRelease)
 {
     longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
-    
+   
     PARCBuffer *buffer = parcBuffer_Allocate(10);
     longBowTestCase_Set(testCase, "object", buffer);
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -112,13 +112,13 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(CreateAcquireRelease)
 {
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     parcBuffer_Release(&buffer);
-    
+   
     uint32_t initialAllocations = (uint32_t) longBowTestCase_Get(testCase, "initialAllocations");
     if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -136,7 +136,7 @@ LONGBOW_TEST_CASE(CreateAcquireRelease, CreateRelease)
     assertNotNull(thread, "Expected non-null result from parcThread_Create();");
 
     parcObjectTesting_AssertAcquireReleaseContract(parcThread_Acquire, thread);
-  
+ 
     parcThread_Release(&thread);
     assertNull(thread, "Expected null result from parcThread_Release();");
 }
@@ -158,7 +158,7 @@ LONGBOW_TEST_FIXTURE_SETUP(Object)
     longBowTestCase_SetInt(testCase, "initialAllocations", parcMemory_Outstanding());
     PARCBuffer *buffer = parcBuffer_Allocate(10);
     longBowTestCase_Set(testCase, "object", buffer);
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -186,9 +186,9 @@ LONGBOW_TEST_CASE(Object, parcThread_Copy)
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *instance = parcThread_Create(_function, buffer);
     PARCThread *copy = parcThread_Copy(instance);
-    
+   
     assertTrue(parcThread_Equals(instance, copy), "Expected the copy to be equal to the original");
-    
+   
     parcThread_Release(&instance);
     parcThread_Release(&copy);
 }
@@ -198,8 +198,8 @@ LONGBOW_TEST_CASE(Object, parcThread_Display)
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *instance = parcThread_Create(_function, buffer);
     parcThread_Display(instance, 0);
-    
-    
+   
+   
     parcThread_Release(&instance);
 }
 
@@ -211,7 +211,7 @@ LONGBOW_TEST_CASE(Object, parcThread_Equals)
     PARCThread *z = parcThread_Create(_function, buffer);
 
     parcObjectTesting_AssertEquals(x, y, z, NULL);
-    
+   
     parcThread_Release(&x);
     parcThread_Release(&y);
     parcThread_Release(&z);
@@ -222,9 +222,9 @@ LONGBOW_TEST_CASE(Object, parcThread_HashCode)
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *x = parcThread_Create(_function, buffer);
     PARCThread *y = parcThread_Create(_function, buffer);
-    
+   
     parcObjectTesting_AssertHashCode(x, y);
-    
+   
     parcThread_Release(&x);
     parcThread_Release(&y);
 }
@@ -234,7 +234,7 @@ LONGBOW_TEST_CASE(Object, parcThread_IsValid)
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *instance = parcThread_Create(_function, buffer);
     assertTrue(parcThread_IsValid(instance), "Expected parcThread_Create to result in a valid instance.");
-    
+   
 
     parcThread_Release(&instance);
     assertFalse(parcThread_IsValid(instance), "Expected parcThread_Release to result in an invalid instance.");
@@ -244,12 +244,12 @@ LONGBOW_TEST_CASE(Object, parcThread_ToJSON)
 {
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *instance = parcThread_Create(_function, buffer);
-    
+   
     PARCJSON *json = parcThread_ToJSON(instance);
 
     parcJSON_Release(&json);
-    
-    
+   
+   
     parcThread_Release(&instance);
 }
 
@@ -257,13 +257,13 @@ LONGBOW_TEST_CASE(Object, parcThread_ToString)
 {
     PARCBuffer *buffer = longBowTestCase_Get(testCase, "object");
     PARCThread *instance = parcThread_Create(_function, buffer);
-    
+   
     char *string = parcThread_ToString(instance);
-    
+   
     assertNotNull(string, "Expected non-NULL result from parcThread_ToString");
-    
+   
     parcMemory_Deallocate((void **) &string);
-        
+       
     parcThread_Release(&instance);
 }
 
@@ -286,7 +286,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Specialization)
         parcSafeMemory_ReportAllocation(1);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 

@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -21,7 +21,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ################################################################################
  * #
  * # PATENT NOTICE
@@ -44,7 +44,7 @@
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
- * 
+ *
  * - Palo Alto Research Center, Inc
  * This software distribution does not grant any rights to patents owned by Palo
  * Alto Research Center, Inc (PARC). Rights to these patents are available via
@@ -75,11 +75,11 @@ _parcSimpleBufferPool_Destructor(PARCSimpleBufferPool **instancePtr)
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCSimpleBufferPool pointer.");
 
     PARCSimpleBufferPool *pool = *instancePtr;
-    
+
     parcLinkedList_Apply(pool->freeList, (void (*)) parcObject_SetDescriptor, (const void *) &PARCBuffer_Descriptor);
-    
+
     parcLinkedList_Release(&pool->freeList);
-    
+
     return true;
 }
 
@@ -88,9 +88,9 @@ _parcSimpleBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
 {
     PARCBuffer *buffer = *bufferPtr;
     *bufferPtr = 0;
-    
+
     PARCSimpleBufferPool *bufferPool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
-    
+
     if (bufferPool->limit > parcLinkedList_Size(bufferPool->freeList)) {
         parcLinkedList_Append(bufferPool->freeList, buffer);
     } else {
@@ -98,7 +98,7 @@ _parcSimpleBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
         parcObject_SetDescriptor(buffer, &parcObject_DescriptorName(PARCBuffer));
         parcBuffer_Release(&buffer);
     }
-    
+
     return false;
 }
 
@@ -113,12 +113,12 @@ PARCSimpleBufferPool *
 parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
 {
     PARCSimpleBufferPool *result = parcObject_CreateInstance(PARCSimpleBufferPool);
-    
+
     if (result != NULL) {
         result->limit = limit;
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
-        
+
         char *string;
         asprintf(&string, "PARCSimpleBufferPool=%zu", bufferSize);
         result->descriptor = parcObjectDescriptor_CreateExtension(&parcObject_DescriptorName(PARCBuffer), string);
@@ -126,7 +126,7 @@ parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
         result->descriptor->destructor = (PARCObjectDestructor *) _parcSimpleBufferPool_BufferDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
-    
+
     return result;
 }
 
@@ -134,13 +134,13 @@ PARCBuffer *
 parcSimpleBufferPool_GetInstance(PARCSimpleBufferPool *bufferPool)
 {
     PARCBuffer *result;
-    
+
     if (parcLinkedList_Size(bufferPool->freeList) > 0) {
         result = parcLinkedList_RemoveFirst(bufferPool->freeList);
     } else {
         result = parcBuffer_Allocate(bufferPool->bufferSize);
         parcObject_SetDescriptor(result, bufferPool->descriptor);
     }
-    
+
     return result;
 }
