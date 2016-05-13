@@ -238,7 +238,6 @@ set(LIBPARC_CONCURRENT_HEADER_FILES
 	concurrent/parc_ThreadPool.h
 	concurrent/parc_Timeout.h
 	concurrent/parc_Timer.h
-	concurrent/parc_Mutex.h
 	)
 
 set(LIBPARC_CONCURRENT_SOURCE_FILES
@@ -259,7 +258,6 @@ set(LIBPARC_CONCURRENT_SOURCE_FILES
 	concurrent/parc_ThreadPool.c
 	concurrent/parc_Timeout.c
 	concurrent/parc_Timer.c
-	concurrent/parc_Mutex.c
 	)
 
 set(LIBPARC_LOGGING_HEADER_FILES

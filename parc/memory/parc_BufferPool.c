@@ -99,8 +99,7 @@ _parcBufferPool_ObjectDestructor(PARCBuffer **bufferPtr)
 
     PARCBufferPool *bufferPool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
 
-    parcObject_Mutex(bufferPool->freeList)
-    {
+    parcObject_Synchronize(bufferPool->freeList) {
         size_t freeListSize = parcLinkedList_Size(bufferPool->freeList);
 
         if (bufferPool->limit > freeListSize) {
@@ -194,8 +193,7 @@ parcBufferPool_GetInstance(PARCBufferPool *bufferPool)
 {
     PARCBuffer *result = NULL;
 
-    parcObject_Mutex(bufferPool->freeList)
-    {
+    parcObject_Synchronize(bufferPool->freeList) {
         if (parcLinkedList_Size(bufferPool->freeList) > 0) {
             result = parcLinkedList_RemoveFirst(bufferPool->freeList);
             bufferPool->cacheHits++;
@@ -214,8 +212,7 @@ parcBufferPool_Drain(PARCBufferPool *bufferPool)
 {
     size_t result = 0;
 
-    parcObject_Mutex(bufferPool->freeList)
-    {
+    parcObject_Synchronize(bufferPool->freeList) {
         size_t freeListSize = parcLinkedList_Size(bufferPool->freeList);
         if (freeListSize > bufferPool->limit) {
             result = freeListSize - bufferPool->limit;
@@ -253,12 +250,7 @@ parcBufferPool_GetLimit(const PARCBufferPool *bufferPool)
 size_t
 parcBufferPool_GetCurrentPoolSize(const PARCBufferPool *bufferPool)
 {
-    size_t result = 0;
-
-    parcObject_Mutex(bufferPool->freeList)
-    {
-        result = parcLinkedList_Size(bufferPool->freeList);
-    }
+    size_t result = parcLinkedList_Size(bufferPool->freeList);
 
     return result;
 }

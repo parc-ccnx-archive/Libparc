@@ -41,7 +41,6 @@
 #include <parc/algol/parc_JSON.h>
 #include <parc/algol/parc_HashCode.h>
 
-struct PARCString;
 typedef struct PARCString PARCString;
 extern parcObjectDescriptor_Declaration(PARCString);
 
