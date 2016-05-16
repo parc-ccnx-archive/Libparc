@@ -1,32 +1,60 @@
 /*
- * Copyright (c) 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2013-2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Patent rights are not granted under this agreement. Patent rights are
- *       available under FRAND terms.
+ * * Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL XEROX OR PARC BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ################################################################################
+ * #
+ * # PATENT NOTICE
+ * #
+ * # This software is distributed under the BSD 2-clause License (see LICENSE
+ * # file).  This BSD License does not make any patent claims and as such, does
+ * # not act as a patent grant.  The purpose of this section is for each contributor
+ * # to define their intentions with respect to intellectual property.
+ * #
+ * # Each contributor to this source code is encouraged to state their patent
+ * # claims and licensing mechanisms for any contributions made. At the end of
+ * # this section contributors may each make their own statements.  Contributor's
+ * # claims and grants only apply to the pieces (source code, programs, text,
+ * # media, etc) that they have contributed directly to this software.
+ * #
+ * # There is no guarantee that this section is complete, up to date or accurate. It
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
+ * #
+ * # Do not remove this header notification.  The contents of this section must be
+ * # present in all distributions of the software.  You may only modify your own
+ * # intellectual property statements.  Please provide contact information.
+ *
+ * - Palo Alto Research Center, Inc
+ * This software distribution does not grant any rights to patents owned by Palo
+ * Alto Research Center, Inc (PARC). Rights to these patents are available via
+ * various mechanisms. As of January 2016 PARC has committed to FRAND licensing any
+ * intellectual property used by its contributions to this software. You may
+ * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
  * @author Glenn Scott, Mike Slominski, Palo Alto Research Center (Xerox PARC)
- * @copyright 2013-2015, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright (c) 2013-2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #include "../parc_Object.c"
 
@@ -262,11 +290,11 @@ parcObject_Override(_testObject, PARCObject);
 LONGBOW_TEST_CASE(Static, _objectHeaderIsValid)
 {
     PARCObject *object = parcObject_CreateInstanceImpl(&_testObject_Descriptor);
-    
+   
     _PARCObjectHeader *header = _parcObject_Header(object);
-    
+   
     assertTrue(_parcObjectHeader_IsValid(header, object), "Expected _parcObject_HeaderHeaderIsValid to be valid");
-    
+   
     parcObject_Release(&object);
 }
 
@@ -282,7 +310,7 @@ LONGBOW_TEST_CASE(Static, _parcObject_PrefixLength)
         r++;
     }
     PARCObjectDescriptor descriptor;
-    
+   
     for (int i = r; i < 20; i++) {
         descriptor.objectAlignment = 1 << i;
         size_t actual = _parcObject_PrefixLength(&descriptor);
@@ -853,9 +881,9 @@ LONGBOW_TEST_CASE(Global, parcObject_GetDescriptor)
 {
     _DummyObject *dummy = parcObject_CreateInstance(_DummyObject);
     const PARCObjectDescriptor *descriptor = parcObject_GetDescriptor(dummy);
-    
+   
     assertTrue(descriptor == &_DummyObject_Descriptor, "Expected pointer to _DummyObject_Descriptor");
-    
+   
     parcObject_Release((PARCObject **) &dummy);
 }
 
@@ -909,7 +937,7 @@ LONGBOW_TEST_FIXTURE(Locking)
     LONGBOW_RUN_TEST_CASE(Locking, parcObject_TryLock_Unlock);
     LONGBOW_RUN_TEST_CASE(Locking, parcObject_Lock_Unlock);
     LONGBOW_RUN_TEST_CASE(Locking, parcObject_TryLock_AlreadyLockedSameThread);
-    LONGBOW_RUN_TEST_CASE(Locking, parcObject_Lock_AlreadyLocked);    
+    LONGBOW_RUN_TEST_CASE(Locking, parcObject_Lock_AlreadyLocked);   
 }
 static uint32_t initialAllocations;
 
@@ -919,9 +947,9 @@ LONGBOW_TEST_FIXTURE_SETUP(Locking)
     initialAllocations = parcMemory_Outstanding();
 
     _DummyObject *dummy = parcObject_CreateInstance(_DummyObject);
-    
+   
     longBowTestCase_SetClipBoardData(testCase, dummy);
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -1084,16 +1112,16 @@ LONGBOW_TEST_CASE(WaitNotify, parcObject_WaitNotify)
 LONGBOW_TEST_CASE(WaitNotify, parcObject_WaitNotifyAll)
 {
     _DummyObject *dummy = parcObject_CreateInstance(_DummyObject);
-    
+   
     dummy->val = 0;
-    
+   
     pthread_t thread_A;
     pthread_t thread_B;
     pthread_t thread_C;
     pthread_create(&thread_A, NULL, waiter, dummy);
     pthread_create(&thread_B, NULL, waiter, dummy);
     pthread_create(&thread_C, NULL, waiter, dummy);
-    
+   
     while (dummy->val != 3) {
         while (parcObject_TryLock(dummy) == false) {
             ;
@@ -1101,13 +1129,13 @@ LONGBOW_TEST_CASE(WaitNotify, parcObject_WaitNotifyAll)
         parcObject_NotifyAll(dummy);
         parcObject_Unlock(dummy);
     }
-    
+   
     pthread_join(thread_A, NULL);
 //    pthread_join(thread_B, NULL);
 //    pthread_join(thread_C, NULL);
-    
+   
     assertTrue(dummy->val == 3, "Expected the counter to be 3, actual %d", dummy->val);
-    
+   
     parcObject_Release((PARCObject **) &dummy);
 }
 
@@ -1266,9 +1294,9 @@ LONGBOW_TEST_CASE(Performance, _parcObject_PrefixLength_10000000)
     while (v >>= 1) {
         r++;
     }
-    
+   
     PARCObjectDescriptor descriptor;
-    
+   
     for (int i = r; i < 20; i++) {
         descriptor.objectAlignment = 1 << i;
         size_t actual = _parcObject_PrefixLength(&descriptor);
@@ -1368,9 +1396,9 @@ LONGBOW_TEST_CASE(Meta, parcObjectDescriptor_Create)
                                                                         _meta_destructor_true, NULL, _meta_copy, _meta_toString,
                                                                         _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL,
                                                                         &PARCObject_Descriptor, NULL);
-    
+   
     assertNotNull(interface, "Expected interface instance to be allocated correctly.");
-    
+   
     parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &interface);
     assertNull(interface, "Expected parcObjectDescriptor_Destroy to NULL the input pointer");
 }
@@ -1412,7 +1440,7 @@ LONGBOW_TEST_CASE(Meta, _metaDestructor_None)
     _parcObject_Destructor(interface, (void **) &data);
 
     assertNotNull(data, "Expected destructor function to have been called to nullify the reference.");
-    
+   
     parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &interface);
 }
 
@@ -1433,15 +1461,15 @@ LONGBOW_TEST_FIXTURE_SETUP(PARCObjectDescriptor)
 LONGBOW_TEST_FIXTURE_TEARDOWN(PARCObjectDescriptor)
 {
     int initialAllocations = longBowTestCase_GetInt(testCase, "initialAllocations");
-    
+   
     uint32_t outstandingAllocations = parcMemory_Outstanding() - initialAllocations;
-    
+   
     if (outstandingAllocations != 0) {
         printf("%s leaks memory by %d allocations\n", longBowTestRunner_GetName(testRunner), outstandingAllocations);
         parcSafeMemory_ReportAllocation(STDOUT_FILENO);
         return LONGBOW_STATUS_MEMORYLEAK;
     }
-    
+   
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
@@ -1449,7 +1477,7 @@ LONGBOW_TEST_CASE(PARCObjectDescriptor, parcObjectDescriptor_Create)
 {
     const PARCObjectDescriptor *descriptor = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                                                         NULL, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL, &PARCObject_Descriptor, NULL);
-    
+   
     parcObjectDescriptor_Destroy((PARCObjectDescriptor **) &descriptor);
 }
 
@@ -1457,9 +1485,9 @@ LONGBOW_TEST_CASE(PARCObjectDescriptor, parcObjectDescriptor_CreateExtension)
 {
     PARCObjectDescriptor *descriptor = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                                                          NULL, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL, &PARCObject_Descriptor, NULL);
-    
+   
     PARCObjectDescriptor *extension = parcObjectDescriptor_CreateExtension(descriptor, "Extension");
-    
+   
     parcObjectDescriptor_Destroy(&extension);
     parcObjectDescriptor_Destroy(&descriptor);
 }
@@ -1468,11 +1496,11 @@ LONGBOW_TEST_CASE(PARCObjectDescriptor, parcObjectDescriptor_GetSuperType)
 {
     PARCObjectDescriptor *descriptor = parcObjectDescriptor_Create("Meta", sizeof(struct timeval), sizeof(void*), true,
                                                                    NULL, NULL, _meta_copy, _meta_toString, _meta_equals, _meta_compare, _meta_hashCode, _meta_toJson, NULL, &PARCObject_Descriptor, NULL);
-    
+   
     const PARCObjectDescriptor *superType = parcObjectDescriptor_GetSuperType(descriptor);
-    
+   
     assertTrue(superType == &PARCObject_Descriptor, "Expected a pointer to PARCObject_Descriptor");
-    
+   
     parcObjectDescriptor_Destroy(&descriptor);
 }
 
@@ -1483,11 +1511,11 @@ LONGBOW_TEST_CASE(PARCObjectDescriptor, parcObjectDescriptor_GetTypeState)
                                                                    _meta_compare, _meta_hashCode, _meta_toJson, NULL,
                                                                    &PARCObject_Descriptor,
                                                                    (PARCObjectTypeState *) &PARCObject_Descriptor);
-    
+   
     PARCObjectTypeState *state = parcObjectDescriptor_GetTypeState(descriptor);
-    
+   
     assertTrue(state == &PARCObject_Descriptor, "Expected a pointer to PARCObject_Descriptor");
-    
+   
     parcObjectDescriptor_Destroy(&descriptor);
 }
 
@@ -1513,11 +1541,11 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(StaticObjects)
 LONGBOW_TEST_CASE(StaticObjects, parcObject_WrapImpl)
 {
     char *origin = (char[parcObject_TotalSize(sizeof(void*), 10)]) { 0 };
-    
+   
     PARCObject *result = parcObject_WrapImpl(origin, &parcObject_DescriptorName(PARCObject));
-    
+   
     parcObject_AssertValid(result);
-    
+   
     parcObject_Release(&result);
 }
 
@@ -1526,18 +1554,18 @@ PARCObject *globalObject = parcObject_Instance(PARCObject, sizeof(void*), 10);
 LONGBOW_TEST_CASE(StaticObjects, parcObject_InitInstanceImpl)
 {
     parcObject_InitInstanceImpl(globalObject, &PARCObject_Descriptor);
-    
+   
     parcObject_AssertValid(globalObject);
-    
+   
 //    parcObject_Release(&globalObject);
 }
 
 LONGBOW_TEST_CASE(StaticObjects, parcObject_InitAndClearInstanceImpl)
 {
     parcObject_InitAndClearInstanceImpl(globalObject, &PARCObject_Descriptor);
-    
+   
     parcObject_AssertValid(globalObject);
-    
+   
 //    parcObject_Release(&globalObject);
 }
 

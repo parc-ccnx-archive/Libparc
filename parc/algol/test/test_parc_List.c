@@ -1,28 +1,56 @@
 /*
- * Copyright (c) 2014, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC)
+ * Copyright (c) 2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Patent rights are not granted under this agreement. Patent rights are
- *       available under FRAND terms.
+ * * Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL XEROX or PARC BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL XEROX OR PARC BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ################################################################################
+ * #
+ * # PATENT NOTICE
+ * #
+ * # This software is distributed under the BSD 2-clause License (see LICENSE
+ * # file).  This BSD License does not make any patent claims and as such, does
+ * # not act as a patent grant.  The purpose of this section is for each contributor
+ * # to define their intentions with respect to intellectual property.
+ * #
+ * # Each contributor to this source code is encouraged to state their patent
+ * # claims and licensing mechanisms for any contributions made. At the end of
+ * # this section contributors may each make their own statements.  Contributor's
+ * # claims and grants only apply to the pieces (source code, programs, text,
+ * # media, etc) that they have contributed directly to this software.
+ * #
+ * # There is no guarantee that this section is complete, up to date or accurate. It
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
+ * #
+ * # Do not remove this header notification.  The contents of this section must be
+ * # present in all distributions of the software.  You may only modify your own
+ * # intellectual property statements.  Please provide contact information.
+ *
+ * - Palo Alto Research Center, Inc
+ * This software distribution does not grant any rights to patents owned by Palo
+ * Alto Research Center, Inc (PARC). Rights to these patents are available via
+ * various mechanisms. As of January 2016 PARC has committed to FRAND licensing any
+ * intellectual property used by its contributions to this software. You may
+ * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 #include "../parc_List.c"
 #include <LongBow/unit-test.h>
@@ -647,7 +675,7 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(PARCList)
     parcLinkedList_Release(&linkedList);
     PARCList *list = longBowTestCase_Get(testCase, "list");
     parcList_Release(&list);
-    
+   
     int initialAllocations = longBowTestCase_GetInt(testCase, "initalAllocations");
     if (!parcMemoryTesting_ExpectedOutstanding(initialAllocations, "%s leaked memory.", longBowTestCase_GetFullName(testCase))) {
         parcSafeMemory_ReportAllocation(STDOUT_FILENO);
@@ -661,11 +689,11 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(PARCList)
 LONGBOW_TEST_CASE(PARCList, parcList_Add)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
     parcList_Add(list, buffer);
     parcBuffer_Release(&buffer);
-    
+   
     size_t actual = parcList_Size(list);
     assertTrue(1 == actual, "Expected=%d, actual=%zu", 1, actual);
 }
@@ -677,81 +705,81 @@ LONGBOW_TEST_CASE(PARCList, parcList_AddCollection)
 
 LONGBOW_TEST_CASE(PARCList, parcList_AddCollectionAtIndex)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_Contains)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_ContainsCollection)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_Equals)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     PARCList *copy = parcList_Copy(list);
-    
+   
     assertTrue(parcList_Equals(list, copy), "Expected copy to be equal to the original.");
-    
+   
     parcList_Release(&copy);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_IsEmpty)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    assertTrue(parcList_IsEmpty(list), "Expected list to be empty.");    
+    assertTrue(parcList_IsEmpty(list), "Expected list to be empty.");   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_GetAtIndex)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     for (int i = 0; i < 1000; i++) {
         PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
         parcList_Add(list, buffer);
         parcBuffer_Release(&buffer);
     }
-    
+   
     uint32_t actual = parcBuffer_GetUint32(parcList_GetAtIndex(list, 0));
-    
+   
     assertTrue(actual == 0, "Expected %u, actual %u\n", 0, actual);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_Remove)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
     parcList_Add(list, buffer);
     parcBuffer_Release(&buffer);
-    
+   
     buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
-    
+   
     bool actual = parcList_Remove(list, buffer);
     assertTrue(actual, "Expected element to have been found and removed.");
-    
+   
     parcBuffer_Release(&buffer);
-    
+   
     buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 3));
-    
+   
     actual = parcList_Remove(list, buffer);
     assertFalse(actual, "Expected element to have not been found and removed.");
-    
+   
     parcBuffer_Release(&buffer);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_RemoveCollection)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_RetainCollection)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_HashCode)
@@ -763,38 +791,38 @@ LONGBOW_TEST_CASE(PARCList, parcList_HashCode)
 LONGBOW_TEST_CASE(PARCList, parcList_IndexOf)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     for (int i = 0; i < 1000; i++) {
         PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
         parcList_Add(list, buffer);
         parcBuffer_Release(&buffer);
     }
-    
+   
     uint32_t expected = 10;
     PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 10));
     size_t actual = parcList_IndexOf(list, buffer);
-    
+   
     parcBuffer_Release(&buffer);
-    
+   
     assertTrue(expected == actual, "Expected %u, actual %zu", expected, actual);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_LastIndexOf)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     for (int i = 0; i < 1000; i++) {
         PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
         parcList_Add(list, buffer);
         parcBuffer_Release(&buffer);
     }
-    
+   
     uint32_t expected = 999;
     PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), 1));
     size_t actual = parcList_LastIndexOf(list, buffer);
-    
+   
     parcBuffer_Release(&buffer);
-    
+   
     assertTrue(expected == actual, "Expected %u, actual %zu", expected, actual);
 }
 
@@ -812,7 +840,7 @@ LONGBOW_TEST_CASE(PARCList, parcList_Clear)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     parcList_Clear(list);
-    
+   
     assertTrue(parcList_IsEmpty(list), "Expected list to be empty.");
 }
 
@@ -820,41 +848,41 @@ LONGBOW_TEST_CASE(PARCList, parcList_Destroy)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
     PARCList *copy = parcList_Copy(list);
-    
+   
     parcList_Release(&copy);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_RemoveAtIndex)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     for (int i = 0; i < 1000; i++) {
         PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
         parcList_Add(list, buffer);
         parcBuffer_Release(&buffer);
     }
-    
+   
     PARCBuffer *buffer = parcList_RemoveAtIndex(list, 0);
     uint32_t actual = parcBuffer_GetUint32(buffer);
     assertTrue(actual == 0, "Expected buffer 0.");
-    
+   
     parcBuffer_Release(&buffer);
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_SetAtIndex)
 {
     PARCList *list = longBowTestCase_Get(testCase, "list");
-    
+   
     for (int i = 0; i < 1000; i++) {
         PARCBuffer *buffer = parcBuffer_Flip(parcBuffer_PutUint32(parcBuffer_Allocate(sizeof(int)), i));
         parcList_Add(list, buffer);
         parcBuffer_Release(&buffer);
     }
-    
+   
     PARCBuffer *buffer = parcBuffer_WrapCString("1");
-    
+   
     PARCBuffer *oldValue = parcList_SetAtIndex(list, 50, buffer);
-    
+   
     PARCBuffer *actual = parcList_GetAtIndex(list, 50);
     assertTrue(parcBuffer_Equals(buffer, actual), "parcList_SetAtIndex set the wrong location.");
     parcBuffer_Release(&buffer);
@@ -865,7 +893,7 @@ LONGBOW_TEST_CASE(PARCList, parcList_Size)
 {
     PARCArrayList *array = parcArrayList_Create(NULL);
     parcArrayList_Add(array, 0);
-    
+   
     size_t size = parcArrayList_Size(array);
     assertTrue(1 == size, "Expected %d actual=%zd", 1, size);
     parcArrayList_Destroy(&array);
@@ -873,12 +901,12 @@ LONGBOW_TEST_CASE(PARCList, parcList_Size)
 
 LONGBOW_TEST_CASE(PARCList, parcList_SubList)
 {
-    
+   
 }
 
 LONGBOW_TEST_CASE(PARCList, parcList_ToArray)
 {
-    
+   
 }
 
 int

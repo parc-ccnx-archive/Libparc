@@ -21,8 +21,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/* ################################################################################
+ *
+ * ################################################################################
  * #
  * # PATENT NOTICE
  * #
@@ -38,8 +38,8 @@
  * # media, etc) that they have contributed directly to this software.
  * #
  * # There is no guarantee that this section is complete, up to date or accurate. It
- * # is up to the contributors to maintain their section in this file up to date
- * # and up to the user of the software to verify any claims herein.
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
  * #
  * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
@@ -61,7 +61,7 @@
  * The pool has a maxmimum number of instances that it will cache.
  *
  * @author Glenn Scott, Palo Alto Research Center (PARC)
- * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_BufferPool
 #define PARCLibrary_parc_BufferPool

@@ -28,20 +28,20 @@
  * #
  * # This software is distributed under the BSD 2-clause License (see LICENSE
  * # file).  This BSD License does not make any patent claims and as such, does
- * # not act as a patent grant.  The purpose of this file is for each contributor
+ * # not act as a patent grant.  The purpose of this section is for each contributor
  * # to define their intentions with respect to intellectual property.
  * #
  * # Each contributor to this source code is encouraged to state their patent
  * # claims and licensing mechanisms for any contributions made. At the end of
- * # this file contributors may each make their own statements.  Contributor's
+ * # this section contributors may each make their own statements.  Contributor's
  * # claims and grants only apply to the pieces (source code, programs, text,
  * # media, etc) that they have contributed directly to this software.
  * #
- * # There is no guarantee that this file is complete, up to date or accurate. It
- * # is up to the contributors to maintain their section in this file up to date
- * # and up to the user of the software to verify any claims herein.
+ * # There is no guarantee that this section is complete, up to date or accurate. It
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
  * #
- * # Do not remove this header notification.  The contents of this file must be
+ * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
  *
@@ -75,11 +75,11 @@ _parcSimpleBufferPool_Destructor(PARCSimpleBufferPool **instancePtr)
     assertNotNull(instancePtr, "Parameter must be a non-null pointer to a PARCSimpleBufferPool pointer.");
 
     PARCSimpleBufferPool *pool = *instancePtr;
-    
+
     parcLinkedList_Apply(pool->freeList, (void (*)) parcObject_SetDescriptor, (const void *) &PARCBuffer_Descriptor);
-    
+
     parcLinkedList_Release(&pool->freeList);
-    
+
     return true;
 }
 
@@ -88,9 +88,9 @@ _parcSimpleBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
 {
     PARCBuffer *buffer = *bufferPtr;
     *bufferPtr = 0;
-    
+
     PARCSimpleBufferPool *bufferPool = parcObjectDescriptor_GetTypeState(parcObject_GetDescriptor(buffer));
-    
+
     if (bufferPool->limit > parcLinkedList_Size(bufferPool->freeList)) {
         parcLinkedList_Append(bufferPool->freeList, buffer);
     } else {
@@ -98,7 +98,7 @@ _parcSimpleBufferPool_BufferDestructor(PARCBuffer **bufferPtr)
         parcObject_SetDescriptor(buffer, &parcObject_DescriptorName(PARCBuffer));
         parcBuffer_Release(&buffer);
     }
-    
+
     return false;
 }
 
@@ -113,12 +113,12 @@ PARCSimpleBufferPool *
 parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
 {
     PARCSimpleBufferPool *result = parcObject_CreateInstance(PARCSimpleBufferPool);
-    
+
     if (result != NULL) {
         result->limit = limit;
         result->bufferSize = bufferSize;
         result->freeList = parcLinkedList_Create();
-        
+
         char *string;
         asprintf(&string, "PARCSimpleBufferPool=%zu", bufferSize);
         result->descriptor = parcObjectDescriptor_CreateExtension(&parcObject_DescriptorName(PARCBuffer), string);
@@ -126,7 +126,7 @@ parcSimpleBufferPool_Create(size_t limit, size_t bufferSize)
         result->descriptor->destructor = (PARCObjectDestructor *) _parcSimpleBufferPool_BufferDestructor;
         result->descriptor->typeState = (PARCObjectTypeState *) result;
     }
-    
+
     return result;
 }
 
@@ -134,13 +134,13 @@ PARCBuffer *
 parcSimpleBufferPool_GetInstance(PARCSimpleBufferPool *bufferPool)
 {
     PARCBuffer *result;
-    
+
     if (parcLinkedList_Size(bufferPool->freeList) > 0) {
         result = parcLinkedList_RemoveFirst(bufferPool->freeList);
     } else {
         result = parcBuffer_Allocate(bufferPool->bufferSize);
         parcObject_SetDescriptor(result, bufferPool->descriptor);
     }
-    
+
     return result;
 }

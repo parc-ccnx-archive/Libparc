@@ -28,20 +28,20 @@
  * #
  * # This software is distributed under the BSD 2-clause License (see LICENSE
  * # file).  This BSD License does not make any patent claims and as such, does
- * # not act as a patent grant.  The purpose of this file is for each contributor
+ * # not act as a patent grant.  The purpose of this section is for each contributor
  * # to define their intentions with respect to intellectual property.
  * #
  * # Each contributor to this source code is encouraged to state their patent
  * # claims and licensing mechanisms for any contributions made. At the end of
- * # this file contributors may each make their own statements.  Contributor's
+ * # this section contributors may each make their own statements.  Contributor's
  * # claims and grants only apply to the pieces (source code, programs, text,
  * # media, etc) that they have contributed directly to this software.
  * #
- * # There is no guarantee that this file is complete, up to date or accurate. It
- * # is up to the contributors to maintain their section in this file up to date
- * # and up to the user of the software to verify any claims herein.
+ * # There is no guarantee that this section is complete, up to date or accurate. It
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
  * #
- * # Do not remove this header notification.  The contents of this file must be
+ * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
  *
@@ -59,7 +59,7 @@
  * <#Detailed Description#>
  *
  * @author Glenn Scott, Palo Alto Research Center (PARC)
- * @copyright 2016, Xerox Corporation (Xerox)and Palo Alto Research Center (PARC).  All rights reserved.
+ * @copyright 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_BufferPool
 #define PARCLibrary_parc_BufferPool

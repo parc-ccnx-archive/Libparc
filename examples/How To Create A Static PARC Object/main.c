@@ -28,20 +28,20 @@
  * #
  * # This software is distributed under the BSD 2-clause License (see LICENSE
  * # file).  This BSD License does not make any patent claims and as such, does
- * # not act as a patent grant.  The purpose of this file is for each contributor
+ * # not act as a patent grant.  The purpose of this section is for each contributor
  * # to define their intentions with respect to intellectual property.
  * #
  * # Each contributor to this source code is encouraged to state their patent
  * # claims and licensing mechanisms for any contributions made. At the end of
- * # this file contributors may each make their own statements.  Contributor's
+ * # this section contributors may each make their own statements.  Contributor's
  * # claims and grants only apply to the pieces (source code, programs, text,
  * # media, etc) that they have contributed directly to this software.
  * #
- * # There is no guarantee that this file is complete, up to date or accurate. It
- * # is up to the contributors to maintain their section in this file up to date
- * # and up to the user of the software to verify any claims herein.
+ * # There is no guarantee that this section is complete, up to date or accurate. It
+ * # is up to the contributors to maintain their portion of this section and up to
+ * # the user of the software to verify any claims herein.
  * #
- * # Do not remove this header notification.  The contents of this file must be
+ * # Do not remove this header notification.  The contents of this section must be
  * # present in all distributions of the software.  You may only modify your own
  * # intellectual property statements.  Please provide contact information.
  *
@@ -74,10 +74,10 @@ aGlobalObject(void)
     int x = 1;
     int y = 2;
     double z = 3.14;
-    
+
     parcObject_InitInstance(globalObject, PARCMyObject);
     parcMyObject_Init(globalObject, x, y, z);
-    
+
     parcMyObject_Display(globalObject, 0);
 
     parcMyObject_Release(&globalObject);
@@ -91,12 +91,12 @@ aStaticModuleObject(void)
     int x = 1;
     int y = 2;
     double z = 3.14;
-    
+
     parcObject_InitInstance(staticModuleObject, PARCMyObject);
     parcMyObject_Init(staticModuleObject, x, y, z);
-    
+
     parcMyObject_Display(staticModuleObject, 0);
-    
+
     parcMyObject_Release(&staticModuleObject);
 }
 
@@ -106,12 +106,12 @@ aLocalObject(void)
     int x = 1;
     int y = 2;
     double z = 3.14;
-    
+
     PARCMyObject *localObject = parcObject_Instance(PARCMyObject, sizeof(void*), PARCMyObjectSizeOf);
-    
+
     parcObject_InitInstance(localObject, PARCMyObject);
     parcMyObject_Init(localObject, x, y, z);
-    
+
     parcMyObject_Display(localObject, 0);
 
     parcMyObject_Release(&localObject);
@@ -123,10 +123,10 @@ aWrappedObject(void)
     int x = 1;
     int y = 2;
     double z = 3.14;
-    
+
     PARCMyObject *wrappedObject = parcMyObject_Wrap((char[parcObject_TotalSize(sizeof(void*), PARCMyObjectSizeOf)]) { 0 });
     parcMyObject_Init(wrappedObject, x, y, z);
-    
+
     parcMyObject_Display(wrappedObject, 0);
 
     parcMyObject_Release(&wrappedObject);
@@ -136,12 +136,12 @@ int
 main(int argc, const char *argv[argc])
 {
     aGlobalObject();
-    
+
     aStaticModuleObject();
-    
+
     aLocalObject();
-    
+
     aWrappedObject();
-    
+
     return 0;
 }
