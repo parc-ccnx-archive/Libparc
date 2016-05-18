@@ -1462,6 +1462,13 @@ bool parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescripto
  * If there are multiple competitors to set the barrier,
  * only one will (indiscriminately) succeed and return and the remaining will continue to attempt to set the barrier.
  *
+ * Barriers can be used in both threaded and non-threaded applications,
+ * but are not a substitute for thread locking and do not interoperate the wait and notify operations.
+ *
+ * Barriers should be used in pairs within the same level of program abstraction to avoid confusion.
+ * It is possible to set a barrier without ever unsetting the same barrier,
+ * and as a consequence any other attempt to set the same barrier will hang the program.
+ *
  * @param [in] object A pointer to a valid PARCObject
  *
  * @return true
@@ -1476,6 +1483,8 @@ bool parcObject_IsInstanceOf(const PARCObject *object, const PARCObjectDescripto
  *     parcObject_BarrierUnset(object);
  * }
  * @endcode
+ * @see parcObject_BarrierUnset
+ * @see parcObject_Synchronize
  */
 bool parcObject_BarrierSet(const PARCObject *object);
 
@@ -1489,6 +1498,9 @@ bool parcObject_BarrierSet(const PARCObject *object);
  *
  * If there are multiple competitors attempting to unset the barrier,
  * only one will (indiscriminately) succeed and return and the remaining will continue to attempt to unset the barrier.
+ *
+ * Barriers are not a substitute for thread locking and do not interoperate the wait and notify operations.
+ *
  *
  * @param [in] object A pointer to a valid `PARCObject`
  *
@@ -1513,6 +1525,9 @@ bool parcObject_BarrierUnset(const PARCObject *object);
  * This macro uses the functions `parcObject_BarrierSet` and `parcObject_BarrierUnset`
  * to provide a simple syntax for implementing a mutual exclusion region of code.
  *
+ * This defines and uses the local variable `_parcObjectSynchronize` which will always appear to be true to the calling function
+ * and must never be defined by the calling function, or any module.
+ *
  * @param [in] object A pointer to a valid `PARCObject`
  *
  * Example:
@@ -1525,6 +1540,6 @@ bool parcObject_BarrierUnset(const PARCObject *object);
  * @endcode
  * @see parcObject_Mutex
  */
-#define parcObject_Synchronize(_object_) for (bool once = parcObject_BarrierSet(_object_); once; once = parcObject_BarrierUnset(_object_))
+#define parcObject_Synchronize(_object_) for (bool _parcObjectSynchronize = parcObject_BarrierSet(_object_); _parcObjectSynchronize; _parcObjectSynchronize = parcObject_BarrierUnset(_object_))
 
 #endif // libparc_parc_Object_h
