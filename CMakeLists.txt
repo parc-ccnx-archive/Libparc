@@ -55,10 +55,7 @@ macro(AddTest testFile)
   add_test(NAME ${ARGV0} COMMAND ${ARGV0})
   set_target_properties(${ARGV0} PROPERTIES FOLDER Test)
   add_dependencies(${ARGV0} ${PROJECT_NAME}_cleanup_profiling_data)
-
-
 endmacro(AddTest)
 
-
 add_subdirectory(parc)
-#add_subdirectory(documentation)
+add_subdirectory(documentation)
