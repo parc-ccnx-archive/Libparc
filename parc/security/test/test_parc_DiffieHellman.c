@@ -55,6 +55,7 @@
 #include <config.h>
 #include <stdio.h>
 #include <LongBow/unit-test.h>
+#include <parc/testing/parc_ObjectTesting.h>
 
 #include "../parc_DiffieHellman.c"
 #include <parc/algol/parc_SafeMemory.h>
@@ -98,19 +99,27 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
     return LONGBOW_STATUS_SUCCEEDED;
 }
 
-LONGBOW_TEST_CASE(Global, parcDiffieHellman_AcquireRelease)
-{
-
-}
-
 LONGBOW_TEST_CASE(Global, parcDiffieHellman_Create)
 {
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    assertNotNull(dh, "Expected a non-NULL PARCDiffieHellman instance");
+    parcDiffieHellman_Release(&dh);
+}
 
+LONGBOW_TEST_CASE(Global, parcDiffieHellman_AcquireRelease)
+{
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    parcObjectTesting_AssertAcquireReleaseContract(parcDiffieHellman_Acquire, dh);
+    parcDiffieHellman_Release(&dh);
 }
 
 LONGBOW_TEST_CASE(Global, parcDiffieHellman_GenerateKeyShare)
 {
-
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellman_GenerateKeyShare(dh);
+    assertNotNull(keyShare, "Expected a non-NULL PARCDiffieHellmanKeyShare instance");
+    parcDiffieHellmanKeyShare_Release(&keyShare);
+    parcDiffieHellman_Release(&dh);
 }
 
 int

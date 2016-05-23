@@ -61,6 +61,8 @@
 #include <parc/algol/parc_Memory.h>
 
 #include <parc/security/parc_DiffieHellmanKeyShare.h>
+#include <parc/security/parc_CryptoHasher.h>
+#include <parc/security/parc_CryptoHash.h>
 
 #include <openssl/pem.h>
 #include <openssl/rand.h>
@@ -100,7 +102,7 @@ _parcDiffieHellmanKeyShare_CreateShare(int curveid)
         return NULL;
     }
 
-    result = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, curveid) ;
+    result = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, curveid);
     if (result != 1) {
         EVP_PKEY_CTX_free(pctx);
         return NULL;
@@ -108,7 +110,7 @@ _parcDiffieHellmanKeyShare_CreateShare(int curveid)
 
     EVP_PKEY *params = NULL;
     result = EVP_PKEY_paramgen(pctx, &params);
-    if (result != 0) {
+    if (result != 1) {
         EVP_PKEY_CTX_free(pctx);
         return NULL;
     }
@@ -272,11 +274,22 @@ parcDiffieHellmanKeyShare_Combine(PARCDiffieHellmanKeyShare *keyShare, PARCBuffe
 
     PARCBuffer *secretBuffer = parcBuffer_Allocate(secretLength);
     parcBuffer_PutArray(secretBuffer, secretLength, secret);
-    parcBuffer_Flip(secretBuffer);
+    parcBuffer_Flip(secretBuffer); 
+
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    parcCryptoHasher_Init(hasher);
+    parcCryptoHasher_UpdateBuffer(hasher, secretBuffer);
+    PARCCryptoHash *digest = parcCryptoHasher_Finalize(hasher);
+    
+    PARCBuffer *sharedSecret = parcBuffer_Acquire(parcCryptoHash_GetDigest(digest));
+
+    parcCryptoHash_Release(&digest);
+    parcCryptoHasher_Release(&hasher);
+    parcBuffer_Release(&secretBuffer);
 
     EVP_PKEY_CTX_free(ctx);
 	EVP_PKEY_free(peerkey);
     OPENSSL_free(secret);
 
-	return secretBuffer;
+	return sharedSecret;
 }

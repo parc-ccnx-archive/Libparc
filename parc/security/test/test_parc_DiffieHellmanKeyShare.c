@@ -55,6 +55,7 @@
 #include <config.h>
 #include <stdio.h>
 #include <LongBow/unit-test.h>
+#include <parc/testing/parc_ObjectTesting.h>
 
 #include "../parc_DiffieHellmanKeyShare.c"
 #include <parc/algol/parc_SafeMemory.h>
@@ -101,22 +102,50 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
 
 LONGBOW_TEST_CASE(Global, parcDiffieHellmanKeyShare_AcquireRelease)
 {
-
+    PARCDiffieHellmanKeyShare *dh = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+    parcObjectTesting_AssertAcquireReleaseContract(parcDiffieHellmanKeyShare_Acquire, dh);
+    parcDiffieHellmanKeyShare_Release(&dh);
 }
 
 LONGBOW_TEST_CASE(Global, parcDiffieHellmanKeyShare_Create)
 {
-
+    PARCDiffieHellmanKeyShare *dh = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+    assertNotNull(dh, "Expected a non-NULL PARCDiffieHellmanKeyShare instance");
+    parcDiffieHellmanKeyShare_Release(&dh);
 }
 
 LONGBOW_TEST_CASE(Global, parcDiffieHellmanKeyShare_SerializePublicKey)
 {
+    PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+    assertNotNull(keyShare, "Expected a non-NULL PARCDiffieHellmanKeyShare instance");
 
+    PARCBuffer *publicKey = parcDiffieHellmanKeyShare_SerializePublicKey(keyShare);
+    assertNotNull(publicKey, "Expected the public key to be serialized to a non-NULL PARCBuffer");
+
+    const size_t sec521r1KeySize = 266;
+    assertTrue(parcBuffer_Remaining(publicKey) == sec521r1KeySize, "Expected the public key size to be %zu, got %zu", sec521r1KeySize, parcBuffer_Remaining(publicKey));
+
+    parcBuffer_Release(&publicKey);
+    parcDiffieHellmanKeyShare_Release(&keyShare);
 }
 
 LONGBOW_TEST_CASE(Global, parcDiffieHellmanKeyShare_Combine)
 {
-    
+    PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+    assertNotNull(keyShare, "Expected a non-NULL PARCDiffieHellmanKeyShare instance");
+
+    PARCBuffer *publicKey = parcDiffieHellmanKeyShare_SerializePublicKey(keyShare);
+    assertNotNull(publicKey, "Expected the public key to be serialized to a non-NULL PARCBuffer");
+
+    PARCBuffer *sharedSecret = parcDiffieHellmanKeyShare_Combine(keyShare, publicKey);
+    assertNotNull(sharedSecret, "Expected the shared secret to be non-NULL");
+
+    const size_t secretSize = 32; // = 256 / 8 bytes
+    assertTrue(parcBuffer_Remaining(sharedSecret) == 32, "invalid size");
+
+    parcBuffer_Release(&sharedSecret);
+    parcBuffer_Release(&publicKey);
+    parcDiffieHellmanKeyShare_Release(&keyShare);
 }
 
 int
