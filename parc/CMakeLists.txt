@@ -182,6 +182,9 @@ set(LIBPARC_SECURITY_HEADER_FILES
 	security/parc_CryptoHash.h
 	security/parc_CryptoHashType.h
 	security/parc_CryptoSuite.h
+	security/parc_DiffieHellman.h
+	security/parc_DiffieHellmanKeyShare.h
+	security/parc_DiffieHellmanGroup.h
 	security/parc_SigningAlgorithm.h
 	security/parc_CryptoCache.h
 	security/parc_InMemoryVerifier.h
@@ -192,7 +195,7 @@ set(LIBPARC_SECURITY_HEADER_FILES
     security/parc_KeyStore.h
     security/parc_Pkcs12KeyStore.h
     security/parc_PublicKeySigner.h
-	security/parc_SecureRandom.h 
+	security/parc_SecureRandom.h
 	security/parc_Security.h
 	security/parc_Signature.h
 	security/parc_Signer.h
@@ -213,6 +216,8 @@ set(LIBPARC_SECURITY_SOURCE_FILES
 	security/parc_CryptoSuite.c
 	security/parc_SigningAlgorithm.c
 	security/parc_CryptoCache.c
+	security/parc_DiffieHellman.c
+	security/parc_DiffieHellmanKeyShare.c
 	security/parc_InMemoryVerifier.c
 	security/parc_Identity.c
 	security/parc_IdentityFile.c
@@ -394,7 +399,7 @@ install(FILES ${LIBPARC_BASE_HEADER_FILES}       DESTINATION include/parc )
 install(FILES ${LIBPARC_STATISTICS_HEADER_FILES} DESTINATION include/parc/statistics )
 install(FILES ${LIBPARC_OBJECT_HEADER_FILES}     DESTINATION include/parc/object )
 install(FILES ${LIBPARC_MEMORY_HEADER_FILES}     DESTINATION include/parc/memory )
-	
+
 add_subdirectory(security/command-line)
 add_subdirectory(algol/test)
 add_subdirectory(concurrent/test)

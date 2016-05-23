@@ -129,8 +129,33 @@ PARCCertificate *parcCertificateFactory_CreateCertificateFromFile(PARCCertificat
  */
 PARCCertificate *parcCertificateFactory_CreateCertificateFromBuffer(PARCCertificateFactory *factory, PARCBuffer *buffer);
 
-// TODO
-PARCCertificate *parcCertificateFactory_CreateSelfSignedCertificate(PARCCertificateFactory *factor, PARCBuffer **privateKey, char *subjectName, size_t keyLength, size_t valdityDays);
+/**
+ * Create a self-signed `PARCCertificate` using the specified parameters and return
+ * the corresponding private key.
+ *
+ * Note: this is equivalent to the following OpenSSL command:
+ *   XXXXYYYYZZZZ
+ *   TODO TODO TODO
+ *
+ * @param [in] factory The `PARCCertificateFactory` instance used to build the certificate.
+ * @param [in, out] privateKey A pointer to a `PARCBuffer` pointer where the new certificate private key will be stored.
+ * @param [in] subjectName The name of the certificate subject.
+ * @param [in] keyLength The length of the public key to be derived.
+ * @param [in] validityDays The validity period.
+ *
+ * @return NULL The memory could not be allocated.
+ * @return non-NULL A newly allocated `PARCCertificate`.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCBuffer *buffer = ...;
+ *     PARCCertificateFactory *factory = parcCertificateFactory_Create(PARCCertificateType_X509, PARCContainerEncoding_DER);
+ *     PARCCertificate *certificate = parcCertificateFactory_CreateCertificateFromBuffer(factory, buffer);
+ * }
+ * @endcode
+ */
+PARCCertificate *parcCertificateFactory_CreateSelfSignedCertificate(PARCCertificateFactory *factort, PARCBuffer **privateKey, char *subjectName, size_t keyLength, size_t valdityDays);
 
 /**
  * Increase the number of references to a `PARCCertificateFactory` instance.

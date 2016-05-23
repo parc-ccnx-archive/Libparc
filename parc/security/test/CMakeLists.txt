@@ -8,6 +8,8 @@ set(TestsExpectedToPass
   test_parc_CryptoHashType
   test_parc_CryptoHasher
   test_parc_CryptoSuite
+  test_parc_DiffieHellman
+  test_parc_DiffieHellmanKeyShare
   test_parc_Identity
   test_parc_IdentityFile
   test_parc_InMemoryVerifier
