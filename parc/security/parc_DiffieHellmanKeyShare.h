@@ -69,24 +69,24 @@ struct parc_diffie_hellman_keyshare;
 typedef struct parc_diffie_hellman_keyshare PARCDiffieHellmanKeyShare;
 
 /**
- * Create an instance of `PARCDiffieHellman.` that generates Diffie Hellman shares
- * for the specified key exchange mechanisms.
+ * Create a `PARCDiffieHellmanKeyShare` instance to hold one public and private
+ * Diffie Hellman key share for the specified group.
  *
  * @param [in] groupType A type of PARCDiffieHellmanGroup
  *
  * @return NULL Memory could not be allocated.
- * @return non-NULL A pointer to a `PARCDiffieHellman` instance.
+ * @return non-NULL A pointer to a `PARCDiffieHellmanKeyShare` instance.
  *
  * Example:
  * @code
  * {
- *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
  *
- *     parcDiffieHellman_Release(&dh);
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
  * }
  * @endcode
  */
-// PARCDiffieHellman *parcDiffieHellman_Create(PARCDiffieHellmanGroup groupType);
+PARCDiffieHellmanKeyShare *parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup groupType);
 
 /**
  * Increase the number of references to an instance of this object.
@@ -94,7 +94,7 @@ typedef struct parc_diffie_hellman_keyshare PARCDiffieHellmanKeyShare;
  * Note that new instance is not created, only that the given instance's reference count
  * is incremented. Discard the reference by invoking `parcDiffieHellman_Release()`.
  *
- * @param [in] dh A `PARCDiffieHellman` instance.
+ * @param [in] keyShare A `PARCDiffieHellmanKeyShare` instance.
  *
  * @return The value of the input parameter @p instance.
  *
@@ -103,15 +103,15 @@ typedef struct parc_diffie_hellman_keyshare PARCDiffieHellmanKeyShare;
  * {
  *     ...
  *
- *     PARCDiffieHellman *dh = parcDiffieHellman_Acquire(dhInstance);
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Acquire(keyShareInstance);
  *
- *     parcDiffieHellman_Release(&dh);
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
  * }
  * @endcode
  *
- * @see parcDiffieHellman_Release
+ * @see parcDiffieHellmanKeyShare_Release
  */
-// PARCDiffieHellman *parcDiffieHellman_Acquire(const PARCDiffieHellman *dh);
+PARCDiffieHellmanKeyShare *parcDiffieHellmanKeyShare_Acquire(const PARCDiffieHellmanKeyShare *keyShare);
 
 /**
  * Release a previously acquired reference to the specified instance,
@@ -123,21 +123,70 @@ typedef struct parc_diffie_hellman_keyshare PARCDiffieHellmanKeyShare;
  * the instance is deallocated and the instance's implementation will perform
  * additional cleanup and release other privately held references.
  *
- * @param [in,out] dhP A pointer to a pointer to the instance to release.
+ * @param [in,out] keyShareP A pointer to a pointer to the instance to release.
  *
  * Example:
  * @code
  * {
- *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *     ...
  *
- *     parcDiffieHellman_Release(&dh);
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Acquire(keyShareInstance);
+ *
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
  * }
  * @endcode
  */
-// void parcDiffieHellman_Release(PARCDiffieHellman **dhP);
+void parcDiffieHellmanKeyShare_Release(PARCDiffieHellmanKeyShare **keyShareP);
 
-PARCDiffieHellmanKeyShare *parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup groupType);
+/**
+ * Serialize the public key part of a `PARCDiffieHellmanKeyShare.`
+ *
+ * The public key is saved to a `PARCBuffer` and can be used for transport if needed.
+ *
+ * @param [in] keyShare A `PARCDiffieHellmanKeyShare` instance.
+ *
+ * @return A `PARCBuffer` containing the public key of this key share.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     PARCBuffer *publicKey = parcDiffieHellmanKeyShare_SerializePublicKey(keyShare);
+ *     // use the public key
+ *
+ *     parcBuffer_Release(&publicKey);
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
+ * }
+ * @endcode
+ */ 
 PARCBuffer *parcDiffieHellmanKeyShare_SerializePublicKey(PARCDiffieHellmanKeyShare *keyShare);
-PARCBuffer *parcDiffieHellmanKeyShare_Combine(PARCDiffieHellmanKeyShare *keyShare, PARCBuffer *theirs);
 
+/**
+ * Combine a `PARCDiffieHellmanKeyShare` with an encoded public key to create a shared secret.
+ *
+ * @param [in] keyShare A `PARCDiffieHellmanKeyShare` instance.
+ * @param [in] publicShare The public key share to use to derive the shared secrect.
+ *
+ * @return A `PARCBuffer` containing the shared secret from the Diffie Hellman exchange.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellmanKeyShare_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     PARCBuffer *publicKey = parcDiffieHellmanKeyShare_SerializePublicKey(keyShare);
+ *     
+ *     ...
+ *
+ *     PARCBuffer *sharedSecret = parcDiffieHellmanKeyShare_Combine(keyShare, publicKey);
+ *     // use the shared secret to derive other cryptographic secrets.
+ *
+ *     parcBuffer_Release(&sharedSecret);
+ *     parcBuffer_Release(&publicKey);
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
+ * }
+ * @endcode
+ */ 
+PARCBuffer *parcDiffieHellmanKeyShare_Combine(PARCDiffieHellmanKeyShare *keyShare, PARCBuffer *publicShare);
 #endif // libparc_parc_DiffieHellmanKeyShare_h

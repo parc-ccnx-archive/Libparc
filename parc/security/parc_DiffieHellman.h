@@ -137,10 +137,24 @@ PARCDiffieHellman *parcDiffieHellman_Acquire(const PARCDiffieHellman *dh);
  */
 void parcDiffieHellman_Release(PARCDiffieHellman **dhP);
 
-
-
-
-
+/* 
+ * Generate a fresh Diffie Hellman key share. 
+ *
+ * @param [in] dh A `PARCDiffieHellman` instance.
+ *
+ * @return A `PARCDiffieHellmanKeyShare` instnace.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellman_GenerateKeyShare(dh);
+ *     // use the key share
+ *
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
+ * }
+ * @endcode
+ */
 PARCDiffieHellmanKeyShare *parcDiffieHellman_GenerateKeyShare(PARCDiffieHellman *dh);
-
 #endif // libparc_parc_DiffieHellman_h
