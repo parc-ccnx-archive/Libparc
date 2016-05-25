@@ -68,7 +68,6 @@ struct parc_diffie_hellman {
 static bool
 _parcDiffieHellman_Destructor(PARCDiffieHellman **pointer)
 {
-    PARCDiffieHellman *exchanger = *pointer;
     return true;
 }
 

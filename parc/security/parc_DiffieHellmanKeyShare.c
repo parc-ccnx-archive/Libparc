@@ -75,7 +75,12 @@ struct parc_diffie_hellman_keyshare {
 static bool
 _parcDiffieHellmanKeyShare_Destructor(PARCDiffieHellmanKeyShare **pointer)
 {
-    PARCDiffieHellmanKeyShare *exchanger = *pointer;
+    PARCDiffieHellmanKeyShare *share = *pointer;
+
+    if (share->privateKey != NULL) {
+        EVP_PKEY_free(share->privateKey);
+    }
+
     return true;
 }
 
@@ -181,7 +186,7 @@ parcDiffieHellmanKeyShare_SerializePublicKey(PARCDiffieHellmanKeyShare *keyShare
 
     BN_CTX *bnctx = BN_CTX_new();
     point_conversion_form_t form = EC_KEY_get_conv_form(ecKey);
-    EC_POINT *point = EC_KEY_get0_public_key(ecKey);
+    const EC_POINT *point = EC_KEY_get0_public_key(ecKey);
     const EC_GROUP *group = EC_KEY_get0_group(ecKey);
     char *keyBuffer = EC_POINT_point2hex(group, point, form, bnctx);
     int length = strlen(keyBuffer);
@@ -190,25 +195,57 @@ parcDiffieHellmanKeyShare_SerializePublicKey(PARCDiffieHellmanKeyShare *keyShare
     parcBuffer_PutArray(publicKey, length, (uint8_t *) keyBuffer);
     parcBuffer_Flip(publicKey);
 
+    free(keyBuffer);
     BN_CTX_free(bnctx);
 
     return publicKey;
 }
 
 static EVP_PKEY *
-_parcDiffieHellman_DeserializePublicKeyShare(PARCBuffer *keyBuffer, EC_GROUP *myGroup)
+_parcDiffieHellman_DeserializePublicKeyShare(PARCDiffieHellmanKeyShare *keyShare, PARCBuffer *keyBuffer)
 {
-    char *keyString = parcBuffer_ToString(keyBuffer);
+    EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(keyShare->privateKey);
+    const EC_GROUP *myGroup = EC_KEY_get0_group(ecKey);
 
     EC_KEY *newKey = EC_KEY_new();
     BN_CTX *newCtx = BN_CTX_new();
-    EC_KEY_set_group(newKey, myGroup);
+    int result = EC_KEY_set_group(newKey, myGroup);
+    if (result != 1) {
+        BN_CTX_free(newCtx);
+        EC_KEY_free(newKey);
+        return NULL;
+    }
+
     EC_POINT *newPoint = EC_POINT_new(myGroup);
-    EC_POINT_hex2point(myGroup, keyString, newPoint, newCtx);
-    EC_KEY_set_public_key(newKey, newPoint);
+    char *keyString = parcBuffer_ToString(keyBuffer);
+    newPoint = EC_POINT_hex2point(myGroup, keyString, newPoint, newCtx);
+    if (newPoint == NULL) {
+        parcMemory_Deallocate(&keyString);
+        BN_CTX_free(newCtx);
+        EC_KEY_free(newKey);
+        EC_POINT_free(newPoint);
+        return NULL;
+    }
+
+    result = EC_KEY_set_public_key(newKey, newPoint);
+    if (result != 1) {
+        parcMemory_Deallocate(&keyString);
+        BN_CTX_free(newCtx);
+        EC_KEY_free(newKey);
+        EC_POINT_free(newPoint);
+        return NULL;
+    }
 
     EVP_PKEY *peerkey = EVP_PKEY_new();
-    int res = EVP_PKEY_set1_EC_KEY(peerkey, newKey);
+    result = EVP_PKEY_set1_EC_KEY(peerkey, newKey);
+    if (result != 1) {
+        parcMemory_Deallocate(&keyString);
+        BN_CTX_free(newCtx);
+        EC_KEY_free(newKey);
+        EC_POINT_free(newPoint);
+        EVP_PKEY_free(peerkey);
+        return NULL;
+    }
 
     BN_CTX_free(newCtx);
     EC_KEY_free(newKey);
@@ -218,12 +255,26 @@ _parcDiffieHellman_DeserializePublicKeyShare(PARCBuffer *keyBuffer, EC_GROUP *my
     return peerkey;
 }
 
+static PARCBuffer *
+_parcDiffieHellmanKeyShare_HashSharedSecret(PARCBuffer *secret)
+{
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    parcCryptoHasher_Init(hasher);
+    parcCryptoHasher_UpdateBuffer(hasher, secret);
+    PARCCryptoHash *digest = parcCryptoHasher_Finalize(hasher);
+
+    PARCBuffer *sharedSecret = parcBuffer_Acquire(parcCryptoHash_GetDigest(digest));
+
+    parcCryptoHash_Release(&digest);
+    parcCryptoHasher_Release(&hasher);
+
+    return sharedSecret;
+}
+
 PARCBuffer *
 parcDiffieHellmanKeyShare_Combine(PARCDiffieHellmanKeyShare *keyShare, PARCBuffer *theirs)
 {
-    EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(keyShare->privateKey);
-    const EC_GROUP *myGroup = EC_KEY_get0_group(ecKey);
-    EVP_PKEY *peerkey = _parcDiffieHellman_DeserializePublicKeyShare(theirs, myGroup);
+    EVP_PKEY *peerkey = _parcDiffieHellman_DeserializePublicKeyShare(keyShare, theirs);
     if (peerkey == NULL) {
         return NULL;
     }
@@ -274,17 +325,9 @@ parcDiffieHellmanKeyShare_Combine(PARCDiffieHellmanKeyShare *keyShare, PARCBuffe
 
     PARCBuffer *secretBuffer = parcBuffer_Allocate(secretLength);
     parcBuffer_PutArray(secretBuffer, secretLength, secret);
-    parcBuffer_Flip(secretBuffer); 
+    parcBuffer_Flip(secretBuffer);
 
-    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
-    parcCryptoHasher_Init(hasher);
-    parcCryptoHasher_UpdateBuffer(hasher, secretBuffer);
-    PARCCryptoHash *digest = parcCryptoHasher_Finalize(hasher);
-    
-    PARCBuffer *sharedSecret = parcBuffer_Acquire(parcCryptoHash_GetDigest(digest));
-
-    parcCryptoHash_Release(&digest);
-    parcCryptoHasher_Release(&hasher);
+    PARCBuffer *sharedSecret = _parcDiffieHellmanKeyShare_HashSharedSecret(secretBuffer);
     parcBuffer_Release(&secretBuffer);
 
     EVP_PKEY_CTX_free(ctx);
