@@ -93,12 +93,13 @@ typedef struct object_header {
 #define PARCObject_HEADER_MAGIC_GUARD_NUMBER 0x0ddFadda
     uint32_t magicGuardNumber;
     bool isAllocated;
+    bool barrier;
     PARCReferenceCount references;
     const PARCObjectDescriptor *descriptor;
-   
+
     // The locking member points to the locking structure or is NULL if the object does not support locking.
     _PARCObjectLocking *locking;
-   
+
     // Currently every object is lockable, but at some point in the future this will be controlled by the descriptor.
     _PARCObjectLocking lock;
 
@@ -330,22 +331,24 @@ _parcObject_Display(const PARCObject *object, const int indentation)
                                   object, header, header->descriptor->name, header->references);
 }
 
-const PARCObjectDescriptor parcObject_DescriptorName(PARCObject) = {
-    .name       = "PARCObject",
-    .destroy    = NULL,
-    .destructor = NULL,
-    .release    = NULL,
-    .copy       = _parcObject_Copy,
-    .toString   = _parcObject_ToString,
-    .equals     = _parcObject_Equals,
-    .compare    = _parcObject_Compare,
-    .hashCode   = _parcObject_HashCode,
-    .toJSON     = _parcObject_ToJSON,
-    .display    = _parcObject_Display,
-    .super      = NULL,
-    .isLockable = true,
-    .objectSize = 0,
-    .objectAlignment = sizeof(void *)   
+const PARCObjectDescriptor
+parcObject_DescriptorName(PARCObject) =
+{
+    .name            = "PARCObject",
+    .destroy         = NULL,
+    .destructor      = NULL,
+    .release         = NULL,
+    .copy            = _parcObject_Copy,
+    .toString        = _parcObject_ToString,
+    .equals          = _parcObject_Equals,
+    .compare         = _parcObject_Compare,
+    .hashCode        = _parcObject_HashCode,
+    .toJSON          = _parcObject_ToJSON,
+    .display         = _parcObject_Display,
+    .super           = NULL,
+    .isLockable      = true,
+    .objectSize      = 0,
+    .objectAlignment = sizeof(void *)
 };
 
 bool
@@ -374,7 +377,6 @@ static inline void
 _parcObjectHeader_AssertValid(const _PARCObjectHeader *header, const PARCObject *object)
 {
     trapIllegalValueIf(header->magicGuardNumber != PARCObject_HEADER_MAGIC_GUARD_NUMBER, "PARCObject@%p is corrupt.", object);
-//    trapIllegalValueIf(header->references == 0, "PARCObject@%p references must be > 0", object);
     trapIllegalValueIf(header->descriptor == NULL, "PARCObject@%p descriptor cannot be NULL.", object);
     if (header->descriptor->isLockable) {
         trapIllegalValueIf(header->locking == NULL, "PARCObject@%p is corrupt. Is Lockable but no locking structure", object);
@@ -563,7 +565,7 @@ _parcObject_InitializeLocking(_PARCObjectLocking *locking)
 {
     if (locking != NULL) {
         pthread_once(&_parcObject_GlobalLockAttributesInitialized, _parcObject_InitializeGobalLockAttributes);
-       
+
         pthread_mutex_init(&locking->lock, &_parcObject_GlobalLockAttributes);
         pthread_cond_init(&locking->notification, NULL);
 
@@ -575,17 +577,18 @@ static inline _PARCObjectHeader *
 _parcObjectHeader_InitAllocated(_PARCObjectHeader *header, const PARCObjectDescriptor *descriptor)
 {
     header->magicGuardNumber = PARCObject_HEADER_MAGIC_GUARD_NUMBER;
+    header->barrier = false;
     header->references = 1;
     header->descriptor = (PARCObjectDescriptor *) descriptor;
     header->isAllocated = true;
-   
+
     if (header->descriptor->isLockable) {
         header->locking = &header->lock;
         _parcObject_InitializeLocking(header->locking);
     } else {
         header->locking = NULL;
     }
-   
+
     return header;
 }
 
@@ -594,7 +597,7 @@ _parcObjectHeader_InitUnallocated(_PARCObjectHeader *header, const PARCObjectDes
 {
     _parcObjectHeader_InitAllocated(header, descriptor);
     header->isAllocated = false;
-   
+
     return header;
 }
 
@@ -603,9 +606,9 @@ parcObject_WrapImpl(void *memory, const PARCObjectDescriptor *descriptor)
 {
     size_t prefixLength = _parcObject_PrefixLength(descriptor);
     PARCObject *object = _pointerAdd(memory, prefixLength);
-   
+
     _parcObjectHeader_InitUnallocated(_parcObject_Header(object), descriptor);
-   
+
     return object;
 }
 
@@ -622,9 +625,9 @@ parcObject_CreateInstanceImpl(const PARCObjectDescriptor *descriptor)
         errno = ENOMEM;
         return NULL;
     }
-   
+
     PARCObject *object = _pointerAdd(origin, prefixLength);
-   
+
     _parcObjectHeader_InitAllocated(_parcObject_Header(object), descriptor);
 
     errno = 0;
@@ -635,7 +638,7 @@ PARCObject *
 parcObject_InitInstanceImpl(PARCObject *object, const PARCObjectDescriptor *descriptor)
 {
     _PARCObjectHeader *header = _parcObject_Header(object);
-   
+
     _parcObjectHeader_InitUnallocated(header, descriptor);
     return object;
 }
@@ -744,8 +747,8 @@ parcObjectDescriptor_Create(const char *name,
 
     PARCObjectDescriptor *result = parcMemory_AllocateAndClear(sizeof(PARCObjectDescriptor));
     if (result != NULL) {
-        strncpy(result->name, name, sizeof(result->name)-1);
-        result->name[sizeof(result->name)-1] = 0;
+        strncpy(result->name, name, sizeof(result->name) - 1);
+        result->name[sizeof(result->name) - 1] = 0;
         result->destroy = NULL;
         result->destructor = destructor;
         result->release = release;
@@ -770,8 +773,8 @@ parcObjectDescriptor_CreateExtension(const PARCObjectDescriptor *superType, cons
 {
     PARCObjectDescriptor *result = parcMemory_AllocateAndClear(sizeof(PARCObjectDescriptor));
     *result = *superType;
-    strncpy(result->name, name, sizeof(result->name)-1);
-    result->name[sizeof(result->name)-1] = 0;
+    strncpy(result->name, name, sizeof(result->name) - 1);
+    result->name[sizeof(result->name) - 1] = 0;
     return result;
 }
 
@@ -874,12 +877,12 @@ parcObject_IsLocked(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
     bool result = false;
-   
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     if (locking != NULL) {
         result = locking->locker != (pthread_t) NULL;
     }
-   
+
     return result;
 }
 
@@ -916,12 +919,12 @@ bool
 parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
 {
     parcObject_OptionalAssertValid(object);
-   
+
     bool result = false;
-   
+
     struct timeval now;
     gettimeofday(&now, NULL);
-   
+
     // Convert timeval to timespec.
     struct timespec time = {
         .tv_sec  = now.tv_sec,
@@ -930,16 +933,16 @@ parcObject_WaitFor(const PARCObject *object, const uint64_t nanoSeconds)
     time.tv_nsec += nanoSeconds;
     time.tv_sec += time.tv_nsec / 1000000000;
     time.tv_nsec = time.tv_nsec % 1000000000;
-   
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     if (locking != NULL) {
         int waitResult = pthread_cond_timedwait(&locking->notification, &locking->lock, &time);
-       
+
         if (waitResult == 0) {
             result = true;
         }
     }
-   
+
     return result;
 }
 
@@ -947,7 +950,7 @@ void
 parcObject_Notify(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
-   
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     if (locking != NULL) {
         pthread_cond_signal(&locking->notification);
@@ -958,9 +961,32 @@ void
 parcObject_NotifyAll(const PARCObject *object)
 {
     parcObject_OptionalAssertValid(object);
-   
+
     _PARCObjectLocking *locking = _parcObjectHeader_Locking(object);
     if (locking != NULL) {
         pthread_cond_broadcast(&locking->notification);
     }
+}
+
+bool
+parcObject_BarrierSet(const PARCObject *object)
+{
+    _PARCObjectHeader *header = _parcObject_Header(object);
+
+    while (__sync_bool_compare_and_swap(&header->barrier, false, true) == false) {
+        ;
+    }
+    return true;
+}
+
+bool
+parcObject_BarrierUnset(const PARCObject *object)
+{
+    _PARCObjectHeader *header = _parcObject_Header(object);
+
+    while (__sync_bool_compare_and_swap(&header->barrier, true, false) == false) {
+        ;
+    }
+
+    return false;
 }
