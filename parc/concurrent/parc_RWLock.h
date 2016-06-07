@@ -61,8 +61,8 @@
  * @author <#Greg Rutz <g.rutz@cablelabs.com>#>, Cable Television Laboratories, Inc. (CableLabs)
  * @copyright (c) 2016, Cable Television Laboratories, Inc.  All rights reserved.
  */
-#ifndef PARCLibrary_parc_Lock
-#define PARCLibrary_parc_Lock
+#ifndef PARCLibrary_parc_RWLock
+#define PARCLibrary_parc_RWLock
 #include <stdbool.h>
 
 #include <parc/algol/parc_HashCode.h>
