@@ -231,6 +231,7 @@ set(LIBPARC_CONCURRENT_HEADER_FILES
 	concurrent/parc_RingBuffer.h
 	concurrent/parc_RingBuffer_1x1.h
 	concurrent/parc_RingBuffer_NxM.h
+  concurrent/parc_RWLock.h
 	concurrent/parc_ScheduledTask.h
 	concurrent/parc_ScheduledThreadPool.h
 	concurrent/parc_Synchronizer.h
