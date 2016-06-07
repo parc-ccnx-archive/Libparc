@@ -8,6 +8,7 @@ set(TestsExpectedToPass
 	test_parc_Notifier
 	test_parc_RingBuffer_1x1
 	test_parc_RingBuffer_NxM
+  test_parc_RWLock
 	test_parc_ScheduledTask
 	test_parc_ScheduledThreadPool
 	test_parc_Synchronizer

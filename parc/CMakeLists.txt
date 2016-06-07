@@ -251,6 +251,7 @@ set(LIBPARC_CONCURRENT_SOURCE_FILES
 	concurrent/parc_RingBuffer.c
 	concurrent/parc_RingBuffer_1x1.c
 	concurrent/parc_RingBuffer_NxM.c
+  concurrent/parc_RWLock.c
 	concurrent/parc_ScheduledTask.c
 	concurrent/parc_ScheduledThreadPool.c
 	concurrent/parc_Synchronizer.c
