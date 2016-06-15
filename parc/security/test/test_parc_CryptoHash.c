@@ -112,7 +112,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_CreateFromArray)
     uint8_t scratch[bufferLength];
     ssize_t read_length = read(fd, scratch, bufferLength);
 
-    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
     assertNotNull(hash, "Expected to be non null");
 
     parcCryptoHash_Release(&hash);
@@ -127,7 +127,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_Release)
     uint8_t scratch[bufferLength];
     ssize_t read_length = read(fd, scratch, bufferLength);
 
-    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
     assertNotNull(hash, "Expected to be non null");
 
     parcCryptoHash_Release(&hash);
@@ -143,9 +143,9 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_Equals)
     uint8_t scratch1[bufferLength];
     ssize_t read_length = read(fd1, scratch1, bufferLength);
 
-    PARCCryptoHash *hash1 = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch1, read_length);
-    PARCCryptoHash *hash2 = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch1, read_length);
-    PARCCryptoHash *hash3 = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch1, read_length);
+    PARCCryptoHash *hash1 = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch1, read_length);
+    PARCCryptoHash *hash2 = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch1, read_length);
+    PARCCryptoHash *hash3 = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch1, read_length);
 
     int fd2 = open("test_digest_bytes_128.sha512", O_RDONLY);
     assertFalse(fd2 < 0, "Could not open %s: %s", "test_digest_bytes_128.sha512", strerror(errno));
@@ -153,7 +153,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_Equals)
     uint8_t scratch2[bufferLength];
     read_length = read(fd2, scratch2, bufferLength);
 
-    PARCCryptoHash *unequalhash = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch2, read_length);
+    PARCCryptoHash *unequalhash = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch2, read_length);
 
     parcObjectTesting_AssertEqualsFunction(parcCryptoHash_Equals, hash1, hash2, hash3, unequalhash);
 
@@ -176,11 +176,11 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_GetDigest)
     uint8_t scratch[bufferLength];
     ssize_t read_length = read(fd_truth, scratch, bufferLength);
 
-    PARCCryptoHash *hashTruth = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *hashTruth = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
 
     read_length = read(fd_buffer, scratch, bufferLength);
 
-    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(hasher);
     parcCryptoHasher_UpdateBytes(hasher, scratch, read_length);
 
@@ -204,10 +204,10 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_GetDigestType)
     uint8_t scratch[bufferLength];
     ssize_t read_length = read(fd, scratch, bufferLength);
 
-    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *hash = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
     assertNotNull(hash, "Expected to be non null");
 
-    assertTrue(PARC_HASH_SHA256 == parcCryptoHash_GetDigestType(hash), "Expected to be true");
+    assertTrue(PARCCryptoHashType_SHA256 == parcCryptoHash_GetDigestType(hash), "Expected to be true");
 
     parcCryptoHash_Release(&hash);
     close(fd);

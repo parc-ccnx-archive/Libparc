@@ -311,7 +311,7 @@ _GetPublickKeyDigest(PARCPkcs12KeyStore *keystore)
 
     // This stores a reference, so keystore->public_key_digest will remain valid
     // even if the cryptoHasher is destroyed
-    return parcCryptoHash_Create(PARC_HASH_SHA256, keystore->public_key_digest);
+    return parcCryptoHash_Create(PARCCryptoHashType_SHA256, keystore->public_key_digest);
 }
 
 static PARCCryptoHash *
@@ -330,7 +330,7 @@ _GetCertificateDigest(PARCPkcs12KeyStore *keystore)
         }
     }
 
-    PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, keystore->certificate_digest);
+    PARCCryptoHash *hash = parcCryptoHash_Create(PARCCryptoHashType_SHA256, keystore->certificate_digest);
     return hash;
 }
 
