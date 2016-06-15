@@ -149,8 +149,8 @@ bool parcPkcs12KeyStore_CreateFile(const char *filename, const char *password, c
  * Create a `PARCPkcs12KeyStore` instance.
  *
  * @param [in] filename The name of a file containing the PKCS12 keystore.
- * @param [in] password The password to decrypt/unlock the determines how the signer digests data. Supports PARC_HASH_SHA256 and PARC_HASH_SHA512.
- * @param [in] hashType Determines how the signer digests data. Possible values are PARC_HASH_SHA256 and PARC_HASH_SHA512.
+ * @param [in] password The password to decrypt/unlock the determines how the signer digests data. Supports PARCCryptoHashType_SHA256 and PARCCryptoHashType_SHA512.
+ * @param [in] hashType Determines how the signer digests data. Possible values are PARCCryptoHashType_SHA256 and PARCCryptoHashType_SHA512.
  *
  * @return A `PARCPkcs12KeyStore` instance using the public/private key pair contained within the PKCS12 file.
  *
@@ -164,7 +164,7 @@ bool parcPkcs12KeyStore_CreateFile(const char *filename, const char *password, c
  *
  *     ...
  *
- *     PARCSigningInterface *interface = parcPublicKeySignerPkcs12Store_Open(filename, password, PARC_HASH_SHA256);
+ *     PARCSigningInterface *interface = parcPublicKeySignerPkcs12Store_Open(filename, password, PARCCryptoHashType_SHA256);
  *
  *     ...
  * }
