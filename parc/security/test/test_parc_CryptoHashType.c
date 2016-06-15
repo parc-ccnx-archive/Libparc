@@ -97,27 +97,27 @@ LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
 
 LONGBOW_TEST_CASE(Global, parcCryptoHashType_FromString)
 {
-    assertTrue(PARC_HASH_SHA256 == parcCryptoHashType_FromString("PARC_HASH_SHA256"), "Expected true");
+    assertTrue(PARCCryptoHashType_SHA256 == parcCryptoHashType_FromString("PARCCryptoHashType_SHA256"), "Expected true");
 
-    assertTrue(PARC_HASH_SHA512 == parcCryptoHashType_FromString("PARC_HASH_SHA512"), "Expected true");
+    assertTrue(PARCCryptoHashType_SHA512 == parcCryptoHashType_FromString("PARCCryptoHashType_SHA512"), "Expected true");
 
-    assertTrue(PARC_HASH_CRC32C == parcCryptoHashType_FromString("PARC_HASH_CRC32C"), "Expected true");
+    assertTrue(PARCCryptoHashType_CRC32C == parcCryptoHashType_FromString("PARCCryptoHashType_CRC32C"), "Expected true");
 
-    assertTrue(PARC_HASH_NULL == parcCryptoHashType_FromString("NULL"), "Expected true");
+    assertTrue(PARCCryptoHashType_NULL == parcCryptoHashType_FromString("NULL"), "Expected true");
 }
 
 LONGBOW_TEST_CASE(Global, parcCryptoHashType_ToString)
 {
-    const char *string1 = parcCryptoHashType_ToString(PARC_HASH_SHA256);
+    const char *string1 = parcCryptoHashType_ToString(PARCCryptoHashType_SHA256);
     assertNotNull(string1, "Expected non-null result.");
 
-    const char * string2 = parcCryptoHashType_ToString(PARC_HASH_SHA512);
+    const char * string2 = parcCryptoHashType_ToString(PARCCryptoHashType_SHA512);
     assertNotNull(string2, "Expected non-null result.");
 
-    const char * string3 = parcCryptoHashType_ToString(PARC_HASH_CRC32C);
+    const char * string3 = parcCryptoHashType_ToString(PARCCryptoHashType_CRC32C);
     assertNotNull(string3, "Expected non-null result.");
 
-    const char *string4 = parcCryptoHashType_ToString(PARC_HASH_NULL);
+    const char *string4 = parcCryptoHashType_ToString(PARCCryptoHashType_NULL);
     assertNull(string4, "Expected to be null");
 }
 

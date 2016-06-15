@@ -154,10 +154,10 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Create)
 {
     PARCCryptoHasher *hasher;
 
-    hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Release(&hasher);
 
-    hasher = parcCryptoHasher_Create(PARC_HASH_SHA512);
+    hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA512);
     PARCCryptoHasher *handle = parcCryptoHasher_Acquire(hasher);
 
     assertTrue(parcObject_GetReferenceCount(handle) == 2, "Expected 2 references");
@@ -178,11 +178,11 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Bytes_256)
 
     read_length = read(fd_truth, scratch, bufferLength);
 
-    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
 
     read_length = read(fd_buffer, scratch, bufferLength);
 
-    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(digester);
     parcCryptoHasher_UpdateBytes(digester, scratch, read_length);
 
@@ -214,9 +214,9 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Buffer_256)
     PARCBuffer *bb_to_digest = parcBufferComposer_ProduceBuffer(composer);
 
     read_length = read(fd_truth, scratch, bufferLength);
-    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARC_HASH_SHA256, scratch, read_length);
+    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch, read_length);
 
-    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(digester);
     parcCryptoHasher_UpdateBuffer(digester, bb_to_digest);
     PARCCryptoHash *digestTest = parcCryptoHasher_Finalize(digester);
@@ -249,12 +249,12 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Bytes_512)
     ssize_t read_length;
 
     read_length = read(fd_truth, scratch, bufferLength);
-    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARC_HASH_SHA512, scratch, read_length);
+    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA512, scratch, read_length);
 
     read_length = read(fd_buffer, scratch, bufferLength);
 
 
-    digester = parcCryptoHasher_Create(PARC_HASH_SHA512);
+    digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA512);
     parcCryptoHasher_Init(digester);
     parcCryptoHasher_UpdateBytes(digester, scratch, read_length);
     PARCCryptoHash *digestTest = parcCryptoHasher_Finalize(digester);
@@ -285,9 +285,9 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Buffer_512)
     PARCBuffer *bb_to_digest = parcBufferComposer_ProduceBuffer(composer);
 
     read_length = read(fd_truth, scratch, bufferLength);
-    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARC_HASH_SHA512, scratch, read_length);
+    PARCCryptoHash *digestTruth = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA512, scratch, read_length);
 
-    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA512);
+    PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA512);
     parcCryptoHasher_Init(digester);
     parcCryptoHasher_UpdateBuffer(digester, bb_to_digest);
     PARCCryptoHash *digestTest = parcCryptoHasher_Finalize(digester);
@@ -308,7 +308,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_Buffer_512)
 LONGBOW_TEST_CASE(Global, parcCryptoHasher_CRC32)
 {
     for (int i = 0; vectors[i].buffer != NULL; i++) {
-        PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_CRC32C);
+        PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_CRC32C);
         parcCryptoHasher_Init(hasher);
         parcCryptoHasher_UpdateBytes(hasher, vectors[i].buffer, vectors[i].length);
         PARCCryptoHash *output = parcCryptoHasher_Finalize(hasher);
@@ -325,7 +325,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHasher_CRC32)
 
 LONGBOW_TEST_CASE(Global, parcCryptoHasher_CustomHasher)
 {
-    PARCCryptoHasher *hasher = parcCryptoHasher_CustomHasher(PARC_HASH_SHA512, functor_sha256);
+    PARCCryptoHasher *hasher = parcCryptoHasher_CustomHasher(PARCCryptoHashType_SHA512, functor_sha256);
     assertNotNull(hasher, "Expected to be non null");
 
     parcCryptoHasher_Release(&hasher);

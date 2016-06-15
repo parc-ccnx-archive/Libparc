@@ -67,7 +67,7 @@ PARCCryptoHash *
 _mockGetPublicKeyDigest(void *instance)
 {
     PARCBuffer *buffer = parcBuffer_Allocate(10);
-    PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+    PARCCryptoHash *hash = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
     parcBuffer_Release(&buffer);
     return hash;
 }
@@ -76,7 +76,7 @@ PARCCryptoHash *
 _mockGetCertificateDigest(void *instance)
 {
     PARCBuffer *buffer = parcBuffer_Allocate(20);
-    PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+    PARCCryptoHash *hash = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
     parcBuffer_Release(&buffer);
     return hash;
 }

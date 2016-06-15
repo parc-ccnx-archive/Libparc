@@ -69,9 +69,9 @@ static struct {
     PARCCryptoHashType type;
     char *name;
 } cryptoHashType_ToString[] = {
-    { PARC_HASH_SHA256, "PARC_HASH_SHA256" },
-    { PARC_HASH_SHA512, "PARC_HASH_SHA512" },
-    { PARC_HASH_CRC32C, "PARC_HASH_CRC32C" },
+    { PARCCryptoHashType_SHA256, "PARCCryptoHashType_SHA256" },
+    { PARCCryptoHashType_SHA512, "PARCCryptoHashType_SHA512" },
+    { PARCCryptoHashType_CRC32C, "PARCCryptoHashType_CRC32C" },
     { 0,                NULL               }
 };
 
@@ -94,5 +94,5 @@ parcCryptoHashType_FromString(const char *name)
             return cryptoHashType_ToString[i].type;
         }
     }
-    return PARC_HASH_NULL;
+    return PARCCryptoHashType_NULL;
 }

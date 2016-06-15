@@ -183,15 +183,15 @@ parcCryptoHasher_Create(PARCCryptoHashType type)
     hasher->type = type;
 
     switch (type) {
-        case PARC_HASH_SHA256:
+        case PARCCryptoHashType_SHA256:
             hasher->functor = functor_sha256;
             break;
 
-        case PARC_HASH_SHA512:
+        case PARCCryptoHashType_SHA512:
             hasher->functor = functor_sha512;
             break;
 
-        case PARC_HASH_CRC32C:
+        case PARCCryptoHashType_CRC32C:
             hasher->functor = functor_crc32;
             break;
 

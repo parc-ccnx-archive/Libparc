@@ -68,10 +68,10 @@
 #define libparc_parc_CryptoHashType_h
 
 typedef enum {
-    PARC_HASH_SHA256,
-    PARC_HASH_SHA512,
-    PARC_HASH_CRC32C,
-    PARC_HASH_NULL
+    PARCCryptoHashType_SHA256,
+    PARCCryptoHashType_SHA512,
+    PARCCryptoHashType_CRC32C,
+    PARCCryptoHashType_NULL
 } PARCCryptoHashType;
 
 /**
@@ -84,7 +84,7 @@ typedef enum {
  * Example:
  * @code
  * {
- *     PARCCryptoHashType type = PARC_HASH_SHA256;
+ *     PARCCryptoHashType type = PARCCryptoHashType_SHA256;
  *     const char *stringRep = parcCryptoHashType_ToString(type);
  *     // use stringRep as necessary, and then free
  * }
@@ -102,7 +102,7 @@ const char *parcCryptoHashType_ToString(PARCCryptoHashType type);
  * Example:
  * @code
  * {
- *     const char stringRep[17] = "PARC_HASH_SHA256";
+ *     const char stringRep[17] = "PARCCryptoHashType_SHA256";
  *     PARCCryptoHashType type = parcCryptoHashType_FromString(stringRep);
  *     // use stringRep as necessary, and then free
  * }

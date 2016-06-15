@@ -149,11 +149,11 @@ LONGBOW_TEST_FIXTURE_SETUP(Local)
     TestData *data = parcMemory_AllocateAndClear(sizeof(TestData));
     assertNotNull(data, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(TestData));
 
-    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
+    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARCCryptoHashType_SHA256);
     PARCKeyStore *keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
     parcPkcs12KeyStore_Release(&publicKeyStore);
 
-    PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    PARCPublicKeySigner *publicKeySigner = parcPublicKeySigner_Create(keyStore, PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256);
     parcKeyStore_Release(&keyStore);
 
     data->signer = parcSigner_Create(publicKeySigner, PARCPublicKeySignerAsSigner);
@@ -191,7 +191,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_GetCryptoHasher)
     PARCKey *key = parcSigner_CreatePublicKey(data->signer);
     _parcInMemoryVerifier_AddKey(data->inMemoryInterface, key);
 
-    PARCCryptoHasher *hasher = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARC_HASH_SHA256);
+    PARCCryptoHasher *hasher = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARCCryptoHashType_SHA256);
     parcKey_Release(&key);
     assertNotNull(hasher, "Got a null hasher");
 }
@@ -249,7 +249,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature)
     close(fd);
 
     // Digest it
-    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARC_HASH_SHA256);
+    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARCCryptoHashType_SHA256);
     assertNotNull(digester, "got null cryptohasher from inmemory verifier");
 
     parcCryptoHasher_Init(digester);
@@ -268,7 +268,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature)
     parcBufferComposer_PutArray(composer, scratch_buffer, read_bytes);
     PARCBuffer *bb_sig = parcBufferComposer_ProduceBuffer(composer);
 
-    PARCSignature *signatureToVerify = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, bb_sig);
+    PARCSignature *signatureToVerify = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, bb_sig);
     parcBuffer_Release(&bb_sig);
     parcBufferComposer_Release(&composer);
 
@@ -303,7 +303,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadHashAlg)
     close(fd);
 
     // Digest it WITH THE WRONG HASH
-    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARC_HASH_SHA512);
+    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARCCryptoHashType_SHA512);
     assertNotNull(digester, "got null cryptohasher from inmemory verifier");
 
     parcCryptoHasher_Init(digester);
@@ -322,7 +322,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadHashAlg)
     PARCBuffer *bb_sig = parcBufferComposer_ProduceBuffer(composer);
 
     PARCSignature *signatureToVerify = parcSignature_Create(PARCSigningAlgorithm_RSA,
-                                                            PARC_HASH_SHA256,
+                                                            PARCCryptoHashType_SHA256,
                                                             bb_sig);
     parcBuffer_Release(&bb_sig);
     parcBufferComposer_Release(&composer);
@@ -357,7 +357,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadSigAlg)
     close(fd);
 
     // Digest it
-    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARC_HASH_SHA256);
+    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARCCryptoHashType_SHA256);
     assertNotNull(digester, "got null cryptohasher from inmemory verifier");
 
     parcCryptoHasher_Init(digester);
@@ -377,7 +377,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadSigAlg)
 
     // HERE WE TELL IT DSA, NOT RSA
     PARCSignature *signatureToVerify = parcSignature_Create(PARCSigningAlgorithm_DSA,
-                                                            PARC_HASH_SHA256,
+                                                            PARCCryptoHashType_SHA256,
                                                             bb_sig);
     parcBuffer_Release(&bb_sig);
     parcBufferComposer_Release(&composer);
@@ -411,7 +411,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadHash)
     close(fd);
 
     // Digest it
-    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARC_HASH_SHA256);
+    PARCCryptoHasher *digester = _parcInMemoryVerifier_GetCryptoHasher(data->inMemoryInterface, parcKey_GetKeyId(key), PARCCryptoHashType_SHA256);
     assertNotNull(digester, "got null cryptohasher from inmemory verifier");
 
     // DIGEST THE BYTES TWICE TO GIVE WRONG HASH
@@ -432,7 +432,7 @@ LONGBOW_TEST_CASE(Local, parcInMemoryVerifier_VerifySignature_BadHash)
     PARCBuffer *bb_sig = parcBufferComposer_ProduceBuffer(composer);
 
     PARCSignature *signatureToVerify = parcSignature_Create(PARCSigningAlgorithm_RSA,
-                                                            PARC_HASH_SHA256,
+                                                            PARCCryptoHashType_SHA256,
                                                             bb_sig);
     parcBuffer_Release(&bb_sig);
     parcBufferComposer_Release(&composer);

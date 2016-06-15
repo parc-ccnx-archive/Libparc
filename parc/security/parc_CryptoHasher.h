@@ -138,7 +138,7 @@ typedef struct parc_crypto_hasher_interface {
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     // initialize if needed
  *     // update bytes or finalize as needed
  *     parcCryptoHasher_Release(&digester);
@@ -171,7 +171,7 @@ PARCCryptoHasher *parcCryptoHasher_Create(PARCCryptoHashType type);
  *      CRC32CSigner *crc32Signer = parcMemory_AllocateAndClear(sizeof(CRC32CSigner));
  *      crc32Signer->hasher_functor = hash_crc32c_template;
  *      crc32Signer->hasher_functor.functor_env = crc32Signer;
- *      crc32Signer->hasher = parcCryptoHasher_CustomHasher(PARC_HASH_CRC32C, crc32Signer->hasher_functor);
+ *      crc32Signer->hasher = parcCryptoHasher_CustomHasher(PARCCryptoHashType_CRC32C, crc32Signer->hasher_functor);
  *
  *      PARCSigningInterface *signer = parcMemory_AllocateAndClear(sizeof(PARCSigningInterface));
  *      *signer = crc32signerimpl_template;
@@ -243,7 +243,7 @@ void parcCryptoHasher_Release(PARCCryptoHasher **hasherP);
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     parcCryptoHasher_Init(digester);
  *     // update bytes or finalize as needed
  *     parcCryptoHasher_Release(&digester);
@@ -265,7 +265,7 @@ int parcCryptoHasher_Init(PARCCryptoHasher *digester);
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     parcCryptoHasher_Init(digester);
  *     ...
  *     uint8_t *buffer = ...
@@ -291,7 +291,7 @@ int parcCryptoHasher_UpdateBytes(PARCCryptoHasher *hasher, const void *buffer, s
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     parcCryptoHasher_Init(digester);
  *     ...
  *     PARCBuffer *buffer = ...
@@ -314,7 +314,7 @@ int parcCryptoHasher_UpdateBuffer(PARCCryptoHasher *hasher, const PARCBuffer *bu
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     parcCryptoHasher_Init(digester);
  *     ...
  *     PARCBuffer *buffer = ...
@@ -336,7 +336,7 @@ PARCCryptoHash *parcCryptoHasher_Finalize(PARCCryptoHasher *hasher);
  * Example:
  * @code
  * {
- *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARC_HASH_SHA256);
+ *     PARCCryptoHasher *digester = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
  *     parcCryptoHasher_Init(digester);
  *     ...
  *     parcCryptoHasher_Release(&digester);

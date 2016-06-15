@@ -222,10 +222,10 @@ _SignDigest(PARCPublicKeySigner *signer, const PARCCryptoHash *digestToSign)
     int opensslDigestType;
 
     switch (parcCryptoHash_GetDigestType(digestToSign)) {
-        case PARC_HASH_SHA256:
+        case PARCCryptoHashType_SHA256:
             opensslDigestType = NID_sha256;
             break;
-        case PARC_HASH_SHA512:
+        case PARCCryptoHashType_SHA512:
             opensslDigestType = NID_sha512;
             break;
         default:
