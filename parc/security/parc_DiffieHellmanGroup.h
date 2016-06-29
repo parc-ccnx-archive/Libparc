@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
+ * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,60 +53,20 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
- * @file parc_CryptoHashType.h
+ * @file parc_DiffieHellmanGroup.h
  * @ingroup security
- * @brief A type specifying a cryptographic hash (or CRC check) algorithm.
+ * @brief An enumeration of the supported Diffie Hellman key exchange mechanisms.
  *
- * This type is overloaded to support both cryptographic hash digest algorithms and cyclical-reduncancy
- * check (CRC) algorithms. See the available `PARCCryptoHashType` enum types for an exhaustive
- * list of the supported algorithms.
- *
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
+ * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
+ * @copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
-#ifndef libparc_parc_CryptoHashType_h
-#define libparc_parc_CryptoHashType_h
+#ifndef libparc_parc_DiffieHellmanGroup_h
+#define libparc_parc_DiffieHellmanGroup_h
 
 typedef enum {
-    PARCCryptoHashType_SHA256,
-    PARCCryptoHashType_SHA512,
-    PARCCryptoHashType_CRC32C,
-    PARCCryptoHashType_NULL
-} PARCCryptoHashType;
+    PARCDiffieHellmanGroup_Prime256v1, // NIST Prime-Curve P-256
+    PARCDiffieHellmanGroup_Secp521r1,  // NIST Prime-Curve P-521
+    PARCDiffieHellmanGroup_Curve2559   // Curve2559
+} PARCDiffieHellmanGroup;
 
-/**
- * Convert the `PARCCryptoHashType` value to a human-readable string representation.
- *
- * @param [in] type A `PARCCryptoHashType` value
- *
- * @return A static, null-terminated string.
- *
- * Example:
- * @code
- * {
- *     PARCCryptoHashType type = PARCCryptoHashType_SHA256;
- *     const char *stringRep = parcCryptoHashType_ToString(type);
- *     // use stringRep as necessary, and then free
- * }
- * @endcode
- */
-const char *parcCryptoHashType_ToString(PARCCryptoHashType type);
-
-/**
- * Convert a string representation value of a `PARCCryptoHashType` to an actual value.
- *
- * @param [in] name A string representation of a `PARCCryptoHashType` value.
- *
- * @return A `PARCCryptoHashType` value.
- *
- * Example:
- * @code
- * {
- *     const char stringRep[17] = "PARCCryptoHashType_SHA256";
- *     PARCCryptoHashType type = parcCryptoHashType_FromString(stringRep);
- *     // use stringRep as necessary, and then free
- * }
- * @endcode
- */
-PARCCryptoHashType parcCryptoHashType_FromString(const char *name);
-#endif // libparc_parc_CryptoHashType_h
+#endif // libparc_parc_DiffieHellmanGroup_h

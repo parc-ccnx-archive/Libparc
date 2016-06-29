@@ -124,12 +124,12 @@ _getPublicKeyDigest(void *interfaceContext)
 
     if (certificate->keyDigest == NULL) {
         PARCBuffer *derEncodedKey = _getDEREncodedPublicKey(certificate);
-        PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+        PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
         parcCryptoHasher_Init(hasher);
         parcCryptoHasher_UpdateBuffer(hasher, derEncodedKey);
         PARCCryptoHash *hash = parcCryptoHasher_Finalize(hasher);
 
-        certificate->keyDigest = parcCryptoHash_Create(PARC_HASH_SHA256, parcCryptoHash_GetDigest(hash));
+        certificate->keyDigest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, parcCryptoHash_GetDigest(hash));
         parcCryptoHash_Release(&hash);
         parcCryptoHasher_Release(&hasher);
     }
@@ -152,7 +152,7 @@ _getCertificateDigest(void *interfaceContext)
         if (result) {
             PARCBuffer *digest =
                 parcBuffer_Flip(parcBuffer_PutArray(parcBuffer_Allocate(SHA256_DIGEST_LENGTH), SHA256_DIGEST_LENGTH, digestBuffer));
-            certificate->certificateDigest = parcCryptoHash_Create(PARC_HASH_SHA256, digest);
+            certificate->certificateDigest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, digest);
             parcBuffer_Release(&digest);
         }
     }

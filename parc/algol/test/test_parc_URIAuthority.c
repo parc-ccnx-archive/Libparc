@@ -124,7 +124,7 @@ LONGBOW_TEST_CASE(parcURIAuthority, parcURIAuthority_Parse)
     parcMemory_Deallocate((void **) &uriString);
     parcURI_Release(&uri);
 
-    // URI without the hostname
+    // URI without the port
     uriString = URI_SCHEME "://" URI_AUTHORITY_USERINFO "@" URI_AUTHORITY_HOSTNAME "/" URI_PATH_SEGMENT "/" URI_PATH_SEGMENT "?" URI_QUERY "#" URI_FRAGMENT;
     uriString = parcMemory_StringDuplicate(uriString, strlen(uriString));
     uri = parcURI_Parse(uriString);
@@ -133,9 +133,42 @@ LONGBOW_TEST_CASE(parcURIAuthority, parcURIAuthority_Parse)
     assertEqualStrings(parcURIAuthority_GetUserInfo(authority), URI_AUTHORITY_USERINFO);
 
     parcURIAuthority_Release(&authority);
+    parcURI_Release(&uri);
+
+    // URI with literal V4 address
+    uriString = URI_SCHEME "://" URI_AUTHORITY_LITERAL_HOST "/" URI_PATH_SEGMENT "/" URI_PATH_SEGMENT "?" URI_QUERY "#" URI_FRAGMENT;
+    uriString = parcMemory_StringDuplicate(uriString, strlen(uriString));
+    uri = parcURI_Parse(uriString);
+    authority = parcURIAuthority_Parse(parcURI_GetAuthority(uri));
+
+    assertEqualStrings(parcURIAuthority_GetHostName(authority), URI_AUTHORITY_LITERAL_HOSTNAME);
+
+    parcURIAuthority_Release(&authority);
+    parcURI_Release(&uri);
+
+    // URI with literal V6 address
+    uriString = URI_SCHEME "://" URI_AUTHORITY_LITERAL_HOST6 "/" URI_PATH_SEGMENT "/" URI_PATH_SEGMENT "?" URI_QUERY "#" URI_FRAGMENT;
+    uriString = parcMemory_StringDuplicate(uriString, strlen(uriString));
+    uri = parcURI_Parse(uriString);
+    authority = parcURIAuthority_Parse(parcURI_GetAuthority(uri));
+
+    assertEqualStrings(parcURIAuthority_GetHostName(authority), URI_AUTHORITY_LITERAL_HOSTNAME6);
+
+    parcURIAuthority_Release(&authority);
+    parcURI_Release(&uri);
+
+    // URI with full literal V6 address
+    uriString = URI_SCHEME "://" URI_AUTHORITY_LITERAL_HOST6_2 "/" URI_PATH_SEGMENT "/" URI_PATH_SEGMENT "?" URI_QUERY "#" URI_FRAGMENT;
+    uriString = parcMemory_StringDuplicate(uriString, strlen(uriString));
+    uri = parcURI_Parse(uriString);
+    authority = parcURIAuthority_Parse(parcURI_GetAuthority(uri));
+
+    assertEqualStrings(parcURIAuthority_GetHostName(authority), URI_AUTHORITY_LITERAL_HOSTNAME6_2);
+
+    parcURIAuthority_Release(&authority);
+    parcURI_Release(&uri);
 
     parcMemory_Deallocate((void **) &uriString);
-    parcURI_Release(&uri);
 }
 
 LONGBOW_TEST_CASE(parcURIAuthority, parcURIAuthority_Acquire)

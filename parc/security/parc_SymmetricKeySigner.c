@@ -207,12 +207,12 @@ parcSymmetricKeySigner_Create(PARCSymmetricKeyStore *keyStore, PARCCryptoHashTyp
     if (result != NULL) {
         result->hashType = hmacHashType;
         switch (hmacHashType) {
-            case PARC_HASH_SHA256:
+            case PARCCryptoHashType_SHA256:
                 result->hashLength = SHA256_DIGEST_LENGTH;
                 result->opensslMd = EVP_sha256();
                 break;
 
-            case PARC_HASH_SHA512:
+            case PARCCryptoHashType_SHA512:
                 result->hashLength = SHA512_DIGEST_LENGTH;
                 result->opensslMd = EVP_sha512();
                 break;

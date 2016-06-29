@@ -88,7 +88,7 @@ typedef struct parc_signature PARCSignature;
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  * }
  * @endcode
@@ -139,7 +139,7 @@ PARCSignature *parcSignature_Acquire(const PARCSignature *signature);
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *     parcSignature_Release(&signature);
  * }
@@ -161,7 +161,7 @@ void parcSignature_Release(PARCSignature **signaturePtr);
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *
  *     PARCSigningAlgorithm algorithm = parcSignature_GetSigningAlgorithm(signature);
@@ -182,7 +182,7 @@ PARCSigningAlgorithm parcSignature_GetSigningAlgorithm(const PARCSignature *sign
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *
  *     PARCCryptoHashType hashType = parcSignature_GetHashType(signature);
@@ -203,7 +203,7 @@ PARCCryptoHashType parcSignature_GetHashType(const PARCSignature *signature);
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *
  *     PARCBuffer *payload = parcSignature_GetSignature(signature);
@@ -227,7 +227,7 @@ PARCBuffer *parcSignature_GetSignature(const PARCSignature *signature);
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *
  *     char *string = parcSignature_ToString(signature);
@@ -273,8 +273,8 @@ char *parcSignature_ToString(const PARCSignature *signature);
  * {
  *     PARCBuffer *sigbits = parcBuffer_Flip(parcBuffer_FromString("signature bits"));
  *
- *     PARCSignature *signatureA = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
- *     PARCSignature *signatureB = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, sigbits);
+ *     PARCSignature *signatureA = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
+ *     PARCSignature *signatureB = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, sigbits);
  *     parcBuffer_Release(&sigbits);
  *
  *     if (parcSignature_Equals(signatureA, signatureB)) {

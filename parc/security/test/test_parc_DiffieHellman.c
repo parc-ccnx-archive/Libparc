@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
+ * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,61 +52,81 @@
  * intellectual property used by its contributions to this software. You may
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
-/**
- * @file parc_CryptoHashType.h
- * @ingroup security
- * @brief A type specifying a cryptographic hash (or CRC check) algorithm.
- *
- * This type is overloaded to support both cryptographic hash digest algorithms and cyclical-reduncancy
- * check (CRC) algorithms. See the available `PARCCryptoHashType` enum types for an exhaustive
- * list of the supported algorithms.
- *
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
- */
-#ifndef libparc_parc_CryptoHashType_h
-#define libparc_parc_CryptoHashType_h
+#include <config.h>
+#include <stdio.h>
+#include <LongBow/unit-test.h>
+#include <parc/testing/parc_ObjectTesting.h>
 
-typedef enum {
-    PARCCryptoHashType_SHA256,
-    PARCCryptoHashType_SHA512,
-    PARCCryptoHashType_CRC32C,
-    PARCCryptoHashType_NULL
-} PARCCryptoHashType;
+#include "../parc_DiffieHellman.c"
+#include <parc/algol/parc_SafeMemory.h>
+#include <parc/security/parc_CryptoHashType.h>
+#include <parc/algol/parc_Buffer.h>
 
-/**
- * Convert the `PARCCryptoHashType` value to a human-readable string representation.
- *
- * @param [in] type A `PARCCryptoHashType` value
- *
- * @return A static, null-terminated string.
- *
- * Example:
- * @code
- * {
- *     PARCCryptoHashType type = PARCCryptoHashType_SHA256;
- *     const char *stringRep = parcCryptoHashType_ToString(type);
- *     // use stringRep as necessary, and then free
- * }
- * @endcode
- */
-const char *parcCryptoHashType_ToString(PARCCryptoHashType type);
+LONGBOW_TEST_RUNNER(parc_DiffieHellman)
+{
+    LONGBOW_RUN_TEST_FIXTURE(Global);
+}
 
-/**
- * Convert a string representation value of a `PARCCryptoHashType` to an actual value.
- *
- * @param [in] name A string representation of a `PARCCryptoHashType` value.
- *
- * @return A `PARCCryptoHashType` value.
- *
- * Example:
- * @code
- * {
- *     const char stringRep[17] = "PARCCryptoHashType_SHA256";
- *     PARCCryptoHashType type = parcCryptoHashType_FromString(stringRep);
- *     // use stringRep as necessary, and then free
- * }
- * @endcode
- */
-PARCCryptoHashType parcCryptoHashType_FromString(const char *name);
-#endif // libparc_parc_CryptoHashType_h
+LONGBOW_TEST_RUNNER_SETUP(parc_DiffieHellman)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+// The Test Runner calls this function once after all the Test Fixtures are run.
+LONGBOW_TEST_RUNNER_TEARDOWN(parc_DiffieHellman)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE(Global)
+{
+    LONGBOW_RUN_TEST_CASE(Global, parcDiffieHellman_AcquireRelease);
+    LONGBOW_RUN_TEST_CASE(Global, parcDiffieHellman_Create);
+    LONGBOW_RUN_TEST_CASE(Global, parcDiffieHellman_GenerateKeyShare);
+}
+
+LONGBOW_TEST_FIXTURE_SETUP(Global)
+{
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_FIXTURE_TEARDOWN(Global)
+{
+    if (parcSafeMemory_ReportAllocation(STDOUT_FILENO) != 0) {
+        printf("('%s' leaks memory by %d (allocs - frees)) ", longBowTestCase_GetName(testCase), parcMemory_Outstanding());
+        return LONGBOW_STATUS_MEMORYLEAK;
+    }
+    return LONGBOW_STATUS_SUCCEEDED;
+}
+
+LONGBOW_TEST_CASE(Global, parcDiffieHellman_Create)
+{
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    assertNotNull(dh, "Expected a non-NULL PARCDiffieHellman instance");
+    parcDiffieHellman_Release(&dh);
+}
+
+LONGBOW_TEST_CASE(Global, parcDiffieHellman_AcquireRelease)
+{
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    parcObjectTesting_AssertAcquireReleaseContract(parcDiffieHellman_Acquire, dh);
+    parcDiffieHellman_Release(&dh);
+}
+
+LONGBOW_TEST_CASE(Global, parcDiffieHellman_GenerateKeyShare)
+{
+    PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+    PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellman_GenerateKeyShare(dh);
+    assertNotNull(keyShare, "Expected a non-NULL PARCDiffieHellmanKeyShare instance");
+    parcDiffieHellmanKeyShare_Release(&keyShare);
+    parcDiffieHellman_Release(&dh);
+}
+
+int
+main(int argc, char *argv[argc])
+{
+    LongBowRunner *testRunner = LONGBOW_TEST_RUNNER_CREATE(parc_DiffieHellman);
+    int exitStatus = LONGBOW_TEST_MAIN(argc, argv, testRunner);
+    longBowTestRunner_Destroy(&testRunner);
+    exit(exitStatus);
+}

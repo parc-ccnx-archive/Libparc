@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
+ * Copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,60 +53,108 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
- * @file parc_CryptoHashType.h
+ * @file parc_DiffieHellman.h
  * @ingroup security
- * @brief A type specifying a cryptographic hash (or CRC check) algorithm.
+ * @brief A factory for Diffie Hellman parameters.
  *
- * This type is overloaded to support both cryptographic hash digest algorithms and cyclical-reduncancy
- * check (CRC) algorithms. See the available `PARCCryptoHashType` enum types for an exhaustive
- * list of the supported algorithms.
- *
- * @author Marc Mosko, Palo Alto Research Center (Xerox PARC)
- * @copyright (c) 2013-2014, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
+ * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)
+ * @copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
-#ifndef libparc_parc_CryptoHashType_h
-#define libparc_parc_CryptoHashType_h
+#ifndef libparc_parc_DiffieHellman_h
+#define libparc_parc_DiffieHellman_h
 
-typedef enum {
-    PARCCryptoHashType_SHA256,
-    PARCCryptoHashType_SHA512,
-    PARCCryptoHashType_CRC32C,
-    PARCCryptoHashType_NULL
-} PARCCryptoHashType;
+#include <parc/security/parc_DiffieHellmanGroup.h>
+#include <parc/security/parc_DiffieHellmanKeyShare.h>
+
+struct parc_diffie_hellman;
+typedef struct parc_diffie_hellman PARCDiffieHellman;
 
 /**
- * Convert the `PARCCryptoHashType` value to a human-readable string representation.
+ * Create an instance of `PARCDiffieHellman.` that generates Diffie Hellman shares
+ * for the specified key exchange mechanisms.
  *
- * @param [in] type A `PARCCryptoHashType` value
+ * @param [in] groupType A type of PARCDiffieHellmanGroup
  *
- * @return A static, null-terminated string.
+ * @return NULL Memory could not be allocated.
+ * @return non-NULL A pointer to a `PARCDiffieHellman` instance.
  *
  * Example:
  * @code
  * {
- *     PARCCryptoHashType type = PARCCryptoHashType_SHA256;
- *     const char *stringRep = parcCryptoHashType_ToString(type);
- *     // use stringRep as necessary, and then free
+ *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     parcDiffieHellman_Release(&dh);
  * }
  * @endcode
  */
-const char *parcCryptoHashType_ToString(PARCCryptoHashType type);
+PARCDiffieHellman *parcDiffieHellman_Create(PARCDiffieHellmanGroup groupType);
 
 /**
- * Convert a string representation value of a `PARCCryptoHashType` to an actual value.
+ * Increase the number of references to an instance of this object.
  *
- * @param [in] name A string representation of a `PARCCryptoHashType` value.
+ * Note that new instance is not created, only that the given instance's reference count
+ * is incremented. Discard the reference by invoking `parcDiffieHellman_Release()`.
  *
- * @return A `PARCCryptoHashType` value.
+ * @param [in] dh A `PARCDiffieHellman` instance.
+ *
+ * @return The value of the input parameter @p instance.
  *
  * Example:
  * @code
  * {
- *     const char stringRep[17] = "PARCCryptoHashType_SHA256";
- *     PARCCryptoHashType type = parcCryptoHashType_FromString(stringRep);
- *     // use stringRep as necessary, and then free
+ *     ...
+ *
+ *     PARCDiffieHellman *dh = parcDiffieHellman_Acquire(dhInstance);
+ *
+ *     parcDiffieHellman_Release(&dh);
+ * }
+ * @endcode
+ *
+ * @see parcDiffieHellman_Release
+ */
+PARCDiffieHellman *parcDiffieHellman_Acquire(const PARCDiffieHellman *dh);
+
+/**
+ * Release a previously acquired reference to the specified instance,
+ * decrementing the reference count for the instance.
+ *
+ * The pointer to the instance is set to NULL as a side-effect of this function.
+ *
+ * If the invocation causes the last reference to the instance to be released,
+ * the instance is deallocated and the instance's implementation will perform
+ * additional cleanup and release other privately held references.
+ *
+ * @param [in,out] dhP A pointer to a pointer to the instance to release.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     parcDiffieHellman_Release(&dh);
  * }
  * @endcode
  */
-PARCCryptoHashType parcCryptoHashType_FromString(const char *name);
-#endif // libparc_parc_CryptoHashType_h
+void parcDiffieHellman_Release(PARCDiffieHellman **dhP);
+
+/* 
+ * Generate a fresh Diffie Hellman key share. 
+ *
+ * @param [in] dh A `PARCDiffieHellman` instance.
+ *
+ * @return A `PARCDiffieHellmanKeyShare` instnace.
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCDiffieHellman *dh = parcDiffieHellman_Create(PARCDiffieHellmanGroup_Secp521r1);
+ *
+ *     PARCDiffieHellmanKeyShare *keyShare = parcDiffieHellman_GenerateKeyShare(dh);
+ *     // use the key share
+ *
+ *     parcDiffieHellmanKeyShare_Release(&keyShare);
+ * }
+ * @endcode
+ */
+PARCDiffieHellmanKeyShare *parcDiffieHellman_GenerateKeyShare(PARCDiffieHellman *dh);
+#endif // libparc_parc_DiffieHellman_h

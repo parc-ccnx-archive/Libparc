@@ -184,7 +184,7 @@ bool parcSymmetricKeyStore_CreateFile(const char *filename, const char *password
  *
  * @param [in] filename The filename.
  * @param [in] password The password to use.
- * @param [in] hmacHashType is for the HMAC, e.g. PARC_HASH_SHA256
+ * @param [in] hmacHashType is for the HMAC, e.g. PARCCryptoHashType_SHA256
  *
  * Example:
  * @code
@@ -199,7 +199,7 @@ PARCSymmetricKeyStore *parcSymmetricKeyStore_OpenFile(const char *filename, cons
  * It is destroyed by parc_Signing when the signing context is destroyed.
  *
  * @param secret_key is the shared secret, we take ownership of the buffer.
- * @param hmacHashType is for the HMAC, e.g. PARC_HASH_SHA256
+ * @param hmacHashType is for the HMAC, e.g. PARCCryptoHashType_SHA256
  *
  * Example:
  * @code
