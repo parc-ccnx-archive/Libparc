@@ -258,7 +258,7 @@ _parcDiffieHellman_DeserializePublicKeyShare(PARCDiffieHellmanKeyShare *keyShare
 static PARCBuffer *
 _parcDiffieHellmanKeyShare_HashSharedSecret(PARCBuffer *secret)
 {
-    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(hasher);
     parcCryptoHasher_UpdateBuffer(hasher, secret);
     PARCCryptoHash *digest = parcCryptoHasher_Finalize(hasher);

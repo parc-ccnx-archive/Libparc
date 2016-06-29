@@ -113,10 +113,17 @@ parcURIAuthority_Parse(const char *authority)
         result->userinfo = parcMemory_StringDuplicate(authority, atSign - authority);
         authority = ++atSign;
     }
-    char *colon = strchr(authority, ':');
-    if (colon != NULL) {
-        result->hostName = parcMemory_StringDuplicate(authority, colon - authority);
-        result->port = (short) strtol(++colon, NULL, 10);
+    // Support literal IPv6 address specifications (i.e. [::0]:80)
+    char *rightBracket = strrchr(authority, ']');
+    char *lastColon = strrchr(authority, ':');
+    if (rightBracket != NULL) {
+        result->hostName = parcMemory_StringDuplicate(authority, rightBracket - authority + 1);
+        if ((lastColon - rightBracket) > 0) {
+            result->port = (short) strtol(++lastColon, NULL, 10);
+        }
+    } else if (lastColon != NULL) {
+        result->hostName = parcMemory_StringDuplicate(authority, lastColon - authority);
+        result->port = (short) strtol(++lastColon, NULL, 10);
     } else {
         result->hostName = parcMemory_StringDuplicate(authority, strlen(authority));
     }

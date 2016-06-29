@@ -262,7 +262,7 @@ bool parcVerifier_AllowedCryptoSuite(PARCVerifier *verifier, PARCKeyId *keyId, P
  * {
  *     PARCVerifier *verifeir = ...
  *     PARCKeyId *keyId = ...
- *     bool isAllowed = parcVerifier_AllowedCryptoSuite(verifier, keyId, PARC_HASH_SHA256);
+ *     bool isAllowed = parcVerifier_AllowedCryptoSuite(verifier, keyId, PARCCryptoHashType_SHA256);
  *     // act accordingly
  * }
  * @endcode

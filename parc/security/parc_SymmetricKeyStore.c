@@ -115,7 +115,7 @@ _createDerivedKey(const char *key, size_t keylength, unsigned char *salt, unsign
 static PARCCryptoHash *
 _getSecretKeyDigest(PARCSymmetricKeyStore *keyStore)
 {
-    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(hasher);
 
     parcCryptoHasher_UpdateBuffer(hasher, keyStore->secretKey);

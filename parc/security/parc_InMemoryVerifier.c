@@ -107,8 +107,8 @@ parcInMemoryVerifier_Create()
     PARCInMemoryVerifier *verifier = parcObject_CreateInstance(PARCInMemoryVerifier);
     if (verifier != NULL) {
         // right now only support sha-256.  need to figure out how to make this flexible
-        verifier->hasher_sha256 = parcCryptoHasher_Create(PARC_HASH_SHA256);
-        verifier->hasher_sha512 = parcCryptoHasher_Create(PARC_HASH_SHA512);
+        verifier->hasher_sha256 = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
+        verifier->hasher_sha512 = parcCryptoHasher_Create(PARCCryptoHashType_SHA512);
         verifier->key_cache = parcCryptoCache_Create();
     }
 
@@ -131,10 +131,10 @@ _parcInMemoryVerifier_GetCryptoHasher(void *interfaceContext, PARCKeyId *keyid, 
     assertFalse(parcKey_GetSigningAlgorithm(key) == PARCSigningAlgorithm_HMAC, "HMAC not supported yet");
 
     switch (hashType) {
-        case PARC_HASH_SHA256:
+        case PARCCryptoHashType_SHA256:
             return verifier->hasher_sha256;
 
-        case PARC_HASH_SHA512:
+        case PARCCryptoHashType_SHA512:
             return verifier->hasher_sha512;
 
         default:
@@ -310,10 +310,10 @@ _parcInMemoryVerifier_RSAKey_Verify(PARCInMemoryVerifier *verifier, PARCCryptoHa
             int openssl_digest_type;
 
             switch (parcCryptoHash_GetDigestType(localHash)) {
-                case PARC_HASH_SHA256:
+                case PARCCryptoHashType_SHA256:
                     openssl_digest_type = NID_sha256;
                     break;
-                case PARC_HASH_SHA512:
+                case PARCCryptoHashType_SHA512:
                     openssl_digest_type = NID_sha512;
                     break;
                 default:

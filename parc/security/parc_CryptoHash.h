@@ -85,7 +85,7 @@ typedef struct parc_crypto_hash PARCCryptoHash;
  * @code
  * {
  *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
  *     ...
  *     parcCryptoHash_Release(&digest);
  * }
@@ -157,7 +157,7 @@ void parcCryptoHash_Release(PARCCryptoHash **hashP);
  * {
  *     size_t bufferLen = 32;
  *     uint8_t *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARC_HASH_SHA256, buffer, bufferLen);
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer, bufferLen);
  *     ...
  *     parcCryptoHash_Release(&digest);
  *     // free the raw buffer as needed
@@ -175,7 +175,7 @@ PARCCryptoHash *parcCryptoHash_CreateFromArray(PARCCryptoHashType digestType, co
  * @code
  * {
  *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
  *     ...
  *     parcCryptoHash_Release(&digest);
  * }
@@ -194,9 +194,9 @@ void parcCryptoHash_Release(PARCCryptoHash **parcDigestPtr);
  * @code
  * {
  *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
  *     PARCCryptoHashType type = parcCryptoHash_GetDigestType(digest);
- *     // type will be PARC_HASH_SHA256
+ *     // type will be PARCCryptoHashType_SHA256
  *     ...
  *     parcCryptoHash_Release(&digest);
  * }
@@ -218,7 +218,7 @@ PARCCryptoHashType parcCryptoHash_GetDigestType(const PARCCryptoHash *parcDigest
  * @code
  * {
  *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
  *     PARCBuffer *rawDigest = parcCryptoHash_GetDigest(digest);
  *     // use the raw digest as necessary
  *     ...
@@ -257,8 +257,8 @@ PARCBuffer *parcCryptoHash_GetDigest(const PARCCryptoHash *cryptoHash);
  * @code
  * {
  *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *orig = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
- *     PARCCryptoHash *copy = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+ *     PARCCryptoHash *orig = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
+ *     PARCCryptoHash *copy = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
  *
  *     if (parcCryptoHash_Equals(orig, copy)) {
  *         // true

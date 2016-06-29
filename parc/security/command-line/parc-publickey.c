@@ -100,10 +100,10 @@ parcPublicKey_Validate(PARCArrayList *args)
     char *fileName = parcArrayList_Get(args, 2);
     char *password = parcArrayList_Get(args, 3);
 
-    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(fileName, password, PARC_HASH_SHA256);
+    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(fileName, password, PARCCryptoHashType_SHA256);
     PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
    
-    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256);
     PARCSigner *pkSigner = parcSigner_Create(signer, PARCPublicKeySignerAsSigner);
    
     parcKeyStore_Release(&publicKeyStore);

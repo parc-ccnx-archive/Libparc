@@ -238,10 +238,10 @@ LONGBOW_TEST_CASE(Global, _parcDiffieHellmanKeyShare_HashSharedSecret)
     PARCBuffer *input = parcBuffer_Allocate(1024);
     PARCBuffer *digestValue = _parcDiffieHellmanKeyShare_HashSharedSecret(input);
     size_t digestLength = parcBuffer_Remaining(digestValue);
-    size_t expectedLength = 32; // 256 bits for PARC_HASH_SHA256
+    size_t expectedLength = 32; // 256 bits for PARCCryptoHashType_SHA256
     assertTrue(digestLength == 32, "Expected a %zu byte digest, got %zu", expectedLength, digestLength);
 
-    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    PARCCryptoHasher *hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
     parcCryptoHasher_Init(hasher);
     parcCryptoHasher_UpdateBuffer(hasher, input);
     PARCCryptoHash *digest = parcCryptoHasher_Finalize(hasher);

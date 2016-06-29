@@ -70,14 +70,14 @@ parcCryptoSuite_GetCryptoHash(PARCCryptoSuite suite)
         case PARCCryptoSuite_HMAC_SHA256:     // fallthrough
         case PARCCryptoSuite_RSA_SHA256:      // fallthrough
         case PARCCryptoSuite_EC_SECP_256K1:
-            return PARC_HASH_SHA256;
+            return PARCCryptoHashType_SHA256;
 
         case PARCCryptoSuite_HMAC_SHA512:     // fallthrough
         case PARCCryptoSuite_RSA_SHA512:
-            return PARC_HASH_SHA512;
+            return PARCCryptoHashType_SHA512;
 
         case PARCCryptoSuite_NULL_CRC32C:
-            return PARC_HASH_CRC32C;
+            return PARCCryptoHashType_CRC32C;
 
         default:
             trapIllegalValue(suite, "Unknown crypto suite: %d", suite);

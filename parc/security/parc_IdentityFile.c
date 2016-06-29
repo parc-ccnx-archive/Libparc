@@ -147,11 +147,11 @@ parcIdentityFile_GetPassWord(const PARCIdentityFile *identity)
 PARCSigner *
 parcIdentityFile_CreateSigner(const PARCIdentityFile *identity)
 {
-    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(identity->fileName, identity->passWord, PARC_HASH_SHA256);
+    PARCPkcs12KeyStore *keyStore = parcPkcs12KeyStore_Open(identity->fileName, identity->passWord, PARCCryptoHashType_SHA256);
     PARCKeyStore *publicKeyStore = parcKeyStore_Create(keyStore, PARCPkcs12KeyStoreAsKeyStore);
     parcPkcs12KeyStore_Release(&keyStore);
 
-    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARC_HASH_SHA256);
+    PARCPublicKeySigner *signer = parcPublicKeySigner_Create(publicKeyStore, PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256);
     PARCSigner *pkSigner = parcSigner_Create(signer, PARCPublicKeySignerAsSigner);
     parcPublicKeySigner_Release(&signer);
     parcKeyStore_Release(&publicKeyStore);

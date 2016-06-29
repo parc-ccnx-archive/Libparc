@@ -82,7 +82,7 @@ _createSigner()
     PARCSymmetricKeyStore *symmetricKeyStore = parcSymmetricKeyStore_Create(secret_key);
     parcBuffer_Release(&secret_key);
 
-    PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARC_HASH_SHA256);
+    PARCSymmetricKeySigner *privateKeySigner = parcSymmetricKeySigner_Create(symmetricKeyStore, PARCCryptoHashType_SHA256);
     parcSymmetricKeyStore_Release(&symmetricKeyStore);
 
     return privateKeySigner;

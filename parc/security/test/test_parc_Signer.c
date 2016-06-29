@@ -79,7 +79,7 @@ static PARCSignature *
 _SignDigest(PARCSigner *interfaceContext)
 {
     PARCBuffer *buffer = parcBuffer_WrapCString(FAKE_SIGNATURE);
-    PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARC_HASH_SHA256, buffer);
+    PARCSignature *signature = parcSignature_Create(PARCSigningAlgorithm_RSA, PARCCryptoHashType_SHA256, buffer);
     parcBuffer_Release(&buffer);
     return signature;
 }
@@ -93,7 +93,7 @@ _GetSigningAlgorithm(PARCSigner *interfaceContext)
 static PARCCryptoHashType
 _GetCryptoHashType(PARCSigner  *signer)
 {
-    return PARC_HASH_SHA256;
+    return PARCCryptoHashType_SHA256;
 }
 
 static PARCCryptoHasher *
@@ -127,9 +127,9 @@ _createSigner()
 {
     _MockSigner *signer = parcObject_CreateInstance(_MockSigner);
 
-    signer->hasher = parcCryptoHasher_Create(PARC_HASH_SHA256);
+    signer->hasher = parcCryptoHasher_Create(PARCCryptoHashType_SHA256);
 
-    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARC_HASH_SHA256);
+    PARCPkcs12KeyStore *publicKeyStore = parcPkcs12KeyStore_Open("test_rsa.p12", "blueberry", PARCCryptoHashType_SHA256);
     assertNotNull(publicKeyStore, "Got null result from opening openssl pkcs12 file");
 
     signer->keyStore = parcKeyStore_Create(publicKeyStore, PARCPkcs12KeyStoreAsKeyStore);
@@ -281,7 +281,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_SignDigest)
     _mockSigner_Release(&mock);
 
     PARCBuffer *buffer = parcBuffer_Allocate(10);
-    PARCCryptoHash *hash = parcCryptoHash_Create(PARC_HASH_SHA256, buffer);
+    PARCCryptoHash *hash = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
     PARCSignature *signature = parcSigner_SignDigest(signer, hash);
 
     assertNotNull(signature, "Expected non-NULL PARCSignature");
@@ -317,7 +317,7 @@ LONGBOW_TEST_CASE(Global, parcSigner_GetCryptoHashType)
     _mockSigner_Release(&mock);
 
     PARCCryptoHashType type = parcSigner_GetCryptoHashType(signer);
-    assertTrue(PARC_HASH_SHA256 == type, "Expected PARC_HASH_SHA256 algorithm, got %d", type);
+    assertTrue(PARCCryptoHashType_SHA256 == type, "Expected PARCCryptoHashType_SHA256 algorithm, got %d", type);
 
     parcSigner_Release(&signer);
 }
