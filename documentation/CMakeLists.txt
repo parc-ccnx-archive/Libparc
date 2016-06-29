@@ -9,7 +9,7 @@ if(DOXYGEN_FOUND)
 
   add_custom_target(documentation
 	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/libparc.doxygen
-	COMMAND tar cf libparc-documentation.tar libparc-documentation
+	COMMAND tar cf libparc-documentation.tar -C libparc-documentation/html .
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMENT "Running Doxygen" VERBATIM )
 
