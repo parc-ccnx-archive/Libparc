@@ -144,7 +144,7 @@ LONGBOW_TEST_CASE(Global, parcNetwork_SockInet4AddressAny)
     assertNotNull(test_sock, "Expected a not null pointer\n");
     assertTrue(test_sock->sin_family == AF_INET, "Expecting sin_family to be AF_INET\n");
     assertTrue(test_sock->sin_addr.s_addr == INADDR_ANY, "Expecting sin_addr.s_addr to be set to INADDR_ANY\n");
-#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+#if defined(SIN6_LEN)
     assertTrue(test_sock->sin_len == sizeof(struct sockaddr_in), "Expecting sockaddr.sin_len to be %zu not %hhu\n",
                sizeof(struct sockaddr_in), test_sock->sin_len);
 #endif
@@ -157,7 +157,7 @@ LONGBOW_TEST_CASE(Global, parcNetwork_SockInet4Address_BuildString)
     PARCBufferComposer *composer = parcBufferComposer_Create();
 
     struct sockaddr_in *address = parcNetwork_SockInet4Address("127.0.0.1", 1234);
-#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+#if defined(SIN6_LEN)
     assertTrue(address->sin_len == sizeof(struct sockaddr_in), "Expecting sockaddr.sin_len to be %zu not %hhu\n",
                sizeof(struct sockaddr_in), address->sin_len);
 #endif
@@ -179,7 +179,7 @@ LONGBOW_TEST_CASE(Global, parcNetwork_SockInet4Address_BuildString)
 LONGBOW_TEST_CASE(Global, parcNetwork_SockInet6Address_BuildString)
 {
     struct sockaddr_in6 *address = parcNetwork_SockInet6Address("2001:720:1500:1::a100", 1234, 0, 1);
-#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+#if defined(SIN6_LEN)
     assertTrue(address->sin6_len == sizeof(struct sockaddr_in6), "Expecting sockaddr.sin6_len to be %zu not %hhu\n",
                sizeof(struct sockaddr_in6), address->sin6_len);
 #endif
