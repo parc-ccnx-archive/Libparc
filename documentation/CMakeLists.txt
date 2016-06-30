@@ -11,6 +11,6 @@ if(DOXYGEN_FOUND)
 	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/libparc.doxygen
 	COMMAND tar cf libparc-documentation.tar -C libparc-documentation/html .
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMENT "Running Doxygen" VERBATIM )
+	COMMENT "The file libparc-documentation.tar contains the HTML website suitable to update/replace the gh-pages branch of this repository." VERBATIM )
 
 endif(DOXYGEN_FOUND)
