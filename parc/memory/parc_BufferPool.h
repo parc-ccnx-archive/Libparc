@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_BufferPool.h
+ * @ingroup memory
  * @brief A simple pool of uniformly sized PARCBuffer instances.
  *
  * The client uses `parcBufferPool_GetInstance` to obtain instances which are placed attempted to be placed

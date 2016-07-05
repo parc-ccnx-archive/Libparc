@@ -53,6 +53,8 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
+ * @ingroup threading
+ 
  * @author Glenn Scott, Computing Science Laboratory, PARC
  * @copyright (c) 2016, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */

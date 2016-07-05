@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_String.h
+ * @ingroup types
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>

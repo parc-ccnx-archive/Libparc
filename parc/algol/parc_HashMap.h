@@ -54,11 +54,12 @@
  */
 /**
  * @file parc_HashMap.h
+ * @ingroup datastructures
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>
  *
- * @author <#Glenn Scott <Glenn.Scott@parc.com>#>, Palo Alto Research Center (Xerox PARC)
+ * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_HashMap

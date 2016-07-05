@@ -12,6 +12,12 @@ For example, the PARC Library provides `PARCHashMap`, `PARCLinkedList`,
 `PARCInputStream`, and so forth.
 Ideally, the Java programmer will feel at home with the PARC Library.
 
+@defgroup types Basic Types
+@brief Basic Types
+
+@defgroup object Reference counted object types
+@brief Reference counted object types
+
 @defgroup datastructures Data Structures
 @brief Data structures
 

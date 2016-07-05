@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_SortedList.h
+ * @ingroup datastructures
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>

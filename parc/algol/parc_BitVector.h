@@ -53,6 +53,9 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
+ * @file parc_BitVector.h
+ * @ingroup types
+ *
  * @author Kevin Fox, Palo Alto Research Center (Xerox PARC)
  * @copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */

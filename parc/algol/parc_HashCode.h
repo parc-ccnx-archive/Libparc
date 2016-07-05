@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_HashCode.h
+ * @ingroup object
  * @brief The type returned from implementations of the _HashCode() function.
  *
  * The size of a PARCHashCode value may be different depending on the compile-time compilation environment.

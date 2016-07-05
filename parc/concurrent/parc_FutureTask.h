@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_FutureTask.h
+ * @ingroup threading
  * @brief An encapsulated, asynchronous computation.
  *
  * This type associates a function and a pointer to data and provides the functionality

@@ -54,11 +54,12 @@
  */
 /**
  * @file parc_Thread.h
+ * @ingroup threading
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>
  *
- * @author <#gscott#>, Computing Science Laboratory, PARC
+ * @author Glenn Scott Computing Science Laboratory, PARC
  * @copyright (c) 2013-2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_Thread

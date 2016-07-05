@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_Synchronizer.h
+ * @ingroup threading
  * @brief A simple mutual exclusive synchronization implementation.
  *
  * Detailed Description

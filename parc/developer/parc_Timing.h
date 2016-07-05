@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_Timing.h
+ * @ingroup developer
  * @brief Macros for timing code
  *
  * These macros allow the developer to measure time spent in sections of code.
