@@ -2,6 +2,8 @@ Libparc
 =======
 The PARC C Library
 
+[Online function documentation](https://parc.github.io/Libparc/)
+
 ## Quick Start ##
 ```
 $ git clone git@github.com:PARC/Libparc.git Libparc
