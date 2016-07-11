@@ -139,6 +139,9 @@ parcNetwork_SockInet4Address(const char *address, in_port_t port)
     if (result != NULL) {
         result->sin_family = AF_INET;
         result->sin_port = htons(port);
+#if defined(SIN6_LEN)
+        result->sin_len = sizeof(struct sockaddr_in);
+#endif
         if (inet_pton(AF_INET, address, &(result->sin_addr)) == 1) {
             return result;
         }
@@ -158,6 +161,9 @@ parcNetwork_SockInet6Address(const char *address, in_port_t port, uint32_t flowI
         result->sin6_port = htons(port);
         result->sin6_flowinfo = flowInfo;
         result->sin6_scope_id = scopeId;
+#if defined(SIN6_LEN)
+        result->sin6_len = sizeof(struct sockaddr_in6);
+#endif
 
         if (inet_pton(AF_INET6, address, &(result->sin6_addr)) == 1) {
             return result;
@@ -176,6 +182,9 @@ parcNetwork_SockInet4AddressAny()
     if (result != NULL) {
         result->sin_family = AF_INET;
         result->sin_addr.s_addr = INADDR_ANY;
+#if defined(SIN6_LEN)
+        result->sin_len = sizeof(struct sockaddr_in);
+#endif
         return result;
     }
     return NULL;
