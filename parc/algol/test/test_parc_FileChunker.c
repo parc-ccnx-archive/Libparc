@@ -63,6 +63,7 @@
 
 #include <LongBow/unit-test.h>
 #include <parc/algol/parc_SafeMemory.h>
+#include <parc/algol/parc_BufferChunker.h>
 
 LONGBOW_TEST_RUNNER(parc_FileChunker)
 {

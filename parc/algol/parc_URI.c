@@ -81,8 +81,8 @@
 char *sub_delims = "!$&'()*+,;=";
 char *gen_delims = ":/?#[]@";
 
-#define isSubDelims(c) (c != 0 && index(sub_delims, c) != NULL)
-#define isGenDelims(c) (c != 0 && index(gen_delims, c) != NULL)
+#define isSubDelims(c) (c != 0 && strchr(sub_delims, c) != NULL)
+#define isGenDelims(c) (c != 0 && strchr(gen_delims, c) != NULL)
 #define isDigit(c) (c >= '0' && c <= '9')
 #define isAlpha(c) (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 

@@ -242,7 +242,7 @@ parcProperties_ToString(const PARCProperties *properties)
 void
 parcProperties_SetParsedProperty(PARCProperties *properties, char *string)
 {
-    char *equals = index(string, '=');
+    char *equals = strchr(string, '=');
     *equals++ = 0;
 
     parcProperties_SetProperty(properties, string, equals);

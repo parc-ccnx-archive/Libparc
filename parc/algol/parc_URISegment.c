@@ -129,7 +129,7 @@ _parsePercentEncoded(const char *string, unsigned char *value)
     return NULL;
 }
 
-#define uriPlainSegmentChar(c) (c != 0 && index("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~", c) != NULL)
+#define uriPlainSegmentChar(c) (c != 0 && strchr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~", c) != NULL)
 
 static PARCBufferComposer *
 _parcURISegment_BuildString(const PARCURISegment *segment, PARCBufferComposer *composer)

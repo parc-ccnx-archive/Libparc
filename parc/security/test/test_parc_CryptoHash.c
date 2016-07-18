@@ -155,7 +155,7 @@ LONGBOW_TEST_CASE(Global, parcCryptoHash_Equals)
 
     PARCCryptoHash *unequalhash = parcCryptoHash_CreateFromArray(PARCCryptoHashType_SHA256, scratch2, read_length);
 
-    parcObjectTesting_AssertEqualsFunction(parcCryptoHash_Equals, hash1, hash2, hash3, unequalhash);
+    parcObjectTesting_AssertEqualsFunction(parcObject_Equals, hash1, hash2, hash3, unequalhash);
 
     parcCryptoHash_Release(&hash1);
     parcCryptoHash_Release(&hash2);
