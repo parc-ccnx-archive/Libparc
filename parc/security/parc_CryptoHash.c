@@ -81,16 +81,19 @@ struct parc_crypto_hash {
     PARCBuffer *digestBuffer;
 };
 
-static void
+static bool
 _parcCryptoHash_FinalRelease(PARCCryptoHash **hashP)
 {
     PARCCryptoHash *hash = (PARCCryptoHash *) *hashP;
     if (hash->digestBuffer != NULL) {
         parcBuffer_Release(&hash->digestBuffer);
     }
+    return true;
 }
 
-parcObject_ExtendPARCObject(PARCCryptoHash, _parcCryptoHash_FinalRelease, NULL, NULL, NULL, NULL, NULL, NULL);
+parcObject_Override(PARCCryptoHash, PARCObject,
+                    .destructor = (PARCObjectDestructor *) _parcCryptoHash_FinalRelease,
+                    .equals = (PARCObjectEquals *) parcCryptoHash_Equals);
 
 parcObject_ImplementAcquire(parcCryptoHash, PARCCryptoHash);
 
@@ -99,7 +102,7 @@ parcObject_ImplementRelease(parcCryptoHash, PARCCryptoHash);
 PARCCryptoHash *
 parcCryptoHash_Create(PARCCryptoHashType digestType, PARCBuffer *digestBuffer)
 {
-    PARCCryptoHash *parcDigest = parcObject_CreateAndClearInstance(PARCCryptoHash);
+    PARCCryptoHash *parcDigest = parcObject_CreateInstance(PARCCryptoHash);
     assertNotNull(parcDigest, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(PARCCryptoHash));
     parcDigest->type = digestType;
 
@@ -119,7 +122,7 @@ parcCryptoHash_Create(PARCCryptoHashType digestType, PARCBuffer *digestBuffer)
 PARCCryptoHash *
 parcCryptoHash_CreateFromArray(PARCCryptoHashType digestType, const void *buffer, size_t length)
 {
-    PARCCryptoHash *parcDigest = parcObject_CreateAndClearInstance(PARCCryptoHash);
+    PARCCryptoHash *parcDigest = parcObject_CreateInstance(PARCCryptoHash);
     assertNotNull(parcDigest, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(PARCCryptoHash));
     parcDigest->type = digestType;
 
