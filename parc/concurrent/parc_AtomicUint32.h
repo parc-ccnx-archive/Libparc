@@ -54,11 +54,12 @@
  */
 /**
  * @file parc_AtomicUint32.h
+ * @ingroup threading
  * @brief An atomically updated 32-bit unsigned integer.
  *
  * <#Detailed Description#>
  *
- * @author <#Glenn Scott <Glenn.Scott@parc.com>#>, Palo Alto Research Center (Xerox PARC)
+ * @author Glenn Scott, Palo Alto Research Center (Xerox PARC)
  * @copyright (c) 2015, Xerox Corporation (Xerox) and Palo Alto Research Center, Inc (PARC).  All rights reserved.
  */
 #ifndef PARCLibrary_parc_AtomicUint32

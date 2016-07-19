@@ -55,6 +55,7 @@
 
 /**
  * @file parc_ScheduledTask.h
+ * @ingroup threading
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>

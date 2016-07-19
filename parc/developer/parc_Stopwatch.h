@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_Stopwatch.h
+ * @ingroup developer
  * @brief Measure elapsed time
  *
  * A `PARCStopwatch` measures the time elapsed between the invocation of `parcStopwatch_Start()`

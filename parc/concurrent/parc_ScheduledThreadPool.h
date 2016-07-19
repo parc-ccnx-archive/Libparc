@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_ScheduledThreadPool.h
+ * @ingroup threading
  * @brief <#Brief Description#>
  *
  * <#Detailed Description#>

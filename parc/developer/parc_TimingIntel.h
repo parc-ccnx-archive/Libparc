@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_TimingIntel.h
+ * @ingroup developer
  * @brief Macros for timing code
  *
  *  This code uses the Intel recommended benchmarking techniques described

@@ -54,6 +54,7 @@
  */
 /**
  * @file parc_RandomAccessFile.h
+ * @ingroup inputoutput
  * @brief A wrapper that provides random access to a file.
  *
  * @author Christopher A. Wood, Palo Alto Research Center (Xerox PARC)

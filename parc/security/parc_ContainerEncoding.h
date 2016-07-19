@@ -53,7 +53,7 @@
  * contact PARC at cipo@parc.com for more information or visit http://www.ccnx.org
  */
 /**
- * @file parc_Encoding.h
+ * @file parc_ContainerEncoding.h
  * @ingroup security
  * @brief A Encoding specifying a certificate.
  *
