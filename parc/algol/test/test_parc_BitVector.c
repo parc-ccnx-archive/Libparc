@@ -100,6 +100,9 @@ LONGBOW_TEST_FIXTURE(Global)
     LONGBOW_RUN_TEST_CASE(Global, parcBitVector_Equals);
     LONGBOW_RUN_TEST_CASE(Global, parcBitVector_Contains);
     LONGBOW_RUN_TEST_CASE(Global, parcBitVector_Set);
+    LONGBOW_RUN_TEST_CASE(Global, parcBitVector_And);
+    LONGBOW_RUN_TEST_CASE(Global, parcBitVector_Or);
+    LONGBOW_RUN_TEST_CASE(Global, parcBitVector_Shift);
 }
 
 LONGBOW_TEST_FIXTURE_SETUP(Global)
@@ -153,6 +156,92 @@ LONGBOW_TEST_CASE(Global, parcBitVector_Set)
     assertTrue(parcBitVector->bitArray[1] == (uint8_t) 0x1, "Expect the bitArray as a unsigned char to be = 0x1");
 
     parcBitVector_Release(&parcBitVector);
+}
+
+LONGBOW_TEST_CASE(Global, parcBitVector_And)
+{
+    PARCBitVector *vector1 = parcBitVector_Create();
+    PARCBitVector *vector2 = parcBitVector_Create();
+
+    parcBitVector_Set(vector1, 1);
+    parcBitVector_Set(vector1, 2);
+    parcBitVector_Set(vector1, 10);
+    parcBitVector_Set(vector2, 2);
+    parcBitVector_Set(vector2, 1);
+    parcBitVector_Set(vector2, 20);
+
+    PARCBitVector *result = parcBitVector_And(vector1, vector2);
+
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 2, "AND vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_And(vector1, NULL);
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 0, "AND vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_And(NULL, vector2);
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 0, "AND vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_And(NULL, NULL);
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 0, "AND vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    parcBitVector_Release(&vector1);
+    parcBitVector_Release(&vector2);
+}
+
+LONGBOW_TEST_CASE(Global, parcBitVector_Or)
+{
+    PARCBitVector *vector1 = parcBitVector_Create();
+    PARCBitVector *vector2 = parcBitVector_Create();
+
+    parcBitVector_Set(vector1, 1);
+    parcBitVector_Set(vector1, 2);
+    parcBitVector_Set(vector1, 10);
+    parcBitVector_Set(vector2, 2);
+    parcBitVector_Set(vector2, 1);
+    parcBitVector_Set(vector2, 20);
+
+    PARCBitVector *result = parcBitVector_Or(vector1, vector2);
+
+    assertTrue(parcBitVector_Contains(result, vector1), "Vector contents not included in OR operation results");
+    assertTrue(parcBitVector_Contains(result, vector2), "Vector contents not included in OR operation results");
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 4, "OR vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_Or(vector1, NULL);
+    assertTrue(parcBitVector_Equals(result, vector1), "OR vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_Or(NULL, vector2);
+    assertTrue(parcBitVector_Equals(result, vector2), "OR vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    result = parcBitVector_Or(NULL, NULL);
+    assertTrue(parcBitVector_NumberOfBitsSet(result) == 0, "OR vector not equal to expected results");
+    parcBitVector_Release(&result);
+
+    parcBitVector_Release(&vector1);
+    parcBitVector_Release(&vector2);
+}
+
+LONGBOW_TEST_CASE(Global, parcBitVector_Shift)
+{
+    PARCBitVector *vector = parcBitVector_Create();
+
+    parcBitVector_Set(vector, 0); // should drop off on left shift
+    parcBitVector_Set(vector, 11);
+    parcBitVector_Set(vector, 12);
+    parcBitVector_Set(vector, 13);
+    parcBitVector_Set(vector, 22);
+    parcBitVector_LeftShift(vector, 10);
+    parcBitVector_RightShift(vector, 10);
+    assertTrue(parcBitVector_NextBitSet(vector, 0) == 11, "Shift operations failed");
+    assertTrue(parcBitVector_NextBitSet(vector, 12) == 12, "Shift operations failed");
+    assertTrue(parcBitVector_NextBitSet(vector, 14) == 22, "Shift operations failed");
+    assertTrue(parcBitVector_NumberOfBitsSet(vector) == 4, "Shift operations failed to drop first bit on left shift");
+    parcBitVector_Release(&vector);
 }
 
 LONGBOW_TEST_CASE(Global, parcBitVector_SetClear)

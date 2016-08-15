@@ -81,6 +81,9 @@ struct PARCBitVector {
 
     // our backing memory.
     uint8_t *bitArray;
+
+    // Fill value to be used when extending a vector
+    int fillValue;
 };
 
 static void
@@ -106,6 +109,7 @@ parcBitVector_Create(void)
     parcBitVector->bitLength = DEFAULT_BITARRAY_SIZE * BITS_PER_BYTE;
     parcBitVector->numberOfBitsSet = 0;
     parcBitVector->firstBitSet = -1;
+    parcBitVector->fillValue = 0;
 
     return parcBitVector;
 }
@@ -158,7 +162,7 @@ _parc_bit_vector_resize(PARCBitVector *parcBitVector, unsigned bit)
         uint8_t *newArray = parcMemory_Reallocate(parcBitVector->bitArray, newSize);
         assertTrue(newArray, "parcMemory_Reallocate(%d) failed", newSize);
         // Reallocate does not guarantee that additional memory is zero-filled.
-        bzero((void *) &(newArray[oldSize]), newSize - oldSize);
+        memset((void *) &(newArray[oldSize]), parcBitVector->fillValue, newSize - oldSize);
 
         parcBitVector->bitArray = newArray;
         assertNotNull(newArray, "parcMemory_Reallocate(%d) returned NULL", newSize);
@@ -169,10 +173,9 @@ _parc_bit_vector_resize(PARCBitVector *parcBitVector, unsigned bit)
 int
 parcBitVector_Get(const PARCBitVector *parcBitVector, unsigned bit)
 {
-    assertNotNull(parcBitVector, "parcBitVector_Set passed a NULL parcBitVector");
-    assertTrue(bit < MAX_BIT_VECTOR_INDEX, "parcBitVector_Set passed a bit index that's too huge");
+    assertTrue(bit < MAX_BIT_VECTOR_INDEX, "parcBitVector_Set passed a bit index that's too large");
 
-    if (bit >= parcBitVector->bitLength) {
+    if ((parcBitVector == NULL) || (bit >= parcBitVector->bitLength)) {
         return -1;
     }
 
@@ -221,9 +224,10 @@ parcBitVector_SetVector(PARCBitVector *parcBitVector, const PARCBitVector *bitsT
 void
 parcBitVector_Reset(PARCBitVector *parcBitVector)
 {
-    memset(parcBitVector->bitArray, 0, parcBitVector->bitLength / BITS_PER_BYTE);
     parcBitVector->numberOfBitsSet = 0;
     parcBitVector->firstBitSet = -1;
+    parcBitVector->fillValue = 0;
+    memset(parcBitVector->bitArray, parcBitVector->fillValue, parcBitVector->bitLength / BITS_PER_BYTE);
 }
 
 
@@ -343,4 +347,103 @@ parcBitVector_ToString(const PARCBitVector *parcBitVector)
     }
 
     return result;
+}
+
+PARCBitVector *
+parcBitVector_Or(const PARCBitVector *first, const PARCBitVector *second)
+{
+    PARCBitVector *result = NULL;
+
+    if (first != NULL) {
+        result = parcBitVector_Copy(first);
+        if (second != NULL) {
+            for (int bit = 0; (bit = parcBitVector_NextBitSet(second, bit)) >= 0; bit++) {
+                parcBitVector_Set(result, bit);
+            }
+        }
+    } else if (second != NULL) {
+        result = parcBitVector_Copy(second);
+    } else { // both null, or is empty
+        result = parcBitVector_Create();
+    }
+
+    return result;
+}
+
+PARCBitVector *
+parcBitVector_And(const PARCBitVector *first, const PARCBitVector *second)
+{
+    PARCBitVector *result = parcBitVector_Create();
+
+    if (second == NULL) {
+        if (first != NULL) {
+            return result;
+        }
+    }
+
+    if (first != NULL) {
+        for (int bit = 0; (bit = parcBitVector_NextBitSet(first, bit)) >= 0; bit++) {
+            if (parcBitVector_Get(second, bit) == 1) {
+                parcBitVector_Set(result, bit);
+            }
+        }
+    }
+
+    return result;
+}
+
+static PARCBitVector *
+_parcBitVector_LeftShiftOnce(PARCBitVector *parcBitVector)
+{
+    if (parcBitVector != NULL) {
+        for (int bit = 0; (bit = parcBitVector_NextBitSet(parcBitVector, bit)) >= 0; bit++) {
+            if (bit > 0) { // The first bit falls off
+                parcBitVector_Set(parcBitVector, bit - 1);
+            }
+            parcBitVector_Clear(parcBitVector, bit);
+        }
+    }
+
+    return parcBitVector;
+}
+
+PARCBitVector *
+parcBitVector_LeftShift(PARCBitVector *parcBitVector, size_t count)
+{
+    for (int i = 0; i < count; i++) {
+        _parcBitVector_LeftShiftOnce(parcBitVector);
+    }
+
+    return parcBitVector;
+}
+
+static PARCBitVector *
+_parcBitVector_RightShiftOnce(PARCBitVector *parcBitVector)
+{
+    if (parcBitVector != NULL) {
+        for (int bit = 0; (bit = parcBitVector_NextBitSet(parcBitVector, bit)) >= 0; bit++) {
+            // Shift the next sequence of one bits into the first zero bit
+            int nextZero = bit + 1;
+            while (parcBitVector_Get(parcBitVector, nextZero) == 1) {
+                nextZero++;
+            }
+            parcBitVector_Clear(parcBitVector, bit++);
+            while (bit <= nextZero) {
+                parcBitVector_Set(parcBitVector, bit);
+                bit++;
+            }
+        }
+    }
+
+    return parcBitVector;
+}
+
+PARCBitVector *
+parcBitVector_RightShift(PARCBitVector *parcBitVector, size_t count)
+{
+    for (int i = 0; i < count; i++) {
+        _parcBitVector_RightShiftOnce(parcBitVector);
+    }
+
+    return parcBitVector;
 }

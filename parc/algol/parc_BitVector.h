@@ -175,10 +175,10 @@ bool parcBitVector_Equals(const PARCBitVector *a, const PARCBitVector *b);
  * @code
  * {
  *     PARCBitVector *superSet = parcBitVector_Create();
- *     parcBitVector_Set(parcBitVector, 10);
- *     parcBitVector_Set(parcBitVector, 11);
+ *     parcBitVector_Set(superSet, 10);
+ *     parcBitVector_Set(superSet, 11);
  *     PARCBitVector *subSet = parcBitVector_Create();
- *     parcBitVector_Set(parcBitVector, 10);
+ *     parcBitVector_Set(subSet, 10);
  *     assertTrue(parcBitVector_Contains(superSet, subSet), "Expect superSet to contain subSet");
  * }
  * @endcode
@@ -222,6 +222,109 @@ int parcBitVector_Get(const PARCBitVector *parcBitVector, unsigned bit);
  *
  */
 void parcBitVector_Set(PARCBitVector *parcBitVector, unsigned bit);
+
+/**
+ * Right shift a vector contents
+ *
+ * @param [in] parcBitVector
+ * @param [in] rightShift count
+ * @param [out] input vector
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCBitVector *parcBitVector = parcBitVector_Create();
+ *     parcBitVector_Set(parcBitVector, 0);
+ *
+ *     parcBitVector_RightShift(parcBitVector, 1);
+ *     assertTrue(parcBitVector_FirstBitSet(parcBitVector) == 1,
+ *                "First vector element should have moved up");
+ *
+ *     parcBitVector_Release(&parcBitVector);
+ * }
+ * @endcode
+ *
+ */
+PARCBitVector *parcBitVector_RightShift(PARCBitVector *parcBitVector, size_t rightShift);
+
+/**
+ * Left shift a vector contents
+ *
+ * @param [in] parcBitVector
+ * @param [in] leftShift count
+ * @param [out] input vector
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCBitVector *parcBitVector = parcBitVector_Create();
+ *     parcBitVector_Set(parcBitVector, 10);
+ *     parcBitVector_Set(parcBitVector, 0);
+ *
+ *     parcBitVector_LeftShift(parcBitVector, 1);
+ *     assertTrue(parcBitVector_NumberOfBitsSet(parcBitVector) == 1,
+ *                "First vector element should have rolled off");
+ *
+ *     parcBitVector_Release(&parcBitVector);
+ * }
+ * @endcode
+ *
+ */
+PARCBitVector *parcBitVector_LeftShift(PARCBitVector *parcBitVector, size_t leftShift);
+
+/**
+ * Logical And of a vector contents with another vector
+ *
+ * @param [in] a vector
+ * @param [in] b vector
+ * @param [out] allocated vector with result of And operation
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCBitVector *parcBitVector = parcBitVector_Create();
+ *     parcBitVector_Set(parcBitVector, 10);
+ *     PARCBitVector *andVector = parcBitVector_Create();
+ *     parcBitVector_Set(andVector, 11);
+ *
+ *     PARCBitVector *result = parcBitVector_And(parcBitVector, andVector);
+ *     assertTrue(parcBitVector_NumberOfBitsSet(result) == 0, "Vector should have been empty");
+ *
+ *     parcBitVector_Release(&parcBitVector);
+ *     parcBitVector_Release(&andVector);
+ *     parcBitVector_Release(&result);
+ * }
+ * @endcode
+ *
+ */
+PARCBitVector *parcBitVector_And(const PARCBitVector *a, const PARCBitVector *b);
+
+/**
+ * Logical Or of a vector contents with another vector
+ *
+ * @param [in] a vector
+ * @param [in] b vector
+ * @param [out] allocated vector with result of Or operation
+ *
+ * Example:
+ * @code
+ * {
+ *     PARCBitVector *parcBitVector = parcBitVector_Create();
+ *     parcBitVector_Set(parcBitVector, 10);
+ *     PARCBitVector *orVector = parcBitVector_Create();
+ *     parcBitVector_Set(orVector, 11);
+ *
+ *     PARCBitVector *result = parcBitVector_Or(parcBitVector, orVector);
+ *     assertTrue(parcBitVector_NumberOfBitsSet(result) == 2, "Vector should have been set");
+ *
+ *     parcBitVector_Release(&parcBitVector);
+ *     parcBitVector_Release(&orVector);
+ *     parcBitVector_Release(&result);
+ * }
+ * @endcode
+ *
+ */
+PARCBitVector *parcBitVector_Or(const PARCBitVector *a, const PARCBitVector *b);
 
 /**
  * Set a vector of bits in a vector
@@ -326,7 +429,7 @@ unsigned parcBitVector_NumberOfBitsSet(const PARCBitVector *parcBitVector);
  *
  * @param [in] parcBitVector to inspect
  * @param [in] startFrom bit position to start inspection from
- * @returns index of bit set in vector
+ * @returns index of next bit set in vector after startFrom or -1 if none
  *
  * Example:
  * @code
