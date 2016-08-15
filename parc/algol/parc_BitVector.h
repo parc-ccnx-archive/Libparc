@@ -299,7 +299,6 @@ PARCBitVector *parcBitVector_LeftShift(PARCBitVector *parcBitVector, size_t left
  */
 PARCBitVector *parcBitVector_And(const PARCBitVector *a, const PARCBitVector *b);
 
-
 /**
  * Logical Or of a vector contents with another vector
  *
