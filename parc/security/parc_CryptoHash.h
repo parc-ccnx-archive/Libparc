@@ -77,21 +77,21 @@ typedef struct parc_crypto_hash PARCCryptoHash;
  * Creates a new reference to the given PARCBuffer `digest`.
  *
  * @param [in] digestType The type of hash digest algorithm used to compute this digest.
- * @param [in] digest The actual hash digest instance.
+ * @param [in] digestBuffer The actual hash digest instance.
  *
  * @return A newly allocated `PARCCryptoHash` instance that must be freed via `parcCryptoHash_Release()`
  *
  * Example:
  * @code
  * {
- *     PARCBuffer *buffer = ...
- *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, buffer);
+ *     PARCBuffer *digestBuffer = ...
+ *     PARCCryptoHash *digest = parcCryptoHash_Create(PARCCryptoHashType_SHA256, digestBuffer);
  *     ...
  *     parcCryptoHash_Release(&digest);
  * }
  * @endcode
  */
-PARCCryptoHash *parcCryptoHash_Create(PARCCryptoHashType digestType, PARCBuffer *digest);
+PARCCryptoHash *parcCryptoHash_Create(PARCCryptoHashType digestType, const PARCBuffer *digestBuffer);
 
 /**
  * Increase the number of references to a `PARCCryptoHash` instance.

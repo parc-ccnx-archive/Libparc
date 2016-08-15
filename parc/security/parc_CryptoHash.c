@@ -100,13 +100,13 @@ parcObject_ImplementAcquire(parcCryptoHash, PARCCryptoHash);
 parcObject_ImplementRelease(parcCryptoHash, PARCCryptoHash);
 
 PARCCryptoHash *
-parcCryptoHash_Create(PARCCryptoHashType digestType, PARCBuffer *digestBuffer)
+parcCryptoHash_Create(PARCCryptoHashType digestType, const PARCBuffer *digestBuffer)
 {
     PARCCryptoHash *parcDigest = parcObject_CreateInstance(PARCCryptoHash);
     assertNotNull(parcDigest, "parcMemory_AllocateAndClear(%zu) returned NULL", sizeof(PARCCryptoHash));
     parcDigest->type = digestType;
 
-    parcDigest->digestBuffer = parcBuffer_Acquire(digestBuffer);
+    parcDigest->digestBuffer = parcBuffer_Acquire((PARCBuffer *) digestBuffer); // casting to un-const
 
     return parcDigest;
 }
