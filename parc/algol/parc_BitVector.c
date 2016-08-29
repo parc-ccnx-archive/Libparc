@@ -126,6 +126,7 @@ parcBitVector_Copy(const PARCBitVector *source)
     parcBitVector->bitLength = source->bitLength;
     parcBitVector->numberOfBitsSet = source->numberOfBitsSet;
     parcBitVector->firstBitSet = source->firstBitSet;
+    parcBitVector->fillValue = source->fillValue;
 
     return parcBitVector;
 }
