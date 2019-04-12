@@ -37,7 +37,7 @@ Functionality is grouped into:
 
 ### Distillery ###
 
-Libparc is part of [CCNx Distillery](https://github.com/PARC/CCNx_Distillery). You may want to get the software via that distribution if you want to work on CCNx.
+Libparc is part of [CCNx Distillery](https://github.com/parc-ccnx-archive/CCNx_Distillery). You may want to get the software via that distribution if you want to work on CCNx.
 
 ### Platforms ###
 
@@ -61,7 +61,7 @@ Basic dependencies:
 - OpenSSL
 - pthreads
 - Libevent
-- [LongBow](https://github.com/PARC/LongBow)
+- [LongBow](https://github.com/parc-ccnx-archive/LongBow)
 
 Documentation dependencies:
 
