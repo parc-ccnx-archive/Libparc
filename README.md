@@ -74,7 +74,7 @@ Libparc is built using cmake. You will need to have CMake 3.4 installed in order
 
 ```
 Download Libparc
-$ git clone git@github.com:PARC/Libparc.git Libparc
+$ git clone git@github.com:parc-ccnx-archive/Libparc.git Libparc
 
 Create build directory
 $ mkdir Libparc.build
@@ -109,7 +109,7 @@ LIBPARC=<directory-where-libparc-is-installed>
 
 ### Contact ###
 
-- [Libparc GitHub](https://github.com/PARC/Libparc)
+- [Libparc GitHub](https://github.com/parc-ccnx-archive/Libparc)
 - [CCNx Website](http://www.ccnx.org/)
 - [CCNx Mailing List](https://www.ccnx.org/mailman/listinfo/ccnx/)
 
