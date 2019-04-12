@@ -4,6 +4,10 @@ The PARC C Library
 
 [Online function documentation](https://parc.github.io/Libparc/)
 
+# Deprecated Code #
+This repository is no longer active.  See the [Community ICN](https://wiki.fd.io/view/Cicn) project
+for the latest code.  The [CICN Code Repository](https://github.com/FDio/cicn) should be used for all new projects.
+
 ## Quick Start ##
 ```
 $ git clone git@github.com:PARC/Libparc.git Libparc
